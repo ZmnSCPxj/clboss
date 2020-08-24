@@ -19,6 +19,8 @@ libclboss_la_SOURCES = \
 	S/Bus.hpp \
 	S/Detail/Signal.hpp \
 	S/Detail/SignalBase.hpp \
+	Util/Str.cpp \
+	Util/Str.hpp \
 	Util/make_unique.hpp
 
 # Externals

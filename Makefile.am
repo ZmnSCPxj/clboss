@@ -19,3 +19,8 @@ AM_CXXFLAGS = -Wall -Werror $(libev_CFLAGS)
 LDADD = libclboss.la $(libev_LIBS)
 
 ACLOCAL_AMFLAGS = -I m4
+
+AM_DEFAULT_SOURCE_EXT = .cpp
+TESTS = \
+	tests/ev/test_io_mem_leak
+check_PROGRAMS = $(TESTS)

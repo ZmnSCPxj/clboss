@@ -22,3 +22,6 @@ auxdir
 .deps
 .dirstamp
 .libs
+
+test_*
+!test_*.cpp

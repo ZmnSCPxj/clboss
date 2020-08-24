@@ -8,6 +8,8 @@ clboss_SOURCES = \
 # in the main file.
 noinst_LTLIBRARIES = libclboss.la
 libclboss_la_SOURCES = \
+	Boss/Main.cpp \
+	Boss/Main.hpp \
 	Ev/Io.hpp \
 	Ev/start.cpp \
 	Ev/start.hpp \

@@ -1,0 +1,80 @@
+#ifndef JSMN_OBJECT_HPP
+#define JSMN_OBJECT_HPP
+
+#include<cstddef>
+#include<istream>
+#include<memory>
+#include<ostream>
+#include<stdexcept>
+#include<string>
+#include<vector>
+
+namespace Jsmn { namespace Detail { struct ParseResult; }}
+namespace Jsmn { class Parser; }
+
+namespace Jsmn {
+
+/* Thrown when converting or using as incorrect type.  */
+/* FIXME: Use a backtrace-catching exception.  */
+class TypeError : public std::invalid_argument {
+public:
+	TypeError() : std::invalid_argument("Incorrect type.") { }
+};
+
+/* Represents an object that has been parsed from a JSON string.  */
+class Object {
+private:
+	class Impl;
+	std::shared_ptr<Impl> pimpl;
+
+	/* Used by class Parser to construct.  */
+	Object( std::shared_ptr<Detail::ParseResult>
+	      , unsigned int
+	      );
+
+public:
+	/* Results in a null object.  */
+	Object();
+
+	Object(Object const&) =default;
+	Object(Object&&) =default;
+	Object& operator=(Object const&) =default;
+	Object& operator=(Object&&) =default;
+
+	/* Type queries on the object.  */
+	bool is_null() const;
+	bool is_boolean() const;
+	bool is_string() const;
+	bool is_object() const;
+	bool is_array() const;
+	bool is_number() const;
+
+	/* Conversions will fail if not of the correct type!  */
+	explicit operator bool() const; /* Return false if null as well.  */
+	explicit operator std::string() const;
+	explicit operator double() const;
+
+	/* Number of keys for objects, number of elements for arrays.
+	 * Will throw TypeError if not object or array.
+	 */
+	std::size_t size() const;
+	std::size_t length() const { return size(); }
+
+	/* Act as an object.  */
+	std::vector<std::string> keys() const;
+	bool has(std::string const&) const;
+	Object operator[](std::string const&) const; /* Return null if key not exist.  */
+	/* Act as an array.  */
+	Object operator[](std::size_t) const; /* Return null if out-of-range.  */
+	/* TODO: Iterator.  */
+
+	/* Formal factory.  */
+	friend class Parser;
+};
+
+std::ostream& operator<<(std::ostream&, Jsmn::Object const&);
+std::istream& operator>>(std::istream&, Jsmn::Object&);
+
+}
+
+#endif /* !defined(JSMN_OBJECT_HPP) */

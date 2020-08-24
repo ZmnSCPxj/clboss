@@ -15,6 +15,20 @@ libclboss_la_SOURCES = \
 	Ev/start.hpp \
 	Ev/yield.cpp \
 	Ev/yield.hpp \
+	Jsmn/Detail/EndAdvancer.cpp \
+	Jsmn/Detail/EndAdvancer.hpp \
+	Jsmn/Detail/ParseResult.hpp \
+	Jsmn/Detail/Str.cpp \
+	Jsmn/Detail/Str.hpp \
+	Jsmn/Detail/Token.cpp \
+	Jsmn/Detail/Token.hpp \
+	Jsmn/Detail/Type.hpp \
+	Jsmn/Object.cpp \
+	Jsmn/Object.hpp \
+	Jsmn/Parser.cpp \
+	Jsmn/Parser.hpp \
+	Jsmn/jsonify_string.cpp \
+	Jsmn/jsonify_string.hpp \
 	S/Bus.cpp \
 	S/Bus.hpp \
 	S/Detail/Signal.hpp \

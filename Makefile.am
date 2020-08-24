@@ -21,7 +21,13 @@ libclboss_la_SOURCES = \
 	S/Detail/SignalBase.hpp \
 	Util/make_unique.hpp
 
+# Externals
+EXTRA_DIST = \
+	external/jsmn/LICENSE \
+	external/jsmn/jsmn.h
+
 AM_CXXFLAGS = -Wall -Werror $(libev_CFLAGS)
+AM_CPPFLAGS = -I external/jsmn
 LDADD = libclboss.la $(libev_LIBS)
 
 ACLOCAL_AMFLAGS = -I m4

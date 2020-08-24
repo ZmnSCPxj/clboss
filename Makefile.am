@@ -15,6 +15,10 @@ libclboss_la_SOURCES = \
 	Ev/start.hpp \
 	Ev/yield.cpp \
 	Ev/yield.hpp \
+	S/Bus.cpp \
+	S/Bus.hpp \
+	S/Detail/Signal.hpp \
+	S/Detail/SignalBase.hpp \
 	Util/make_unique.hpp
 
 AM_CXXFLAGS = -Wall -Werror $(libev_CFLAGS)

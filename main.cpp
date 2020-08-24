@@ -1,12 +1,15 @@
 #include<Ev/Io.hpp>
 #include<Ev/start.hpp>
+#include<Ev/yield.hpp>
 #include<iostream>
 
 namespace {
 
 Ev::Io<int> io_main(int argc, char **argv) {
-	std::cout << "Hello World!" << std::endl;
-	return Ev::lift(0);
+	return Ev::yield().then([]() {
+		std::cout << "Hello World!" << std::endl;
+		return Ev::lift(0);
+	});
 }
 
 }

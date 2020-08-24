@@ -4,6 +4,8 @@ clboss_SOURCES = \
 	Ev/Io.hpp \
 	Ev/start.cpp \
 	Ev/start.hpp \
+	Ev/yield.cpp \
+	Ev/yield.hpp \
 	Util/make_unique.hpp \
 	main.cpp
 

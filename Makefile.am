@@ -33,6 +33,8 @@ libclboss_la_SOURCES = \
 	S/Bus.hpp \
 	S/Detail/Signal.hpp \
 	S/Detail/SignalBase.hpp \
+	Util/Rw.cpp \
+	Util/Rw.hpp \
 	Util/Str.cpp \
 	Util/Str.hpp \
 	Util/make_unique.hpp

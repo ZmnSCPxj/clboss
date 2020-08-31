@@ -33,6 +33,8 @@ libclboss_la_SOURCES = \
 	S/Bus.hpp \
 	S/Detail/Signal.hpp \
 	S/Detail/SignalBase.hpp \
+	Stats/RunningMean.cpp \
+	Stats/RunningMean.hpp \
 	Util/Rw.cpp \
 	Util/Rw.hpp \
 	Util/Str.cpp \
@@ -54,5 +56,6 @@ AM_DEFAULT_SOURCE_EXT = .cpp
 TESTS = \
 	tests/boss/test_version \
 	tests/ev/test_io_mem_leak \
-	tests/s/test_bus
+	tests/s/test_bus \
+	tests/stats/test_running_mean
 check_PROGRAMS = $(TESTS)

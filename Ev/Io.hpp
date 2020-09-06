@@ -70,7 +70,7 @@ public:
 					fail(std::current_exception());
 				}
 			};
-			core_copy.run(pass, sub_fail);
+			core_copy(pass, sub_fail);
 		});
 	}
 };
@@ -134,7 +134,7 @@ public:
 
 /* Create a separate then-implementation for Io<void> */
 template<>
-class Io<void> : Detail::IoBase<void> {
+class Io<void> : public Detail::IoBase<void> {
 public:
 	Io(typename Detail::IoBase<void>::CoreFunc core_) : Detail::IoBase<void>(std::move(core_)) { }
 

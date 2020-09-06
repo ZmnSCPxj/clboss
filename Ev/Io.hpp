@@ -73,32 +73,6 @@ public:
 			core_copy.run(pass, sub_fail);
 		});
 	}
-
-	void run( typename Detail::PassFunc<a>::type pass
-		, std::function<void (std::exception_ptr)> fail
-		) const noexcept {
-		auto completed = std::make_shared<bool>(false);
-		auto sub_pass = [completed, pass](a value) {
-			if (!*completed) {
-				*completed = true;
-				pass(std::move(value));
-			}
-		};
-		auto sub_fail = [completed, fail](std::exception_ptr e) {
-			if (!*completed) {
-				*completed = true;
-				fail(std::move(e));
-			}
-		};
-		try {
-			core(std::move(sub_pass), std::move(sub_fail));
-		} catch (...) {
-			if (!*completed) {
-				*completed = true;
-				fail(std::current_exception());
-			}
-		}
-	}
 };
 
 }
@@ -131,6 +105,31 @@ public:
 		});
 	}
 
+	void run( typename Detail::PassFunc<a>::type pass
+		, std::function<void (std::exception_ptr)> fail
+		) const noexcept {
+		auto completed = std::make_shared<bool>(false);
+		auto sub_pass = [completed, pass](a value) {
+			if (!*completed) {
+				*completed = true;
+				pass(std::move(value));
+			}
+		};
+		auto sub_fail = [completed, fail](std::exception_ptr e) {
+			if (!*completed) {
+				*completed = true;
+				fail(std::move(e));
+			}
+		};
+		try {
+			this->core(std::move(sub_pass), std::move(sub_fail));
+		} catch (...) {
+			if (!*completed) {
+				*completed = true;
+				fail(std::current_exception());
+			}
+		}
+	}
 };
 
 /* Create a separate then-implementation for Io<void> */
@@ -162,6 +161,31 @@ public:
 		});
 	}
 
+	void run( typename Detail::PassFunc<void>::type pass
+		, std::function<void (std::exception_ptr)> fail
+		) const noexcept {
+		auto completed = std::make_shared<bool>(false);
+		auto sub_pass = [completed, pass]() {
+			if (!*completed) {
+				*completed = true;
+				pass();
+			}
+		};
+		auto sub_fail = [completed, fail](std::exception_ptr e) {
+			if (!*completed) {
+				*completed = true;
+				fail(std::move(e));
+			}
+		};
+		try {
+			this->core(std::move(sub_pass), std::move(sub_fail));
+		} catch (...) {
+			if (!*completed) {
+				*completed = true;
+				fail(std::current_exception());
+			}
+		}
+	}
 };
 
 template<typename a>

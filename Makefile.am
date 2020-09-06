@@ -10,6 +10,7 @@ noinst_LTLIBRARIES = libclboss.la
 libclboss_la_SOURCES = \
 	Boss/Main.cpp \
 	Boss/Main.hpp \
+	Boss/Shutdown.hpp \
 	Ev/Io.hpp \
 	Ev/start.cpp \
 	Ev/start.hpp \

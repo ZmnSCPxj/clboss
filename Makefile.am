@@ -12,6 +12,8 @@ libclboss_la_SOURCES = \
 	Boss/Main.hpp \
 	Boss/Shutdown.hpp \
 	Ev/Io.hpp \
+	Ev/concurrent.cpp \
+	Ev/concurrent.hpp \
 	Ev/start.cpp \
 	Ev/start.hpp \
 	Ev/yield.cpp \
@@ -56,6 +58,7 @@ ACLOCAL_AMFLAGS = -I m4
 AM_DEFAULT_SOURCE_EXT = .cpp
 TESTS = \
 	tests/boss/test_version \
+	tests/ev/test_concurrent_simple \
 	tests/ev/test_io_mem_leak \
 	tests/s/test_bus \
 	tests/stats/test_running_mean

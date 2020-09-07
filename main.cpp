@@ -14,9 +14,9 @@ Ev::Io<int> io_main(int argc, char **argv) {
 	auto main_obj = std::make_shared<Boss::Main>(
 		arg_vec, std::cin, std::cout, std::cerr
 	);
-	return main_obj->run().then([main_obj]() {
+	return main_obj->run().then([main_obj](int ec) {
 		/* Ensures main_obj is alive!  */
-		return Ev::lift(0);
+		return Ev::lift(ec);
 	});
 }
 

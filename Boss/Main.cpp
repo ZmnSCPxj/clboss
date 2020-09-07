@@ -1,6 +1,7 @@
 #include<assert.h>
 #include<iostream>
 #include<string>
+#include"Boss/JsonInput.hpp"
 #include"Boss/Main.hpp"
 #include"Boss/Msg/Begin.hpp"
 #include"Boss/Shutdown.hpp"
@@ -23,6 +24,9 @@ private:
 
 	std::unique_ptr<S::Bus> bus;
 	std::unique_ptr<Ev::ThreadPool> threadpool;
+	std::unique_ptr<Boss::JsonInput> jsoninput;
+
+	int exit_code;
 
 	std::string argv0;
 	bool is_version;
@@ -36,6 +40,7 @@ public:
 	    ) : cin(cin_)
 	      , cout(cout_)
 	      , cerr(cerr_)
+	      , exit_code(0)
 	      , is_version(false)
 	      , is_help(false)
 	      {
@@ -50,10 +55,10 @@ public:
 		}
 	}
 
-	Ev::Io<void> run() {
+	Ev::Io<int> run() {
 		if (is_version) {
 			cout << PACKAGE_STRING << std::endl;
-			return Ev::lift();
+			return Ev::lift(0);
 		} else if (is_help) {
 			cout << "Usage: add --plugin=" << argv0 << " to your lightningd command line or configuration file" << std::endl
 			     << std::endl
@@ -66,24 +71,32 @@ public:
 			     << std::endl
 			     << "Send bug reports to: " << PACKAGE_BUGREPORT << std::endl
 			     ;
-			return Ev::lift();
+			return Ev::lift(0);
 		}
 
 		/* Build our components.  */
 		bus = Util::make_unique<S::Bus>();
 		threadpool = Util::make_unique<Ev::ThreadPool>();
+		jsoninput = Util::make_unique<Boss::JsonInput>(
+			*threadpool, cin, *bus
+		);
 		/* TODO: modules.  */
 
 		return Ev::yield().then([this]() {
 			/* Begin.  */
 			return bus->raise(Boss::Msg::Begin());
 		}).then([this]() {
-			/* TODO: Main loop.  */
-			cout << "Hello World" << std::endl;
-			return Ev::lift();
+			/* Main loop.  */
+			return jsoninput->run().catching<std::exception>([this](std::exception const& e) {
+				cerr << "Uncaught exception: " << e.what() << std::endl;
+				exit_code = 1;
+				return Ev::lift();
+			});
 		}).then([this]() {
 			/* Finish.  */
 			return bus->raise(Boss::Shutdown());
+		}).then([this]() {
+			return Ev::lift(exit_code);
 		});
 	}
 };
@@ -97,7 +110,7 @@ Main::Main( std::vector<std::string> argv
 Main::Main(Main&& o) : pimpl(std::move(o.pimpl)) { }
 Main::~Main() { }
 
-Ev::Io<void> Main::run() {
+Ev::Io<int> Main::run() {
 	assert(pimpl);
 	return pimpl->run();
 }

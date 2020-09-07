@@ -26,7 +26,7 @@ public:
 	Main(Main&&);
 	~Main();
 
-	Ev::Io<void> run();
+	Ev::Io<int> run();
 };
 
 }

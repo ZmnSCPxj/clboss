@@ -20,8 +20,8 @@ int main() {
 
 	auto main = Boss::Main(argv, cin, cout, cerr);
 
-	auto ec = Ev::start(main.run().then([]() {
-		return Ev::lift(0);
+	auto ec = Ev::start(main.run().then([](int ec) {
+		return Ev::lift(ec);
 	}));
 	assert(ec == 0);
 	/* No input should be consumed.  */

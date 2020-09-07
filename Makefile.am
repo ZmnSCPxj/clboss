@@ -8,9 +8,12 @@ clboss_SOURCES = \
 # in the main file.
 noinst_LTLIBRARIES = libclboss.la
 libclboss_la_SOURCES = \
+	Boss/JsonInput.cpp \
+	Boss/JsonInput.hpp \
 	Boss/Main.cpp \
 	Boss/Main.hpp \
 	Boss/Msg/Begin.hpp \
+	Boss/Msg/JsonCin.hpp \
 	Boss/Shutdown.hpp \
 	Boss/concurrent.cpp \
 	Boss/concurrent.hpp \

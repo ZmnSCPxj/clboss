@@ -1,6 +1,9 @@
+#include"Boss/Mod/JsonOutputter.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Mod/all.hpp"
 #include"Boss/Msg/Begin.hpp"
+#include"Boss/Msg/JsonCin.hpp"
+#include"Boss/Msg/JsonCout.hpp"
 #include"Boss/concurrent.hpp"
 #include"S/Bus.hpp"
 #include<vector>
@@ -24,24 +27,24 @@ class Dummy {
 private:
 	S::Bus& bus;
 	Boss::Mod::Waiter& waiter;
-	std::ostream& cout;
 
-	Ev::Io<void> begin() {
-		return Ev::lift().then([this]() {
-			return waiter.wait(5.0);
-		}).then([this]() {
-			cout << "Hello World" << std::endl;
-			return Ev::lift();
+	Ev::Io<void> begin(Jsmn::Object const& inp) {
+		return Ev::lift().then([this, inp]() {
+			auto js = Json::Out()
+				.start_object()
+					.field("inp", inp)
+				.end_object()
+				;
+			return bus.raise(Boss::Msg::JsonCout{js});
 		});
 	}
 
 public:
 	explicit Dummy( S::Bus& bus_
 		      , Boss::Mod::Waiter& waiter_
-		      , std::ostream& cout_
-		      ) : bus(bus_), waiter(waiter_), cout(cout_) {
-		bus.subscribe<Boss::Msg::Begin>([this](Boss::Msg::Begin _) {
-			return Boss::concurrent(begin());
+		      ) : bus(bus_), waiter(waiter_) {
+		bus.subscribe<Boss::Msg::JsonCin>([this](Boss::Msg::JsonCin const& inp) {
+			return Boss::concurrent(begin(inp.obj));
 		});
 	}
 };
@@ -58,8 +61,11 @@ std::shared_ptr<void> all( std::ostream& cout
 
 	/* The waiter is shared among most of the other modules.  */
 	auto waiter = all->install<Waiter>(bus);
+	all->install<JsonOutputter>(cout, bus);
 
-	all->install<Dummy>(bus, *waiter, cout);
+	(void) waiter;
+
+	all->install<Dummy>(bus, *waiter);
 
 	return all;
 }

@@ -3,6 +3,7 @@
 #include<string>
 #include"Boss/JsonInput.hpp"
 #include"Boss/Main.hpp"
+#include"Boss/Mod/all.hpp"
 #include"Boss/Msg/Begin.hpp"
 #include"Boss/Shutdown.hpp"
 #include"Ev/Io.hpp"
@@ -25,6 +26,7 @@ private:
 	std::unique_ptr<S::Bus> bus;
 	std::unique_ptr<Ev::ThreadPool> threadpool;
 	std::unique_ptr<Boss::JsonInput> jsoninput;
+	std::shared_ptr<void> modules;
 
 	int exit_code;
 
@@ -80,7 +82,7 @@ public:
 		jsoninput = Util::make_unique<Boss::JsonInput>(
 			*threadpool, cin, *bus
 		);
-		/* TODO: modules.  */
+		modules = Boss::Mod::all(cout, *bus, *threadpool);
 
 		return Ev::yield().then([this]() {
 			/* Begin.  */

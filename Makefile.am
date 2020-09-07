@@ -12,6 +12,8 @@ libclboss_la_SOURCES = \
 	Boss/JsonInput.hpp \
 	Boss/Main.cpp \
 	Boss/Main.hpp \
+	Boss/Mod/all.cpp \
+	Boss/Mod/all.hpp \
 	Boss/Msg/Begin.hpp \
 	Boss/Msg/JsonCin.hpp \
 	Boss/Shutdown.hpp \

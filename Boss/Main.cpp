@@ -22,6 +22,10 @@ private:
 	std::istream& cin;
 	std::ostream& cout;
 	std::ostream& cerr;
+	std::function< Net::Fd( std::string const&
+			      , std::string const&
+			      )
+		     > open_rpc_socket;
 
 	std::unique_ptr<S::Bus> bus;
 	std::unique_ptr<Ev::ThreadPool> threadpool;
@@ -39,9 +43,14 @@ public:
 	    , std::istream& cin_
 	    , std::ostream& cout_
 	    , std::ostream& cerr_
+	    , std::function< Net::Fd( std::string const&
+				    , std::string const&
+				    )
+			   > open_rpc_socket_
 	    ) : cin(cin_)
 	      , cout(cout_)
 	      , cerr(cerr_)
+	      , open_rpc_socket(std::move(open_rpc_socket_))
 	      , exit_code(0)
 	      , is_version(false)
 	      , is_help(false)
@@ -82,7 +91,11 @@ public:
 		jsoninput = Util::make_unique<Boss::JsonInput>(
 			*threadpool, cin, *bus
 		);
-		modules = Boss::Mod::all(cout, *bus, *threadpool);
+		modules = Boss::Mod::all( cout
+					, *bus
+					, *threadpool
+					, open_rpc_socket
+					);
 
 		return Ev::yield().then([this]() {
 			/* Begin.  */
@@ -107,7 +120,16 @@ Main::Main( std::vector<std::string> argv
 	  , std::istream& cin
 	  , std::ostream& cout
 	  , std::ostream& cerr
-	  ) : pimpl(Util::make_unique<Impl>(std::move(argv), cin, cout, cerr))
+	  , std::function< Net::Fd( std::string const&
+				  , std::string const&
+				  )
+			 > open_rpc_socket
+	  ) : pimpl(Util::make_unique<Impl>( std::move(argv)
+					   , cin
+					   , cout
+					   , cerr
+					   , std::move(open_rpc_socket)
+					   ))
 	    { }
 Main::Main(Main&& o) : pimpl(std::move(o.pimpl)) { }
 Main::~Main() { }

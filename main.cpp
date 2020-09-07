@@ -1,6 +1,8 @@
 #include<Boss/Main.hpp>
+#include<Boss/open_rpc_socket.hpp>
 #include<Ev/Io.hpp>
 #include<Ev/start.hpp>
+#include<Net/Fd.hpp>
 #include<iostream>
 #include<memory>
 
@@ -12,7 +14,8 @@ Ev::Io<int> io_main(int argc, char **argv) {
 		arg_vec.push_back(std::string(argv[i]));
 	}
 	auto main_obj = std::make_shared<Boss::Main>(
-		arg_vec, std::cin, std::cout, std::cerr
+		arg_vec, std::cin, std::cout, std::cerr,
+		Boss::open_rpc_socket
 	);
 	return main_obj->run().then([main_obj](int ec) {
 		/* Ensures main_obj is alive!  */

@@ -37,6 +37,8 @@ libclboss_la_SOURCES = \
 	Boss/concurrent.hpp \
 	Boss/log.cpp \
 	Boss/log.hpp \
+	Boss/open_rpc_socket.cpp \
+	Boss/open_rpc_socket.hpp \
 	Ev/Io.hpp \
 	Ev/ThreadPool.cpp \
 	Ev/ThreadPool.hpp \

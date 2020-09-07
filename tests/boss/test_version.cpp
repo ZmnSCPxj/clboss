@@ -2,8 +2,10 @@
 #include<Boss/Main.hpp>
 #include<Ev/Io.hpp>
 #include<Ev/start.hpp>
+#include<Net/Fd.hpp>
 #include<assert.h>
 #include<sstream>
+#include<stdexcept>
 
 #ifdef HAVE_CONFIG_H
 # include"config.h"
@@ -18,7 +20,15 @@ int main() {
 	auto cout = std::stringstream("");
 	auto cerr = std::stringstream("");
 
-	auto main = Boss::Main(argv, cin, cout, cerr);
+	auto dummy_open_rpc_socket = []( std::string const& lightning_dir
+				       , std::string const& rpc_file
+				       ){
+		throw std::runtime_error("Should not be called");
+		return Net::Fd();
+	};
+	auto main = Boss::Main( argv, cin, cout, cerr
+			      , dummy_open_rpc_socket
+			      );
 
 	auto ec = Ev::start(main.run().then([](int ec) {
 		return Ev::lift(ec);

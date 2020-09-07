@@ -46,6 +46,10 @@ namespace Boss { namespace Mod {
 std::shared_ptr<void> all( std::ostream& cout
 			 , S::Bus& bus
 			 , Ev::ThreadPool& threadpool
+			 , std::function< Net::Fd( std::string const&
+						 , std::string const&
+						 )
+					> open_rpc_socket
 			 ) {
 	auto all = std::make_shared<All>();
 

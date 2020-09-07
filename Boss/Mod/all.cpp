@@ -1,11 +1,10 @@
 #include"Boss/Mod/CommandReceiver.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
+#include"Boss/Mod/Manifester.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Mod/all.hpp"
-#include"Boss/Msg/Begin.hpp"
-#include"Boss/Msg/JsonCin.hpp"
-#include"Boss/Msg/JsonCout.hpp"
-#include"Boss/concurrent.hpp"
+#include"Boss/Msg/Manifestation.hpp"
+#include"Boss/Msg/ManifestNotification.hpp"
 #include"S/Bus.hpp"
 #include<vector>
 
@@ -27,26 +26,16 @@ public:
 class Dummy {
 private:
 	S::Bus& bus;
-	Boss::Mod::Waiter& waiter;
 
-	Ev::Io<void> begin(Jsmn::Object const& inp) {
-		return Ev::lift().then([this, inp]() {
-			auto js = Json::Out()
-				.start_object()
-					.field("inp", inp)
-				.end_object()
-				;
-			return bus.raise(Boss::Msg::JsonCout{js});
+	void start() {
+		bus.subscribe<Boss::Msg::Manifestation>([this](Boss::Msg::Manifestation const& _) {
+			return bus.raise(Boss::Msg::ManifestNotification{"forward_event"});
 		});
 	}
 
 public:
-	explicit Dummy( S::Bus& bus_
-		      , Boss::Mod::Waiter& waiter_
-		      ) : bus(bus_), waiter(waiter_) {
-		bus.subscribe<Boss::Msg::JsonCin>([this](Boss::Msg::JsonCin const& inp) {
-			return Boss::concurrent(begin(inp.obj));
-		});
+	explicit Dummy( S::Bus& bus_) : bus(bus_) {
+		start();
 	}
 };
 
@@ -64,10 +53,11 @@ std::shared_ptr<void> all( std::ostream& cout
 	auto waiter = all->install<Waiter>(bus);
 	all->install<JsonOutputter>(cout, bus);
 	all->install<CommandReceiver>(bus);
+	all->install<Manifester>(bus);
 
 	(void) waiter;
 
-	all->install<Dummy>(bus, *waiter);
+	all->install<Dummy>(bus);
 
 	return all;
 }

@@ -29,6 +29,8 @@ libclboss_la_SOURCES = \
 	Boss/Shutdown.hpp \
 	Boss/concurrent.cpp \
 	Boss/concurrent.hpp \
+	Boss/log.cpp \
+	Boss/log.hpp \
 	Ev/Io.hpp \
 	Ev/ThreadPool.cpp \
 	Ev/ThreadPool.hpp \

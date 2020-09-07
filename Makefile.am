@@ -14,6 +14,8 @@ libclboss_la_SOURCES = \
 	Boss/concurrent.cpp \
 	Boss/concurrent.hpp \
 	Ev/Io.hpp \
+	Ev/ThreadPool.cpp \
+	Ev/ThreadPool.hpp \
 	Ev/concurrent.cpp \
 	Ev/concurrent.hpp \
 	Ev/start.cpp \
@@ -51,9 +53,9 @@ EXTRA_DIST = \
 	external/jsmn/LICENSE \
 	external/jsmn/jsmn.h
 
-AM_CXXFLAGS = -Wall -Werror $(libev_CFLAGS)
+AM_CXXFLAGS = -Wall -Werror $(PTHREAD_CFLAGS) $(libev_CFLAGS)
 AM_CPPFLAGS = -I external/jsmn
-LDADD = libclboss.la $(libev_LIBS)
+LDADD = libclboss.la $(PTHREAD_LIBS) $(libev_LIBS)
 
 ACLOCAL_AMFLAGS = -I m4
 

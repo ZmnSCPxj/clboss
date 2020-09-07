@@ -61,6 +61,8 @@ libclboss_la_SOURCES = \
 	Jsmn/jsonify_string.cpp \
 	Jsmn/jsonify_string.hpp \
 	Json/Out.hpp \
+	Net/Fd.cpp \
+	Net/Fd.hpp \
 	S/Bus.cpp \
 	S/Bus.hpp \
 	S/Detail/Signal.hpp \

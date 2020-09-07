@@ -1,9 +1,13 @@
-#include<Boss/Main.hpp>
-#include<Ev/Io.hpp>
-#include<Util/make_unique.hpp>
 #include<assert.h>
 #include<iostream>
 #include<string>
+#include"Boss/Main.hpp"
+#include"Boss/Msg/Begin.hpp"
+#include"Boss/Shutdown.hpp"
+#include"Ev/Io.hpp"
+#include"Ev/ThreadPool.hpp"
+#include"S/Bus.hpp"
+#include"Util/make_unique.hpp"
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
@@ -16,6 +20,9 @@ private:
 	std::istream& cin;
 	std::ostream& cout;
 	std::ostream& cerr;
+
+	std::unique_ptr<S::Bus> bus;
+	std::unique_ptr<Ev::ThreadPool> threadpool;
 
 	std::string argv0;
 	bool is_version;
@@ -62,9 +69,22 @@ public:
 			return Ev::lift();
 		}
 
-		/* TODO */
-		cout << "Hello World" << std::endl;
-		return Ev::lift();
+		/* Build our components.  */
+		bus = Util::make_unique<S::Bus>();
+		threadpool = Util::make_unique<Ev::ThreadPool>();
+		/* TODO: modules.  */
+
+		return Ev::yield().then([this]() {
+			/* Begin.  */
+			return bus->raise(Boss::Msg::Begin());
+		}).then([this]() {
+			/* TODO: Main loop.  */
+			cout << "Hello World" << std::endl;
+			return Ev::lift();
+		}).then([this]() {
+			/* Finish.  */
+			return bus->raise(Boss::Shutdown());
+		});
 	}
 };
 

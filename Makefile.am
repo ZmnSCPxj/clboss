@@ -10,6 +10,7 @@ noinst_LTLIBRARIES = libclboss.la
 libclboss_la_SOURCES = \
 	Boss/Main.cpp \
 	Boss/Main.hpp \
+	Boss/Msg/Begin.hpp \
 	Boss/Shutdown.hpp \
 	Boss/concurrent.cpp \
 	Boss/concurrent.hpp \

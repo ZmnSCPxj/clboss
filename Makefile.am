@@ -44,6 +44,7 @@ libclboss_la_SOURCES = \
 	Jsmn/Parser.hpp \
 	Jsmn/jsonify_string.cpp \
 	Jsmn/jsonify_string.hpp \
+	Json/Out.hpp \
 	S/Bus.cpp \
 	S/Bus.hpp \
 	S/Detail/Signal.hpp \
@@ -72,6 +73,7 @@ TESTS = \
 	tests/boss/test_version \
 	tests/ev/test_concurrent_simple \
 	tests/ev/test_io_mem_leak \
+	tests/json/test_out_simple \
 	tests/s/test_bus \
 	tests/stats/test_running_mean
 check_PROGRAMS = $(TESTS)

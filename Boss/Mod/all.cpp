@@ -1,3 +1,4 @@
+#include"Boss/Mod/CommandReceiver.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Mod/all.hpp"
@@ -62,6 +63,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	/* The waiter is shared among most of the other modules.  */
 	auto waiter = all->install<Waiter>(bus);
 	all->install<JsonOutputter>(cout, bus);
+	all->install<CommandReceiver>(bus);
 
 	(void) waiter;
 

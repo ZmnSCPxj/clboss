@@ -1,4 +1,5 @@
 #include"Boss/Mod/CommandReceiver.hpp"
+#include"Boss/Mod/Initiator.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
 #include"Boss/Mod/Manifester.hpp"
 #include"Boss/Mod/Waiter.hpp"
@@ -58,6 +59,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<JsonOutputter>(cout, bus);
 	all->install<CommandReceiver>(bus);
 	all->install<Manifester>(bus);
+	all->install<Initiator>(bus, threadpool, std::move(open_rpc_socket));
 
 	(void) waiter;
 

@@ -14,6 +14,8 @@ libclboss_la_SOURCES = \
 	Boss/Main.hpp \
 	Boss/Mod/CommandReceiver.cpp \
 	Boss/Mod/CommandReceiver.hpp \
+	Boss/Mod/Initiator.cpp \
+	Boss/Mod/Initiator.hpp \
 	Boss/Mod/JsonOutputter.cpp \
 	Boss/Mod/JsonOutputter.hpp \
 	Boss/Mod/Manifester.cpp \
@@ -27,12 +29,14 @@ libclboss_la_SOURCES = \
 	Boss/Msg/Begin.hpp \
 	Boss/Msg/CommandRequest.hpp \
 	Boss/Msg/CommandResponse.hpp \
+	Boss/Msg/Init.hpp \
 	Boss/Msg/JsonCin.hpp \
 	Boss/Msg/JsonCout.hpp \
 	Boss/Msg/ManifestCommand.hpp \
 	Boss/Msg/ManifestHook.hpp \
 	Boss/Msg/ManifestNotification.hpp \
 	Boss/Msg/Manifestation.hpp \
+	Boss/Msg/Network.hpp \
 	Boss/Msg/Notification.hpp \
 	Boss/Shutdown.hpp \
 	Boss/concurrent.cpp \

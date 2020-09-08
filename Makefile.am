@@ -24,6 +24,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Manifester.hpp \
 	Boss/Mod/Rpc.cpp \
 	Boss/Mod/Rpc.hpp \
+	Boss/Mod/Timers.cpp \
+	Boss/Mod/Timers.hpp \
 	Boss/Mod/Waiter.cpp \
 	Boss/Mod/Waiter.hpp \
 	Boss/Mod/all.cpp \
@@ -40,6 +42,9 @@ libclboss_la_SOURCES = \
 	Boss/Msg/Manifestation.hpp \
 	Boss/Msg/Network.hpp \
 	Boss/Msg/Notification.hpp \
+	Boss/Msg/Timer10Minutes.hpp \
+	Boss/Msg/TimerRandomDaily.hpp \
+	Boss/Msg/TimerRandomHourly.hpp \
 	Boss/Shutdown.hpp \
 	Boss/concurrent.cpp \
 	Boss/concurrent.hpp \

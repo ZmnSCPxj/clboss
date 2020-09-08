@@ -3,6 +3,7 @@
 #include"Boss/Mod/Initiator.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
 #include"Boss/Mod/Manifester.hpp"
+#include"Boss/Mod/Timers.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Mod/all.hpp"
 #include"Boss/Msg/Manifestation.hpp"
@@ -62,6 +63,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<Manifester>(bus);
 	all->install<Initiator>(bus, threadpool, std::move(open_rpc_socket));
 	all->install<BlockTracker>(bus);
+	all->install<Timers>(bus, *waiter);
 
 	(void) waiter;
 

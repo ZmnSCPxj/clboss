@@ -16,6 +16,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/BlockTracker.hpp \
 	Boss/Mod/CommandReceiver.cpp \
 	Boss/Mod/CommandReceiver.hpp \
+	Boss/Mod/InitialConnect.cpp \
+	Boss/Mod/InitialConnect.hpp \
 	Boss/Mod/Initiator.cpp \
 	Boss/Mod/Initiator.hpp \
 	Boss/Mod/JsonOutputter.cpp \
@@ -40,6 +42,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ManifestHook.hpp \
 	Boss/Msg/ManifestNotification.hpp \
 	Boss/Msg/Manifestation.hpp \
+	Boss/Msg/NeedsConnect.hpp \
 	Boss/Msg/Network.hpp \
 	Boss/Msg/Notification.hpp \
 	Boss/Msg/Timer10Minutes.hpp \

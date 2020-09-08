@@ -1,5 +1,6 @@
 #include"Boss/Mod/BlockTracker.hpp"
 #include"Boss/Mod/CommandReceiver.hpp"
+#include"Boss/Mod/InitialConnect.hpp"
 #include"Boss/Mod/Initiator.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
 #include"Boss/Mod/Manifester.hpp"
@@ -64,8 +65,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<Initiator>(bus, threadpool, std::move(open_rpc_socket));
 	all->install<BlockTracker>(bus);
 	all->install<Timers>(bus, *waiter);
-
-	(void) waiter;
+	all->install<InitialConnect>(bus);
 
 	all->install<Dummy>(bus);
 

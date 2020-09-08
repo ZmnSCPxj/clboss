@@ -18,6 +18,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/JsonOutputter.hpp \
 	Boss/Mod/Manifester.cpp \
 	Boss/Mod/Manifester.hpp \
+	Boss/Mod/Rpc.cpp \
+	Boss/Mod/Rpc.hpp \
 	Boss/Mod/Waiter.cpp \
 	Boss/Mod/Waiter.hpp \
 	Boss/Mod/all.cpp \
@@ -90,6 +92,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 AM_DEFAULT_SOURCE_EXT = .cpp
 TESTS = \
+	tests/boss/test_rpc \
 	tests/boss/test_version \
 	tests/ev/test_concurrent_simple \
 	tests/ev/test_io_mem_leak \

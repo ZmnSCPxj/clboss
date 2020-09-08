@@ -12,6 +12,8 @@ libclboss_la_SOURCES = \
 	Boss/JsonInput.hpp \
 	Boss/Main.cpp \
 	Boss/Main.hpp \
+	Boss/Mod/BlockTracker.cpp \
+	Boss/Mod/BlockTracker.hpp \
 	Boss/Mod/CommandReceiver.cpp \
 	Boss/Mod/CommandReceiver.hpp \
 	Boss/Mod/Initiator.cpp \

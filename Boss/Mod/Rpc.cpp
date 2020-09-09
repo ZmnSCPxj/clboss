@@ -1,5 +1,6 @@
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/Shutdown.hpp"
+#include"Boss/log.hpp"
 #include"Ev/Io.hpp"
 #include"Jsmn/Parser.hpp"
 #include"Json/Out.hpp"
@@ -13,10 +14,22 @@
 #include<fcntl.h>
 #include<iterator>
 #include<map>
+#include<memory>
 #include<poll.h>
 #include<sstream>
 #include<string.h>
 #include<unistd.h>
+
+namespace {
+
+template<typename a>
+std::string enstring(a const& val) {
+	auto os = std::ostringstream();
+	os << val;
+	return os.str();
+}
+
+}
 
 namespace Boss { namespace Mod {
 
@@ -37,6 +50,8 @@ RpcError::RpcError( std::string command_
 
 class Rpc::Impl {
 private:
+	S::Bus& bus;
+
 	Net::Fd socket;
 	Jsmn::Parser parser;
 
@@ -212,13 +227,16 @@ private:
 	static
 	void on_write_static(EV_P_ ev_io *e, int revents) {
 		auto self = reinterpret_cast<Impl*>(e->data);
+		ev_io_stop(EV_A_ self->write_event.get());
+		self->write_event = nullptr;
 		self->on_write();
 	}
 
 public:
-	Impl( S::Bus& bus
+	Impl( S::Bus& bus_
 	    , Net::Fd socket_
-	    ) : socket(std::move(socket_))
+	    ) : bus(bus_)
+	      , socket(std::move(socket_))
 	      , is_shutting_down(false)
 	      , next_id(0)
 	      , write_event(nullptr)
@@ -253,9 +271,9 @@ public:
 			shutdown();
 	}
 
-	Ev::Io<Jsmn::Object> command( std::string const& command
-				    , Json::Out params
-				    ) {
+	Ev::Io<Jsmn::Object> core_command( std::string const& command
+					 , Json::Out params
+					 ) {
 		return Ev::Io<Jsmn::Object>([=]( std::function<void(Jsmn::Object)> pass
 					       , std::function<void(std::exception_ptr)> fail
 					       ) {
@@ -289,6 +307,28 @@ public:
 
 			/* Perform the write.  */
 			on_write();
+		});
+	}
+	Ev::Io<Jsmn::Object> command( std::string const& command
+				    , Json::Out params
+				    ) {
+		auto save = std::make_shared<Jsmn::Object>();
+		return Boss::log( bus, Debug
+				, "Rpc out: %s %s"
+				, command.c_str()
+				, params.output().c_str()
+				).then([this, command, params]() {
+			return core_command(command, params);
+		}).then([this, command, params, save](Jsmn::Object result) {
+			*save = std::move(result);
+			return Boss::log( bus, Debug
+					, "Rpc in: %s %s => %s"
+					, command.c_str()
+					, params.output().c_str()
+					, enstring(*save).c_str()
+					);
+		}).then([save]() {
+			return Ev::lift(std::move(*save));
 		});
 	}
 };

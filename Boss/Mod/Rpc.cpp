@@ -43,7 +43,7 @@ std::string RpcError::make_error_message( std::string const& command
 
 RpcError::RpcError( std::string command_
 		  , Jsmn::Object error_
-		  ) : std::runtime_error(make_error_message(command, error_))
+		  ) : std::runtime_error(make_error_message(command_, error_))
 		    , command(command_)
 		    , error(error_)
 		    { }

@@ -5,6 +5,7 @@
 #include"Boss/Mod/Initiator.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
 #include"Boss/Mod/Manifester.hpp"
+#include"Boss/Mod/NeedsConnectSolicitor.hpp"
 #include"Boss/Mod/Timers.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Mod/all.hpp"
@@ -68,6 +69,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<Timers>(bus, *waiter);
 	all->install<InitialConnect>(bus);
 	all->install<Connector>(bus);
+	all->install<NeedsConnectSolicitor>(bus);
 
 	all->install<Dummy>(bus);
 

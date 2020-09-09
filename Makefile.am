@@ -26,6 +26,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/JsonOutputter.hpp \
 	Boss/Mod/Manifester.cpp \
 	Boss/Mod/Manifester.hpp \
+	Boss/Mod/NeedsConnectSolicitor.cpp \
+	Boss/Mod/NeedsConnectSolicitor.hpp \
 	Boss/Mod/Rpc.cpp \
 	Boss/Mod/Rpc.hpp \
 	Boss/Mod/Timers.cpp \
@@ -47,8 +49,11 @@ libclboss_la_SOURCES = \
 	Boss/Msg/NeedsConnect.hpp \
 	Boss/Msg/Network.hpp \
 	Boss/Msg/Notification.hpp \
+	Boss/Msg/ProposeConnectCandidates.hpp \
 	Boss/Msg/RequestConnect.hpp \
 	Boss/Msg/ResponseConnect.hpp \
+	Boss/Msg/SolicitConnectCandidates.hpp \
+	Boss/Msg/TaskCompletion.hpp \
 	Boss/Msg/Timer10Minutes.hpp \
 	Boss/Msg/TimerRandomDaily.hpp \
 	Boss/Msg/TimerRandomHourly.hpp \
@@ -112,6 +117,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 AM_DEFAULT_SOURCE_EXT = .cpp
 TESTS = \
+	tests/boss/test_needsconnectsolicitor \
 	tests/boss/test_rpc \
 	tests/boss/test_version \
 	tests/ev/test_concurrent_simple \

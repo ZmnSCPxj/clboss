@@ -31,6 +31,11 @@ void Connector::start() {
 
 Ev::Io<void> Connector::connect(std::string const& node) {
 	return Ev::lift().then([this, node]() {
+		return Boss::log( bus, Debug
+				, "Connector: try %s"
+				, node.c_str()
+				);
+	}).then([this, node]() {
 		auto params = Json::Out()
 			.start_object()
 				.field("id", node)

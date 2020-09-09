@@ -68,6 +68,8 @@ libclboss_la_SOURCES = \
 	DnsSeed/Detail/decode_bech32_node.hpp \
 	DnsSeed/Detail/parse_dig_srv.cpp \
 	DnsSeed/Detail/parse_dig_srv.hpp \
+	DnsSeed/get.cpp \
+	DnsSeed/get.hpp \
 	Ev/Io.hpp \
 	Ev/ThreadPool.cpp \
 	Ev/ThreadPool.hpp \
@@ -125,6 +127,7 @@ TESTS = \
 	tests/boss/test_rpc \
 	tests/boss/test_version \
 	tests/dnsseed/test_decode_bech32_node \
+	tests/dnsseed/test_get \
 	tests/dnsseed/test_parse_dig_srv \
 	tests/ev/test_concurrent_simple \
 	tests/ev/test_io_mem_leak \

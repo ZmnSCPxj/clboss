@@ -60,6 +60,8 @@ libclboss_la_SOURCES = \
 	Ev/ThreadPool.hpp \
 	Ev/concurrent.cpp \
 	Ev/concurrent.hpp \
+	Ev/runcmd.cpp \
+	Ev/runcmd.hpp \
 	Ev/start.cpp \
 	Ev/start.hpp \
 	Ev/yield.cpp \
@@ -110,6 +112,7 @@ TESTS = \
 	tests/boss/test_version \
 	tests/ev/test_concurrent_simple \
 	tests/ev/test_io_mem_leak \
+	tests/ev/test_runcmd \
 	tests/json/test_out_simple \
 	tests/s/test_bus \
 	tests/stats/test_running_mean

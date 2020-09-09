@@ -62,6 +62,8 @@ libclboss_la_SOURCES = \
 	Boss/concurrent.hpp \
 	Boss/log.cpp \
 	Boss/log.hpp \
+	Boss/random_engine.cpp \
+	Boss/random_engine.hpp \
 	Boss/open_rpc_socket.cpp \
 	Boss/open_rpc_socket.hpp \
 	DnsSeed/Detail/decode_bech32_node.cpp \

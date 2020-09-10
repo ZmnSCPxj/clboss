@@ -69,6 +69,15 @@ bool NodeId::equality_check(NodeId const& o) const {
 	 */
 	return 0 == memcmp(pimpl->raw, o.pimpl->raw, sizeof(pimpl->raw));
 }
+bool NodeId::less_check(NodeId const& o) const {
+	if (!pimpl && o.pimpl)
+		/* 00.... < 02... */
+		return true;
+	if (pimpl && !o.pimpl)
+		/* 02.... < 00... */
+		return false;
+	return 0 > memcmp(pimpl->raw, o.pimpl->raw, sizeof(pimpl->raw));
+}
 
 std::istream& operator>>(std::istream& is, NodeId& n) {
 	auto tmp = std::string();

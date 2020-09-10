@@ -55,7 +55,24 @@ public:
 	bool operator!=(NodeId const& o) const {
 		return !(*this == o);
 	}
-	/* TODO: lexicographic compare?  */
+
+private:
+	bool less_check(NodeId const& o) const;
+public:
+	bool operator<(NodeId const& o) const {
+		if (o.pimpl == pimpl)
+			return false;
+		return less_check(o);
+	}
+	bool operator>(NodeId const& o) const {
+		return (o < *this);
+	}
+	bool operator<=(NodeId const& o) const {
+		return !(*this > o);
+	}
+	bool operator>=(NodeId const& o) const {
+		return (o <= *this);
+	}
 };
 
 std::istream& operator>>(std::istream&, NodeId&);

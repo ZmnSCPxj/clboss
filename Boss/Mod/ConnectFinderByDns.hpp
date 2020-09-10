@@ -4,7 +4,6 @@
 #include<memory>
 
 namespace S { class Bus; }
-namespace Ev { class ThreadPool; }
 
 namespace Boss { namespace Mod {
 
@@ -21,7 +20,7 @@ private:
 public:
 	ConnectFinderByDns() =delete;
 	explicit
-	ConnectFinderByDns(S::Bus& bus, Ev::ThreadPool& threadpool);
+	ConnectFinderByDns(S::Bus& bus);
 	ConnectFinderByDns(ConnectFinderByDns&&);
 	~ConnectFinderByDns();
 };

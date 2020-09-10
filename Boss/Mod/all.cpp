@@ -72,7 +72,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<InitialConnect>(bus);
 	all->install<Connector>(bus);
 	all->install<NeedsConnectSolicitor>(bus);
-	all->install<ConnectFinderByDns>(bus, threadpool);
+	all->install<ConnectFinderByDns>(bus);
 	all->install<ConnectFinderByHardcode>(bus);
 
 	all->install<Dummy>(bus);

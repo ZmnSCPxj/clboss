@@ -5,7 +5,6 @@
 #include<vector>
 
 namespace Ev { template<typename a> class Io; }
-namespace Ev { class ThreadPool; }
 
 namespace DnsSeed {
 
@@ -27,7 +26,6 @@ Ev::Io<std::string> can_get();
  * Requires the `dig` command.
  */
 Ev::Io<std::vector<std::string>> get( std::string const& seed
-				    , Ev::ThreadPool& threadpool
 				    );
 
 }

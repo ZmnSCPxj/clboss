@@ -30,7 +30,6 @@ namespace Boss { namespace Mod {
 class ConnectFinderByDns::Impl {
 private:
 	S::Bus& bus;
-	Ev::ThreadPool& threadpool;
 
 	std::vector<std::string> const* dnsseeds;
 
@@ -82,7 +81,7 @@ private:
 		auto& seed = deck[i];
 
 		return DnsSeed::get(
-			seed, threadpool
+			seed
 		).then([this](std::vector<std::string> ns) {
 			return bus.raise(Msg::ProposeConnectCandidates{
 				std::move(ns)
@@ -93,9 +92,7 @@ private:
 public:
 	explicit
 	Impl( S::Bus& bus_
-	    , Ev::ThreadPool& threadpool_
 	    ) : bus(bus_)
-	      , threadpool(threadpool_)
 	      , dnsseeds(nullptr)
 	      {
 		start();
@@ -104,8 +101,7 @@ public:
 
 ConnectFinderByDns::ConnectFinderByDns
 		( S::Bus& bus
-		, Ev::ThreadPool& threadpool
-		) : pimpl(Util::make_unique<Impl>(bus, threadpool))
+		) : pimpl(Util::make_unique<Impl>(bus))
 		  { }
 ConnectFinderByDns::ConnectFinderByDns
 		( ConnectFinderByDns&& o

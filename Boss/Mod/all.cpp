@@ -85,7 +85,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ConnectFinderByHardcode>(bus);
 	all->install<ListpeersAnnouncer>(bus);
 	all->install<Reconnector>(bus);
-	all->install<ChannelFinderByPopularity>(bus);
+	all->install<ChannelFinderByPopularity>(bus, *waiter);
 
 	all->install<Dummy>(bus);
 

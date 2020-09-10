@@ -1,7 +1,11 @@
 #include"Boss/Mod/ChannelFinderByPopularity.hpp"
 #include"Boss/Mod/Rpc.hpp"
+#include"Boss/Mod/Waiter.hpp"
 #include"Boss/Msg/Block.hpp"
 #include"Boss/Msg/Init.hpp"
+#include"Boss/Msg/ManifestNotification.hpp"
+#include"Boss/Msg/Manifestation.hpp"
+#include"Boss/Msg/Notification.hpp"
 #include"Boss/Msg/ProposeChannelCandidates.hpp"
 #include"Boss/Msg/SolicitChannelCandidates.hpp"
 #include"Boss/Msg/TaskCompletion.hpp"
@@ -48,6 +52,14 @@ auto const min_channels_to_disable = size_t(4);
  */
 auto const min_nodes_to_process = size_t(200);
 
+/** seconds_after_connect
+ *
+ * @brief if we previously stopped looking for popular
+ * nodes, and a new connection appears, how many seconds
+ * should we wait for them to update us about the network?
+ */
+auto const seconds_after_connect = double(150);
+
 }
 
 namespace Boss { namespace Mod {
@@ -55,6 +67,7 @@ namespace Boss { namespace Mod {
 class ChannelFinderByPopularity::Impl {
 private:
 	S::Bus& bus;
+	Boss::Mod::Waiter& waiter;
 	void* this_ptr;
 	Boss::Mod::Rpc* rpc;
 	Ln::NodeId self;
@@ -91,6 +104,23 @@ private:
 			}
 			return Ev::lift();
 		});
+
+		/* Also do try_later when we successfully connect.  */
+		bus.subscribe< Msg::Manifestation
+			     >([this](Msg::Manifestation const& _) {
+			return bus.raise(Msg::ManifestNotification{
+				"connect"
+			});
+		});
+		bus.subscribe< Msg::Notification
+			     >([this](Msg::Notification const& n) {
+			if (n.notification != "connect")
+				return Ev::lift();
+			if (!try_later)
+				return Ev::lift();
+			try_later = false;
+			return Boss::concurrent(on_new_connect());
+		});
 	}
 
 	/* List of all nodes.  */
@@ -103,6 +133,21 @@ private:
 	/* A-Chao algorithm.  */
 	double wsum;
 	std::vector<Popular> selected;
+
+	/* Called after a new connection while we were deferring
+	 * a solicitation.  */
+	Ev::Io<void> on_new_connect() {
+		return Boss::log( bus, Info
+				, "ChannelFinderByPopularity: "
+				  "New connection, will wait %.0f seconds, "
+				  "then re-find nodes."
+				, seconds_after_connect
+				).then([this]() {
+			return waiter.wait(seconds_after_connect);
+		}).then([this]() {
+			return solicit();
+		});
+	}
 
 	Ev::Io<void> solicit() {
 		/* First check if we have at least
@@ -421,8 +466,10 @@ private:
 
 public:
 	Impl( S::Bus& bus_
+	    , Boss::Mod::Waiter& waiter_
 	    , void* this_ptr_
 	    ) : bus(bus_)
+	      , waiter(waiter_)
 	      , this_ptr(this_ptr_)
 	      , rpc(nullptr)
 	      , running(false)
@@ -432,7 +479,8 @@ public:
 
 ChannelFinderByPopularity::ChannelFinderByPopularity
 		( S::Bus& bus
-		) : pimpl(Util::make_unique<Impl>(bus, this)) { }
+		, Boss::Mod::Waiter& waiter
+		) : pimpl(Util::make_unique<Impl>(bus, waiter, this)) { }
 ChannelFinderByPopularity::ChannelFinderByPopularity
 		( ChannelFinderByPopularity&& o
 		) : pimpl(std::move(o.pimpl)) { }

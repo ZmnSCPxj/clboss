@@ -3,6 +3,7 @@
 
 #include<memory>
 
+namespace Boss { namespace Mod { class Waiter; }}
 namespace S { class Bus; }
 
 namespace Boss { namespace Mod {
@@ -25,7 +26,7 @@ public:
 	ChannelFinderByPopularity() =delete;
 	ChannelFinderByPopularity(ChannelFinderByPopularity const&) =delete;
 
-	ChannelFinderByPopularity(S::Bus&);
+	ChannelFinderByPopularity(S::Bus&, Boss::Mod::Waiter&);
 	ChannelFinderByPopularity(ChannelFinderByPopularity&&);
 	~ChannelFinderByPopularity();
 };

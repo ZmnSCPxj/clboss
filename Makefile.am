@@ -105,6 +105,8 @@ libclboss_la_SOURCES = \
 	Jsmn/jsonify_string.cpp \
 	Jsmn/jsonify_string.hpp \
 	Json/Out.hpp \
+	Ln/NodeId.cpp \
+	Ln/NodeId.hpp \
 	Net/Fd.cpp \
 	Net/Fd.hpp \
 	S/Bus.cpp \
@@ -143,6 +145,7 @@ TESTS = \
 	tests/ev/test_runcmd \
 	tests/ev/test_throw_in_then \
 	tests/json/test_out_simple \
+	tests/ln/test_nodeid \
 	tests/s/test_bus \
 	tests/stats/test_running_mean
 check_PROGRAMS = $(TESTS)

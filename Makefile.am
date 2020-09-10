@@ -16,6 +16,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/BlockTracker.hpp \
 	Boss/Mod/CommandReceiver.cpp \
 	Boss/Mod/CommandReceiver.hpp \
+	Boss/Mod/ChannelFinderByPopularity.cpp \
+	Boss/Mod/ChannelFinderByPopularity.hpp \
 	Boss/Mod/ConnectFinderByDns.cpp \
 	Boss/Mod/ConnectFinderByDns.hpp \
 	Boss/Mod/ConnectFinderByHardcode.cpp \
@@ -59,9 +61,11 @@ libclboss_la_SOURCES = \
 	Boss/Msg/NeedsConnect.hpp \
 	Boss/Msg/Network.hpp \
 	Boss/Msg/Notification.hpp \
+	Boss/Msg/ProposeChannelCandidates.hpp \
 	Boss/Msg/ProposeConnectCandidates.hpp \
 	Boss/Msg/RequestConnect.hpp \
 	Boss/Msg/ResponseConnect.hpp \
+	Boss/Msg/SolicitChannelCandidates.hpp \
 	Boss/Msg/SolicitConnectCandidates.hpp \
 	Boss/Msg/TaskCompletion.hpp \
 	Boss/Msg/Timer10Minutes.hpp \

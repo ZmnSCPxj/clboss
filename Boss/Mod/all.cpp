@@ -1,4 +1,5 @@
 #include"Boss/Mod/BlockTracker.hpp"
+#include"Boss/Mod/ChannelFinderByPopularity.hpp"
 #include"Boss/Mod/ConnectFinderByDns.hpp"
 #include"Boss/Mod/ConnectFinderByHardcode.hpp"
 #include"Boss/Mod/Connector.hpp"
@@ -13,8 +14,11 @@
 #include"Boss/Mod/Timers.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Mod/all.hpp"
+#include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/Manifestation.hpp"
 #include"Boss/Msg/ManifestNotification.hpp"
+#include"Boss/Msg/SolicitChannelCandidates.hpp"
+#include"Boss/concurrent.hpp"
 #include"S/Bus.hpp"
 #include<vector>
 
@@ -40,6 +44,9 @@ private:
 	void start() {
 		bus.subscribe<Boss::Msg::Manifestation>([this](Boss::Msg::Manifestation const& _) {
 			return bus.raise(Boss::Msg::ManifestNotification{"forward_event"});
+		});
+		bus.subscribe<Boss::Msg::Init>([this](Boss::Msg::Init const& _) {
+			return Boss::concurrent(bus.raise(Boss::Msg::SolicitChannelCandidates()));
 		});
 	}
 
@@ -78,6 +85,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ConnectFinderByHardcode>(bus);
 	all->install<ListpeersAnnouncer>(bus);
 	all->install<Reconnector>(bus);
+	all->install<ChannelFinderByPopularity>(bus);
 
 	all->install<Dummy>(bus);
 

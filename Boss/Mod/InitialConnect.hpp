@@ -3,8 +3,8 @@
 
 #include<string>
 
-namespace Boss { namespace Mod { class Rpc; }}
 namespace Ev { template<typename a> class Io; }
+namespace Jsmn { class Object; }
 namespace S { class Bus; }
 
 namespace Boss { namespace Mod {
@@ -20,19 +20,18 @@ namespace Boss { namespace Mod {
 class InitialConnect {
 private:
 	S::Bus& bus;
-	Boss::Mod::Rpc *rpc;
 
 	Ev::Io<void> needs_connect(std::string reason);
-	Ev::Io<void> init_check();
-	Ev::Io<void> periodic_check();
+	Ev::Io<void> init_check(Jsmn::Object const& result);
+	Ev::Io<void> periodic_check(Jsmn::Object const& result);
 
 	void start();
 
 public:
 	explicit
-	InitialConnect(S::Bus& bus_) : bus(bus_), rpc(nullptr) {
-		start();
-	}
+	InitialConnect(S::Bus& bus_) : bus(bus_) { start(); }
+	InitialConnect() =delete;
+	InitialConnect(InitialConnect const&) =delete;
 };
 
 }}

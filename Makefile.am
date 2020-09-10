@@ -138,6 +138,7 @@ TESTS = \
 	tests/ev/test_concurrent_simple \
 	tests/ev/test_io_mem_leak \
 	tests/ev/test_runcmd \
+	tests/ev/test_throw_in_then \
 	tests/json/test_out_simple \
 	tests/s/test_bus \
 	tests/stats/test_running_mean

@@ -152,7 +152,11 @@ public:
 			      ) {
 			try {
 				auto sub_pass = [func, pass, fail]() {
-					func().core(pass, fail);
+					try {
+						func().core(pass, fail);
+					} catch (...) {
+						fail(std::current_exception());
+					}
 				};
 				core_copy(sub_pass, fail);
 			} catch (...) {

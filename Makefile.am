@@ -91,6 +91,7 @@ libclboss_la_SOURCES = \
 	Ev/ThreadPool.hpp \
 	Ev/concurrent.cpp \
 	Ev/concurrent.hpp \
+	Ev/map.hpp \
 	Ev/runcmd.cpp \
 	Ev/runcmd.hpp \
 	Ev/start.cpp \
@@ -149,6 +150,7 @@ TESTS = \
 	tests/dnsseed/test_parse_dig_srv \
 	tests/ev/test_concurrent_simple \
 	tests/ev/test_io_mem_leak \
+	tests/ev/test_map \
 	tests/ev/test_runcmd \
 	tests/ev/test_throw_in_then \
 	tests/json/test_out_simple \

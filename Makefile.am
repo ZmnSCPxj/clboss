@@ -34,6 +34,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Manifester.hpp \
 	Boss/Mod/NeedsConnectSolicitor.cpp \
 	Boss/Mod/NeedsConnectSolicitor.hpp \
+	Boss/Mod/Reconnector.cpp \
+	Boss/Mod/Reconnector.hpp \
 	Boss/Mod/Rpc.cpp \
 	Boss/Mod/Rpc.hpp \
 	Boss/Mod/Timers.cpp \

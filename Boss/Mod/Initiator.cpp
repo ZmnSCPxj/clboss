@@ -6,6 +6,8 @@
 #include"Boss/log.hpp"
 #include"Ev/ThreadPool.hpp"
 #include"Jsmn/Object.hpp"
+#include"Json/Out.hpp"
+#include"Ln/NodeId.hpp"
 #include"Net/Fd.hpp"
 #include"S/Bus.hpp"
 #include"Util/make_unique.hpp"
@@ -33,6 +35,8 @@ private:
 			     , std::string const&
 			     )> open_rpc_socket;
 
+	Ln::NodeId self_id;
+
 	bool initted;
 	std::uint64_t init_id;
 	Boss::Msg::Network network;
@@ -48,6 +52,16 @@ private:
 				, ps.c_str()
 				).then([]() {
 			abort();
+			return Ev::lift();
+		});
+	}
+	Ev::Io<void> invalid_getinfo(Jsmn::Object info) {
+		auto is = stringify_jsmn(info);
+		return Boss::log( bus, Boss::Error
+				, "Unexpected getinfo result: %s"
+				, is.c_str()
+				).then([]() {
+			throw std::runtime_error("Unexpected result.");
 			return Ev::lift();
 		});
 	}
@@ -147,8 +161,29 @@ public:
 						, "RPC socket opened."
 						);
 			}).then([this]() {
+				return rpc->command( "getinfo"
+						   , Json::Out::empty_object()
+						   );
+			}).then([this](Jsmn::Object info) {
+				if (!info.is_object() || !info.has("id"))
+					return invalid_getinfo(
+						std::move(info)
+					);
+				auto id = info["id"];
+				if (!id.is_string())
+					return invalid_getinfo(
+						std::move(info)
+					);
+				auto s_id = std::string(id);
+				if (!Ln::NodeId::valid_string(s_id))
+					return invalid_getinfo(
+						std::move(info)
+					);
+
+				self_id = Ln::NodeId(s_id);
+
 				return bus.raise(Boss::Msg::Init{
-					network, *rpc
+					network, *rpc, self_id
 				});
 			}).then([this]() {
 				return Boss::log( bus, Debug

@@ -313,6 +313,9 @@ public:
 				    , Json::Out params
 				    ) {
 		auto save = std::make_shared<Jsmn::Object>();
+		auto errsave = std::make_shared<RpcError>(
+			"", Jsmn::Object()
+		);
 		return Boss::log( bus, Debug
 				, "Rpc out: %s %s"
 				, command.c_str()
@@ -329,6 +332,22 @@ public:
 					);
 		}).then([save]() {
 			return Ev::lift(std::move(*save));
+		}).catching<RpcError>([ this
+				      , command
+				      , params
+				      , errsave
+				      ](RpcError const& e) {
+			*errsave = e;
+			return Boss::log( bus, Debug
+					, "Rpc in: %s %s => error %s"
+					, command.c_str()
+					, params.output().c_str()
+					, enstring(errsave->error).c_str()
+					).then([errsave]() {
+				throw *errsave;
+				/* Needed for inference.  */
+				return Ev::lift(errsave->error);
+			});
 		});
 	}
 };

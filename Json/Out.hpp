@@ -146,6 +146,11 @@ public:
 	Json::Detail::Array<Json::Out> start_array() {
 		return Json::Detail::Array<Json::Out>(*this, *content);
 	}
+
+	static
+	Json::Out empty_object() {
+		return Json::Out().start_object().end_object();
+	}
 };
 
 namespace Detail {

@@ -158,7 +158,7 @@ public:
 				/* Now respond.  */
 				return bus.raise(Boss::Msg::CommandResponse{
 					init_id,
-					Json::Out().start_object().end_object()
+					Json::Out::empty_object()
 				});
 			}).then([this]() {
 				return Boss::log( bus, Info

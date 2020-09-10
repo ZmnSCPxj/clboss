@@ -148,16 +148,16 @@ int main() {
 	/* Client makes three attempts, the first succeeds, the second
 	 * fails, the third with a cancellation of commands.  */
 	auto client_code = Ev::lift().then([&]() {
-		return client.command("c1", Json::Out().start_object().end_object());
+		return client.command("c1", Json::Out::empty_object());
 	}).then([&](Jsmn::Object ignored_result) {
 		succeed_flag = true;
-		return client.command("c2", Json::Out().start_object().end_object())
+		return client.command("c2", Json::Out::empty_object())
 				.catching<Boss::Mod::RpcError>([&](Boss::Mod::RpcError const& e) {
 			errored_flag = true;
 			return Ev::lift(Jsmn::Object());
 		});
 	}).then([&](Jsmn::Object ignored_result) {
-		return client.command("c3", Json::Out().start_object().end_object())
+		return client.command("c3", Json::Out::empty_object())
 				.catching<Boss::Shutdown>([&](Boss::Shutdown const& e) {
 			shutdown_flag = true;
 			return Ev::lift(Jsmn::Object());

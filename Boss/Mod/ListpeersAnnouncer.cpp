@@ -15,7 +15,7 @@ void ListpeersAnnouncer::start() {
 	auto do_listpeers = [this](bool initial) {
 		assert(rpc);
 		return rpc->command("listpeers"
-				   , Json::Out().start_object().end_object()
+				   , Json::Out::empty_object()
 				   ).then([ this
 					  , initial
 					  ](Jsmn::Object result) {

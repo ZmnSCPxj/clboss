@@ -12,7 +12,8 @@ namespace Boss { namespace Msg {
  * Also announced every 10 minutes.
  */
 struct ListpeersResult {
-	Jsmn::Object result;
+	/* Known to be an array.  */
+	Jsmn::Object peers;
 	/* Whether this listpeers was performed during `init`
 	 * or on the 10-minute timer.
 	 */

@@ -23,7 +23,8 @@ std::default_random_engine initialize_random_engine() {
 			strerror(errno)
 		);
 
-	(void) read(dr.get(), &seed, sizeof(seed));
+	if (read(dr.get(), &seed, sizeof(seed)) < 0)
+		/*Nothing*/ ;
 
 	return std::default_random_engine(seed);
 }

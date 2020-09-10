@@ -72,7 +72,8 @@ private:
 		auto err = errno;
 
 		/* Send errno to parent.  */
-		(void) write(self->child_fail.get(), &err, sizeof(err));
+		if (write(self->child_fail.get(), &err, sizeof(err)) < 0)
+			/* Nothing */ ;
 
 		/* Abnormal exit.  */
 		self.release();

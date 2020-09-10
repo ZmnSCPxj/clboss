@@ -45,6 +45,7 @@ libclboss_la_SOURCES = \
 	Boss/Mod/all.cpp \
 	Boss/Mod/all.hpp \
 	Boss/Msg/Begin.hpp \
+	Boss/Msg/Block.hpp \
 	Boss/Msg/CommandRequest.hpp \
 	Boss/Msg/CommandResponse.hpp \
 	Boss/Msg/Init.hpp \
@@ -129,7 +130,7 @@ EXTRA_DIST = \
 	external/jsmn/jsmn.h
 
 AM_CXXFLAGS = -Wall -Werror $(PTHREAD_CFLAGS) $(libev_CFLAGS)
-AM_CPPFLAGS = -I external/jsmn
+AM_CPPFLAGS = -I $(top_srcdir)/external/jsmn
 LDADD = libclboss.la $(PTHREAD_LIBS) $(libev_LIBS)
 
 ACLOCAL_AMFLAGS = -I m4

@@ -303,7 +303,7 @@ private:
 	std::vector<Popular>::const_iterator sel_it;
 	std::vector<Ln::NodeId> peers;
 	std::vector<Ln::NodeId>::const_iterator peer_it;
-	bool made_proposal;
+	size_t proposals_made;
 
 	Ev::Io<void> try_connect() {
 		/* Now we try to connect to each of the peers
@@ -325,7 +325,7 @@ private:
 		/* Start the loop_selected.  */
 		sel_it = selected.begin();
 		/* We have not made any proposals yet.  */
-		made_proposal = false;
+		proposals_made = 0;
 		
 		return loop_selected();
 	}
@@ -377,7 +377,7 @@ private:
 				return bus.raise(Msg::ProposeChannelCandidates{
 					*peer_it, sel_it->node
 				}).then([this]() {
-					made_proposal = true;
+					++proposals_made;
 					peer_it = peers.end();
 					return Ev::lift();
 				});
@@ -395,11 +395,12 @@ private:
 
 	Ev::Io<void> completed_solicit() {
 		return Ev::yield().then([this]() {
-			if (made_proposal)
+			if (proposals_made != 0)
 				return Boss::log( bus, Info
 						, "ChannelFinderByPopularity: "
-						  "Proposed some nodes to "
+						  "Proposed %zu nodes to "
 						  "channel to, finished."
+						, proposals_made
 						);
 			else
 				return Boss::log( bus, Warn
@@ -407,7 +408,7 @@ private:
 						  "No nodes were proposed."
 						);
 		}).then([this]() {
-			return signal_task_completion(!made_proposal);
+			return signal_task_completion(proposals_made == 0);
 		});
 	}
 

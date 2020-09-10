@@ -18,6 +18,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/CommandReceiver.hpp \
 	Boss/Mod/ConnectFinderByDns.cpp \
 	Boss/Mod/ConnectFinderByDns.hpp \
+	Boss/Mod/ConnectFinderByHardcode.cpp \
+	Boss/Mod/ConnectFinderByHardcode.hpp \
 	Boss/Mod/Connector.cpp \
 	Boss/Mod/Connector.hpp \
 	Boss/Mod/InitialConnect.cpp \

@@ -28,6 +28,16 @@ std::string enstring(a const& val) {
 	os << val;
 	return os.str();
 }
+template<typename a>
+std::string limited_enstring(a const& val) {
+	auto rv = enstring(val);
+	if (rv.size() > 160) {
+		rv.erase(rv.begin() + 160, rv.end());
+		rv += "...";
+	}
+
+	return rv;
+}
 
 }
 
@@ -328,7 +338,7 @@ public:
 					, "Rpc in: %s %s => %s"
 					, command.c_str()
 					, params.output().c_str()
-					, enstring(*save).c_str()
+					, limited_enstring(*save).c_str()
 					);
 		}).then([save]() {
 			return Ev::lift(std::move(*save));
@@ -342,7 +352,7 @@ public:
 					, "Rpc in: %s %s => error %s"
 					, command.c_str()
 					, params.output().c_str()
-					, enstring(errsave->error).c_str()
+					, limited_enstring(errsave->error).c_str()
 					).then([errsave]() {
 				throw *errsave;
 				/* Needed for inference.  */

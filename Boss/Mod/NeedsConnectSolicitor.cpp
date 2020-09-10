@@ -39,20 +39,6 @@ private:
 
 	bool connects_running;
 
-	/* Shuffle the to_connect vector.  */
-	void shuffle(std::vector<std::string>& deck) {
-		if (deck.size() < 2)
-			/* Nothing to shuffle.  */
-			return;
-		for (auto i = size_t(0); i < deck.size() - 1; ++i) {
-			auto dist = std::uniform_int_distribution<size_t>(
-				i, deck.size() - 1
-			);
-			auto j = dist(engine);
-			std::swap(deck[i], deck[j]);
-		}
-	}
-
 	Ev::Io<void> solicit() {
 		return Ev::lift().then([this]() {
 			/* Clear the candidates.  */
@@ -78,7 +64,7 @@ private:
 					( candidates.begin()
 					, candidates.end()
 					);
-			shuffle(deck);
+			std::shuffle(deck.begin(), deck.end(), engine);
 			candidates.clear();
 
 			/* Now distribute them to the two connects queues.  */

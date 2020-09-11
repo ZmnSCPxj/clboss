@@ -25,6 +25,7 @@ AX_PTHREAD([:],[
 	AC_MSG_ERROR([Need pthread.])
 ])
 AX_LIB_EV
+AX_LIB_SQLITE3
 
 # Checks for header files.
 

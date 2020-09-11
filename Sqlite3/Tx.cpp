@@ -1,0 +1,65 @@
+#include"Sqlite3/Db.hpp"
+#include"Sqlite3/Tx.hpp"
+#include"Util/make_unique.hpp"
+#include<sqlite3.h>
+
+namespace Sqlite3 {
+
+class Tx::Impl {
+private:
+	Sqlite3::Db db;
+	bool rollback;
+
+	void throw_sqlite3(char const* src) {
+		auto connection = (sqlite3*) db.get_connection();
+		auto err = std::string(sqlite3_errmsg(connection));
+		throw std::runtime_error(
+			std::string("Sqlite3::Tx: ") + src + ": " + err
+		);
+	}
+
+public:
+	Impl(Sqlite3::Db const& db_) : db(db_), rollback(false) {
+		auto connection = (sqlite3*) db.get_connection();
+		auto res = sqlite3_exec(connection, "BEGIN", NULL, NULL, NULL);
+		if (res != SQLITE_OK)
+			throw_sqlite3("BEGIN");
+	}
+
+	void set_rollback() { rollback = true; }
+
+	~Impl() {
+		auto connection = (sqlite3*) db.get_connection();
+		auto cmd = (const char*) nullptr;
+		if (rollback)
+			cmd = "ROLLBACK";
+		else
+			cmd = "COMMIT";
+		auto res = sqlite3_exec(connection, cmd, NULL, NULL, NULL);
+		if (res != SQLITE_OK)
+			throw_sqlite3(cmd);
+		db.transaction_finish();
+	}
+};
+
+Tx::Tx(Sqlite3::Db const& db)
+		: pimpl(Util::make_unique<Impl>(db)) { }
+Tx::Tx() : pimpl(nullptr) { }
+Tx::Tx(Tx&& o) : pimpl(std::move(o.pimpl)) { }
+Tx::~Tx() { }
+
+Tx& Tx::operator=(Tx&& o) {
+	auto tmp = std::move(o);
+	std::swap(pimpl, tmp.pimpl);
+	return *this;
+}
+
+void Tx::commit() {
+	pimpl = nullptr;
+}
+void Tx::rollback() {
+	pimpl->set_rollback();
+	pimpl = nullptr;
+}
+
+}

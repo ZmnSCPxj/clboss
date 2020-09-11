@@ -121,6 +121,10 @@ libclboss_la_SOURCES = \
 	S/Bus.hpp \
 	S/Detail/Signal.hpp \
 	S/Detail/SignalBase.hpp \
+	Sqlite3/Db.cpp \
+	Sqlite3/Db.hpp \
+	Sqlite3/Tx.cpp \
+	Sqlite3/Tx.hpp \
 	Stats/RunningMean.cpp \
 	Stats/RunningMean.hpp \
 	Util/Rw.cpp \
@@ -134,9 +138,9 @@ EXTRA_DIST = \
 	external/jsmn/LICENSE \
 	external/jsmn/jsmn.h
 
-AM_CXXFLAGS = -Wall -Werror $(PTHREAD_CFLAGS) $(libev_CFLAGS)
+AM_CXXFLAGS = -Wall -Werror $(PTHREAD_CFLAGS) $(libev_CFLAGS) $(SQLITE3_CFLAGS)
 AM_CPPFLAGS = -I $(top_srcdir)/external/jsmn
-LDADD = libclboss.la $(PTHREAD_LIBS) $(libev_LIBS)
+LDADD = libclboss.la $(PTHREAD_LIBS) $(libev_LIBS) $(SQLITE3_LDFLAGS)
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -156,5 +160,6 @@ TESTS = \
 	tests/json/test_out_simple \
 	tests/ln/test_nodeid \
 	tests/s/test_bus \
+	tests/sqlite3/test_sqlite3 \
 	tests/stats/test_running_mean
 check_PROGRAMS = $(TESTS)

@@ -19,14 +19,14 @@ private:
 	}
 
 public:
-	Impl(Sqlite3::Db const& db_) : db(db_), rollback(false) {
+	Impl(Sqlite3::Db const& db_) : db(db_), rollback(true) {
 		auto connection = (sqlite3*) db.get_connection();
 		auto res = sqlite3_exec(connection, "BEGIN", NULL, NULL, NULL);
 		if (res != SQLITE_OK)
 			throw_sqlite3("BEGIN");
 	}
 
-	void set_rollback() { rollback = true; }
+	void clear_rollback() { rollback = false; }
 
 	~Impl() {
 		auto connection = (sqlite3*) db.get_connection();
@@ -62,10 +62,10 @@ Tx& Tx::operator=(Tx&& o) {
 }
 
 void Tx::commit() {
+	pimpl->clear_rollback();
 	pimpl = nullptr;
 }
 void Tx::rollback() {
-	pimpl->set_rollback();
 	pimpl = nullptr;
 }
 

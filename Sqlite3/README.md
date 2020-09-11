@@ -18,13 +18,23 @@ Here is our desired interface:
         }
         /* Sqlite3::Tx cannot be copied, but can be moved.
          * Once it has been destructed, it automatically
-         * commits and lets other greenthreads execute
+         * rolls back and lets other greenthreads execute
          * their transactions.
+         *
+         * In order to actually commit the transaction,
+         * you have to call Sqlite3::Tx::commit on it.
+         * This atomically writes the changes to disk,
+         * destroys the Tx object (meaning it is in an
+         * invalid, moved-from state where it cannot be
+         * used for queries) and lets other greenthreads
+         * waiting to transact continue.
          */
+        tx.commit();
+        
         return Ev::lift();
     });
 
 
-`Sqlite3::Tx::rollback` can be used to rollback a transaction,
+`Sqlite3::Tx::rollback` can be used to explicitly rollback a transaction,
 in which case you can no longer call `Sqlite3::Tx::query` on it.
 

@@ -40,6 +40,13 @@ public:
 			throw_sqlite3(cmd);
 		db.transaction_finish();
 	}
+
+	void query_execute(char const* q) {
+		auto connection = (sqlite3*) db.get_connection();
+		auto res = sqlite3_exec(connection, q, NULL, NULL, NULL);
+		if (res != SQLITE_OK)
+			throw_sqlite3(q);
+	}
 };
 
 Tx::Tx(Sqlite3::Db const& db)
@@ -60,6 +67,10 @@ void Tx::commit() {
 void Tx::rollback() {
 	pimpl->set_rollback();
 	pimpl = nullptr;
+}
+
+void Tx::query_execute(char const* q) {
+	return pimpl->query_execute(q);
 }
 
 }

@@ -52,7 +52,21 @@ public:
 	operator bool() const { return !!pimpl; }
 	bool operator!() const { return !pimpl; }
 
-	Sqlite3::Query query(std::string);
+	Sqlite3::Query query(std::string const&);
+
+	/** Sqlite3::Tx::query_execute
+	 *
+	 * @brief Executes a query.
+	 *
+	 * @desc There is no opportunity to bind parameters
+	 * or check results.
+	 * This is primarily intended for e.g. table creation
+	 * commands.
+	 */
+	void query_execute(char const*);
+	void query_execute(std::string const& q) {
+		query_execute(q.c_str());
+	}
 
 	/* Commit and rollback.
 	 * Pre-condition: the transaction is valid.

@@ -43,6 +43,11 @@ int main() {
 		return Ev::yield();
 	}).then([&]() {
 
+		/* Test simple interface.  */
+		return db.transact();
+	}).then([&](Sqlite3::Tx tx) {
+		tx.query_execute("CREATE TABLE \"foo\" (c1 INTEGER, c2 TEXT);");
+
 		return Ev::lift(0);
 	});
 

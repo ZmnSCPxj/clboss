@@ -13,6 +13,7 @@
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
 #include"Ev/Io.hpp"
+#include"Ev/map.hpp"
 #include"Ev/yield.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
@@ -345,9 +346,82 @@ private:
 		});
 	}
 
-	std::vector<Popular>::const_iterator sel_it;
-	std::vector<Ln::NodeId> peers;
-	std::vector<Ln::NodeId>::const_iterator peer_it;
+	/* Shuffles the peers of a particular selected node,
+	 * then tries to connect each peer in sequence.
+	 */
+	class ConnectChecker {
+	private:
+		S::Bus& bus;
+		Boss::Mod::Rpc& rpc;
+		struct Impl {
+			Ln::NodeId node;
+			std::vector<Ln::NodeId> peers;
+			std::vector<Ln::NodeId>::const_iterator peer_it;
+			S::Bus* bus;
+			Boss::Mod::Rpc* rpc;
+		};
+	public:
+		ConnectChecker() =delete;
+		explicit
+		ConnectChecker( S::Bus& bus_
+			      , Boss::Mod::Rpc& rpc_
+			      ) : bus(bus_)
+				, rpc(rpc_)
+				{ }
+		/* Functor.  */
+		Ev::Io<bool> operator()(Popular p) {
+			auto self = std::make_shared<Impl>();
+			self->node = std::move(p.node);
+			std::copy( p.peers.begin(), p.peers.end()
+				 , std::back_inserter(self->peers)
+				 );
+			std::shuffle( self->peers.begin()
+				    , self->peers.end()
+				    , Boss::random_engine
+				    );
+			self->peer_it = self->peers.begin();
+			self->bus = &bus;
+			self->rpc = &rpc;
+			return loop(std::move(self));
+		}
+	private:
+		static
+		Ev::Io<bool> loop(std::shared_ptr<Impl> self) {
+			if (self->peer_it == self->peers.end())
+				return Ev::lift(false);
+			/* FIXME: Use Connector object.  */
+			auto params = Json::Out()
+					.start_object()
+						.field( "id"
+						      , std::string(*self->peer_it)
+						      )
+					.end_object()
+					;
+			return self->rpc->command("connect"
+						 , params
+						 ).then([](Jsmn::Object _) {
+				return Ev::lift(true);
+			}).catching<RpcError>([](RpcError const& _) {
+				return Ev::lift(false);
+			}).then([self](bool success) {
+				/* If succeeded, send proposal and exit
+				 * loop.  */
+				if (success) {
+					return self->bus->raise(Msg::ProposeChannelCandidates{
+						*self->peer_it,
+						self->node
+					}).then([]() {
+						return Ev::lift(true);
+					});
+				} else {
+					/* Keep looping.  */
+					++self->peer_it;
+					return loop(self);
+				}
+			});
+		}
+	};
+
 	size_t proposals_made;
 
 	Ev::Io<void> try_connect() {
@@ -357,83 +431,18 @@ private:
 		 * we propose that peer and set the popular node
 		 * as the patron.
 		 *
-		 * We go over each of the selected nodes in the
-		 * loop_selected, then shuffle the peers of that
-		 * node, then go over each of the peers in the
-		 * loop_peers.
+		 * We go over each of the selected nodes by Ev::map,
+		 * which runs all the selected nodes in parallel.
 		 */
-
-		/* FIXME: Ideally we would parallelize over each entry
-		 * in the loop_selected.
-		 * We can do that later.  */
-
-		/* Start the loop_selected.  */
-		sel_it = selected.begin();
-		/* We have not made any proposals yet.  */
-		proposals_made = 0;
-		
-		return loop_selected();
-	}
-
-	Ev::Io<void> loop_selected() {
-		return Ev::yield().then([this]() {
-
-		if (sel_it == selected.end())
-			return completed_solicit();
-
-		/* Load peers and shuffle.  */
-		peers.clear();
-		std::copy( sel_it->peers.begin(), sel_it->peers.end()
-			 , std::back_inserter(peers)
-			 );
-		std::shuffle(peers.begin(), peers.end(), Boss::random_engine);
-
-		/* Start looping over peers.  */
-		peer_it = peers.begin();
-		return loop_peers();
-
-		});
-	}
-
-	Ev::Io<void> loop_peers() {
-		return Ev::yield().then([this]() {
-
-		if (peer_it == peers.end()) {
-			++sel_it;
-			return loop_selected();
-		}
-		/* FIXME: We should use the Connector object via its
-		 * messages.  */
-		return rpc->command( "connect"
-				   , Json::Out()
-					.start_object()
-						.field( "id"
-						      , std::string(*peer_it)
-						      )
-					.end_object()
-				   ).then([this](Jsmn::Object _) {
-			/* Success.  */
-			return Ev::lift(true);
-		}).catching<RpcError>([this](RpcError const& _) {
-			return Ev::lift(false);
-		}).then([this](bool success) {
-			/* If it succeeded, send proposal and exit loop.  */
-			if (success) {
-				return bus.raise(Msg::ProposeChannelCandidates{
-					*peer_it, sel_it->node
-				}).then([this]() {
+		return Ev::map( ConnectChecker(bus, *rpc)
+			      , std::move(selected)
+			      ).then([this](std::vector<bool> results) {
+			/* Count number of true.  */
+			proposals_made = 0;
+			for (auto const& flag : results)
+				if (flag)
 					++proposals_made;
-					peer_it = peers.end();
-					return Ev::lift();
-				});
-			} else {
-				++peer_it;
-				return Ev::lift();
-			}
-		}).then([this]() {
-			return loop_peers();
-		});
-
+			return completed_solicit();
 		});
 	}
 

@@ -16,6 +16,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/BlockTracker.hpp \
 	Boss/Mod/CommandReceiver.cpp \
 	Boss/Mod/CommandReceiver.hpp \
+	Boss/Mod/ChannelCandidateInvestigator/Secretary.cpp \
+	Boss/Mod/ChannelCandidateInvestigator/Secretary.hpp \
 	Boss/Mod/ChannelFinderByPopularity.cpp \
 	Boss/Mod/ChannelFinderByPopularity.hpp \
 	Boss/Mod/ConnectFinderByDns.cpp \
@@ -157,6 +159,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 AM_DEFAULT_SOURCE_EXT = .cpp
 TESTS = \
+	tests/boss/channelcandidateinvestigator/test_secretary \
 	tests/boss/test_needsconnectsolicitor \
 	tests/boss/test_rpc \
 	tests/boss/test_version \

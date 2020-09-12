@@ -10,6 +10,7 @@
 #include"Ln/NodeId.hpp"
 #include"Net/Fd.hpp"
 #include"S/Bus.hpp"
+#include"Sqlite3.hpp"
 #include"Util/make_unique.hpp"
 #include<assert.h>
 #include<sstream>
@@ -34,6 +35,8 @@ private:
 	std::function<Net::Fd( std::string const&
 			     , std::string const&
 			     )> open_rpc_socket;
+
+	Sqlite3::Db db;
 
 	Ln::NodeId self_id;
 
@@ -75,6 +78,7 @@ public:
 	    ) : bus(bus_)
 	      , threadpool(threadpool_)
 	      , open_rpc_socket(std::move(open_rpc_socket_))
+	      , db()
 	      , initted(false)
 	      {
 		assert(open_rpc_socket);
@@ -161,6 +165,16 @@ public:
 						, "RPC socket opened."
 						);
 			}).then([this]() {
+				db = Sqlite3::Db("data.clboss");
+				return db.transact();
+			}).then([this](Sqlite3::Tx tx) {
+				tx.query_execute("PRAGMA application_id = 0x424F5353;");
+				tx.query_execute("PRAGMA user_version = 0x2020434C;");
+				tx.commit();
+				return Boss::log( bus, Debug
+						, "Database file opened."
+						);
+			}).then([this]() {
 				return rpc->command( "getinfo"
 						   , Json::Out::empty_object()
 						   );
@@ -183,7 +197,7 @@ public:
 				self_id = Ln::NodeId(s_id);
 
 				return bus.raise(Boss::Msg::Init{
-					network, *rpc, self_id
+					network, *rpc, self_id, db
 				});
 			}).then([this]() {
 				return Boss::log( bus, Debug

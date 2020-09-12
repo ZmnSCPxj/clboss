@@ -121,8 +121,17 @@ libclboss_la_SOURCES = \
 	S/Bus.hpp \
 	S/Detail/Signal.hpp \
 	S/Detail/SignalBase.hpp \
+	Sqlite3.hpp \
 	Sqlite3/Db.cpp \
 	Sqlite3/Db.hpp \
+	Sqlite3/Detail/binds.cpp \
+	Sqlite3/Detail/binds.hpp \
+	Sqlite3/Detail/columns.cpp \
+	Sqlite3/Detail/columns.hpp \
+	Sqlite3/Query.cpp \
+	Sqlite3/Query.hpp \
+	Sqlite3/Result.cpp \
+	Sqlite3/Result.hpp \
 	Sqlite3/Tx.cpp \
 	Sqlite3/Tx.hpp \
 	Stats/RunningMean.cpp \

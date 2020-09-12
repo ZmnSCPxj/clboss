@@ -5,6 +5,7 @@
 #include<string>
 
 namespace Ev { template<typename a> class Io; }
+namespace Sqlite3 { class Result; }
 namespace Sqlite3 { class Tx; }
 
 namespace Sqlite3 {
@@ -22,6 +23,7 @@ private:
 	class Impl;
 	std::shared_ptr<Impl> pimpl;
 
+	friend class Sqlite3::Result;
 	friend class Sqlite3::Tx;
 
 	void* get_connection() const;
@@ -40,6 +42,8 @@ public:
 	Db() =default;
 	Db(Db const&) =default;
 	Db(Db&&) =default;
+	Db& operator=(Db const&) =default;
+	Db& operator=(Db&&) =default;
 	~Db() =default;
 
 	/* If the Db is false (invalid), you cannot use transact().  */

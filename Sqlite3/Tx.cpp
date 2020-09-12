@@ -1,4 +1,5 @@
 #include"Sqlite3/Db.hpp"
+#include"Sqlite3/Query.hpp"
 #include"Sqlite3/Tx.hpp"
 #include"Util/make_unique.hpp"
 #include<sqlite3.h>
@@ -47,6 +48,18 @@ public:
 		if (res != SQLITE_OK)
 			throw_sqlite3(q);
 	}
+
+	Query query(char const* sql) {
+		auto connection = (sqlite3*) db.get_connection();
+		auto stmt = (sqlite3_stmt*) nullptr;
+		auto res = sqlite3_prepare_v2( connection, sql, -1
+					     , &stmt, nullptr
+					     );
+		if (res != SQLITE_OK)
+			throw_sqlite3(sql);
+
+		return Query(db, stmt);
+	}
 };
 
 Tx::Tx(Sqlite3::Db const& db)
@@ -67,6 +80,10 @@ void Tx::commit() {
 }
 void Tx::rollback() {
 	pimpl = nullptr;
+}
+
+Query Tx::query(char const* sql) {
+	return pimpl->query(sql);
 }
 
 void Tx::query_execute(char const* q) {

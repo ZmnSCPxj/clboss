@@ -52,7 +52,13 @@ public:
 	operator bool() const { return !!pimpl; }
 	bool operator!() const { return !pimpl; }
 
-	Sqlite3::Query query(std::string const&);
+	/** Sqlite3::Tx::query
+	 *
+	 * @brief Create a query; provide the query template
+	 * and bind any parameters to it, then execute to
+	 * retrieve results.
+	 */
+	Sqlite3::Query query(char const*);
 
 	/** Sqlite3::Tx::query_execute
 	 *

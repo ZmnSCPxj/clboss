@@ -6,14 +6,18 @@ Here is our desired interface:
         /* This could block if a transaction is currently in-flight.  */
         return db.transact();
     }).then([](Sqlite3::Tx tx) {
-        auto it = tx.query("SELECT (a, b) FROM tablename WHERE id=:ID")
-                .bind(":ID", 42)
-                .execute()
-                ;
-        /* `it` is a single-pass input iterator.  */
-        for (; it != tx.end(); ++it) {
-            auto a = it->column<int>(0);
-            auto b = it->column<std::string>(1);
+        auto res = tx.query("SELECT (a, b) FROM tablename WHERE id=:ID")
+                 .bind(":ID", 42)
+                 .execute()
+                 ;
+        /* `res` is a single-pass sequence!
+         * It has an iterator type that is an input iterator
+         * (can only dereference and advance, but copying
+         * does not create a distinct state).
+         */
+        for (auto r : res) {
+            auto a = r.column<int>(0);
+            auto b = r.column<std::string>(1);
             process(a, b);
         }
         /* Sqlite3::Tx cannot be copied, but can be moved.

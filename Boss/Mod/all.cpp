@@ -10,6 +10,7 @@
 #include"Boss/Mod/ListpeersAnnouncer.hpp"
 #include"Boss/Mod/Manifester.hpp"
 #include"Boss/Mod/NeedsConnectSolicitor.hpp"
+#include"Boss/Mod/OnchainFeeMonitor.hpp"
 #include"Boss/Mod/Reconnector.hpp"
 #include"Boss/Mod/Timers.hpp"
 #include"Boss/Mod/Waiter.hpp"
@@ -86,6 +87,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ListpeersAnnouncer>(bus);
 	all->install<Reconnector>(bus);
 	all->install<ChannelFinderByPopularity>(bus, *waiter);
+	all->install<OnchainFeeMonitor>(bus);
 
 	all->install<Dummy>(bus);
 

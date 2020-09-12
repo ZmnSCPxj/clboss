@@ -32,6 +32,22 @@ public:
 	std::istream& operator>>(std::istream&, RunningMean&);
 	friend
 	std::ostream& operator<<(std::ostream&, RunningMean&);
+
+	/* Allows you to save a RunningMean somewhere else.  */
+	struct Memo {
+		double mean;
+		std::size_t samples;
+	};
+	Memo get_memo() const {
+		auto memo = Memo();
+		memo.mean = mean;
+		memo.samples = samples;
+		return memo;
+	}
+	RunningMean( Memo const& memo
+		   ) : mean(memo.mean)
+		     , samples(memo.samples)
+		     { }
 };
 
 

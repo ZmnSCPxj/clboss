@@ -230,6 +230,13 @@ private:
 			}
 		} else {
 			/* Re-arm.  */
+			if (!write_event) {
+				write_event = Util::make_unique<ev_io>();
+				ev_io_init( write_event.get(), &on_write_static
+					  , socket.get(), EV_WRITE
+					  );
+				write_event->data = this;
+			}
 			ev_io_start(EV_DEFAULT_ write_event.get());
 		}
 	}

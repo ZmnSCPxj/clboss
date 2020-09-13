@@ -148,7 +148,18 @@ int main() {
 	/* Client makes three attempts, the first succeeds, the second
 	 * fails, the third with a cancellation of commands.  */
 	auto client_code = Ev::lift().then([&]() {
-		return client.command("c1", Json::Out::empty_object());
+		auto params = Json::Out();
+		auto arr = params
+			.start_object()
+				.start_array("arr")
+				;
+		for (auto i = size_t(0); i < 10000; ++i)
+			arr.entry((double)i);
+		arr
+				.end_array()
+			.end_object()
+			;
+		return client.command("c1", params);
 	}).then([&](Jsmn::Object ignored_result) {
 		succeed_flag = true;
 		return client.command("c2", Json::Out::empty_object())

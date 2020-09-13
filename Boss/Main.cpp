@@ -10,6 +10,11 @@
 #include"Ev/ThreadPool.hpp"
 #include"S/Bus.hpp"
 #include"Util/make_unique.hpp"
+#include<sstream>
+#include<signal.h>
+#include<stdlib.h>
+#include<sys/types.h>
+#include<unistd.h>
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
@@ -61,7 +66,15 @@ public:
 			auto argv1 = argv[1];
 			if (argv1 == "--version" || argv1 == "-V")
 				is_version = true;
-			else
+			else if (argv1 == "--debugger") {
+				auto os = std::ostringstream();
+				os << "${DEBUG_TERM:-gnome-terminal --} gdb -ex 'attach "
+				   << getpid() << "' " << argv0 << " >/dev/null &"
+				   ;
+				if (system(os.str().c_str()))
+					;
+				kill(getpid(), SIGSTOP);
+			} else
 				is_help = true;
 		}
 	}
@@ -76,6 +89,7 @@ public:
 			     << "Options:" << std::endl
 			     << " --version, -V      Show version." << std::endl
 			     << " --help, -H         Show this help." << std::endl
+			     << " --debugger         Run gdb in a new term attached to clboss." << std::endl
 			     << std::endl
 			     << "CLBOSS is proudly Free and Open Source Software" << std::endl
 			     << "It is provided WITHOUT ANY WARRANTIES" << std::endl

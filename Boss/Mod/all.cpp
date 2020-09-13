@@ -8,6 +8,7 @@
 #include"Boss/Mod/InitialConnect.hpp"
 #include"Boss/Mod/Initiator.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
+#include"Boss/Mod/ListpeersAnalyzer.hpp"
 #include"Boss/Mod/ListpeersAnnouncer.hpp"
 #include"Boss/Mod/Manifester.hpp"
 #include"Boss/Mod/NeedsConnectSolicitor.hpp"
@@ -61,6 +62,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ConnectFinderByDns>(bus);
 	all->install<ConnectFinderByHardcode>(bus);
 	all->install<ListpeersAnnouncer>(bus);
+	all->install<ListpeersAnalyzer>(bus);
 	all->install<Reconnector>(bus);
 	all->install<ChannelFinderByPopularity>(bus, *waiter);
 	all->install<OnchainFeeMonitor>(bus);

@@ -26,6 +26,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelCandidateInvestigator/Manager.hpp \
 	Boss/Mod/ChannelCandidateInvestigator/Secretary.cpp \
 	Boss/Mod/ChannelCandidateInvestigator/Secretary.hpp \
+	Boss/Mod/ChannelCandidatePreinvestigator.cpp \
+	Boss/Mod/ChannelCandidatePreinvestigator.hpp \
 	Boss/Mod/ChannelFinderByPopularity.cpp \
 	Boss/Mod/ChannelFinderByPopularity.hpp \
 	Boss/Mod/ConnectFinderByDns.cpp \
@@ -76,7 +78,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/NeedsConnect.hpp \
 	Boss/Msg/Network.hpp \
 	Boss/Msg/Notification.hpp \
-	Boss/Msg/ProposeChannelCandidates.hpp \
+	Boss/Msg/PreinvestigateChannelCandidates.hpp \
 	Boss/Msg/ProposeConnectCandidates.hpp \
 	Boss/Msg/RequestConnect.hpp \
 	Boss/Msg/ResponseConnect.hpp \

@@ -22,6 +22,8 @@ namespace Boss { namespace Msg {
  * capacity is available towards the patron
  * in order to provide a cap on the capacity
  * of the proposal node.
+ *
+ * See also `Boss::Msg::PreinvestigateChannelCandidates`.
  */
 struct ProposeChannelCandidates {
 	Ln::NodeId proposal;

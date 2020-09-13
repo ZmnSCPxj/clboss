@@ -8,7 +8,7 @@ AM_INIT_AUTOMAKE([subdir-objects tar-ustar])
 AC_CONFIG_SRCDIR([main.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([m4])
-LT_INIT
+LT_INIT([disable-shared])
 
 # Checks for programs.
 AC_PROG_CXX

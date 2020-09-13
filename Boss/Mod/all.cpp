@@ -1,3 +1,4 @@
+#include"Boss/Mod/AutoDisconnector.hpp"
 #include"Boss/Mod/BlockTracker.hpp"
 #include"Boss/Mod/ChannelCandidateInvestigator/Main.hpp"
 #include"Boss/Mod/ChannelFinderByPopularity.hpp"
@@ -67,6 +68,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ChannelFinderByPopularity>(bus, *waiter);
 	all->install<OnchainFeeMonitor>(bus);
 	all->install<ChannelCandidateInvestigator::Main>(bus);
+	all->install<AutoDisconnector>(bus);
 
 	return all;
 }

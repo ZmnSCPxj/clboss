@@ -24,6 +24,10 @@ auto const min_good_candidates = std::size_t(3);
 
 /* Nodes below this score should just be dropped.  */
 auto const min_score = std::int64_t(-3);
+/* Nodes whose score would go above this score will saturate at this
+ * score.
+ */
+auto const max_score = std::int64_t(24);
 
 /* Number of candidates to investigate in parallel.  */
 auto const max_investigation = std::size_t(8);
@@ -39,6 +43,7 @@ void Manager::start() {
 			secretary.update_score( tx, n
 					      , success ? +1 : -1
 					      , min_score
+					      , max_score
 					      );
 			tx.commit();
 

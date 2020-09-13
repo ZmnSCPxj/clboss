@@ -74,15 +74,17 @@ void Secretary::update_score( Sqlite3::Tx& tx
 			    , Ln::NodeId const& node
 			    , std::int64_t delta_score
 			    , std::int64_t minimum_score
+			    , std::int64_t maximum_score
 			    ) {
 	auto proposal_s = std::string(node);
 	/* Update score.  */
 	tx.query(R"QRY(
 		UPDATE "ChannelCandidateInvestigator"
-		   SET score = score + :delta_score
+		   SET score = MIN(:maximum_score, score + :delta_score)
 		 WHERE proposal = :proposal
 		     ;
 	)QRY")
+		.bind(":maximum_score", maximum_score)
 		.bind(":delta_score", delta_score)
 		.bind(":proposal", proposal_s)
 		.execute();

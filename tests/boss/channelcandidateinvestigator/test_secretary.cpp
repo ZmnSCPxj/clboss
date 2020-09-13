@@ -70,8 +70,8 @@ int main() {
 		assert(res.size() == 1);
 
 		/* Change the scores.  */
-		s.update_score(tx, A, +1, -6);
-		s.update_score(tx, C, -1, -6);
+		s.update_score(tx, A, +1, -6, 24);
+		s.update_score(tx, C, -1, -6, 24);
 		/* Channeling should return only the the node with positive
 		 * score.  */
 		auto res2 = s.get_for_channeling(tx);
@@ -83,15 +83,15 @@ int main() {
 				  ));
 
 		/* Changing the score of non-candidates should be fine.  */
-		s.update_score(tx, B, +1, -6);
-		s.update_score(tx, D, +1, -6);
+		s.update_score(tx, B, +1, -6, 24);
+		s.update_score(tx, D, +1, -6, 24);
 		/* Should still be 2 candidates.  */
 		auto res3 = s.get_for_investigation(tx, 999);
 		assert(res3.size() == 2);
 
 		/* Too much negative score will drop a candidate.  */
 		for (auto i = 0; i < 8; ++i)
-			s.update_score(tx, C, -1, -6);
+			s.update_score(tx, C, -1, -6, 24);
 		auto res4 = s.get_for_investigation(tx, 999);
 		assert(res4.size() == 1);
 		assert(std::any_of( res4.begin(), res4.end()

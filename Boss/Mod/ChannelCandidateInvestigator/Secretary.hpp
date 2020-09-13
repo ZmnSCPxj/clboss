@@ -64,12 +64,15 @@ public:
 	 * @brief Increases or decreases the score of the candidate.
 	 * If the score ends up below the given `minimum_score`, delete
 	 * the candidate.
+	 * If the score ends up above the given `maximum_score`,
+	 * saturate the score to `maximum_score`.
 	 * If the candidate does not exist, this is a no-op.
 	 */
 	void update_score( Sqlite3::Tx& tx
 			 , Ln::NodeId const& node
 			 , std::int64_t delta_score
 			 , std::int64_t minimum_score
+			 , std::int64_t maximum_score
 			 );
 
 	/** Secretary::get_for_channeling

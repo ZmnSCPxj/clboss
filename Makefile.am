@@ -79,6 +79,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/Network.hpp \
 	Boss/Msg/Notification.hpp \
 	Boss/Msg/PreinvestigateChannelCandidates.hpp \
+	Boss/Msg/ProposeChannelCandidates.hpp \
 	Boss/Msg/ProposeConnectCandidates.hpp \
 	Boss/Msg/RequestConnect.hpp \
 	Boss/Msg/ResponseConnect.hpp \

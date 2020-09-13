@@ -3,8 +3,8 @@
 
 #include<string>
 
+namespace Boss { namespace Msg { class ListpeersAnalyzedResult; }}
 namespace Ev { template<typename a> class Io; }
-namespace Jsmn { class Object; }
 namespace S { class Bus; }
 
 namespace Boss { namespace Mod {
@@ -22,8 +22,8 @@ private:
 	S::Bus& bus;
 
 	Ev::Io<void> needs_connect(std::string reason);
-	Ev::Io<void> init_check(Jsmn::Object const& peers);
-	Ev::Io<void> periodic_check(Jsmn::Object const& peers);
+	Ev::Io<void> init_check(Msg::ListpeersAnalyzedResult const&);
+	Ev::Io<void> periodic_check(Msg::ListpeersAnalyzedResult const&);
 
 	void start();
 

@@ -1,5 +1,5 @@
 #include"Boss/Mod/InitialConnect.hpp"
-#include"Boss/Msg/ListpeersResult.hpp"
+#include"Boss/Msg/ListpeersAnalyzedResult.hpp"
 #include"Boss/Msg/NeedsConnect.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
@@ -12,61 +12,37 @@
 namespace Boss { namespace Mod {
 
 void InitialConnect::start() {
-	bus.subscribe<Boss::Msg::ListpeersResult>([this](Boss::Msg::ListpeersResult const& lp) {
-		if (lp.initial)
-			return init_check(lp.peers);
+	bus.subscribe<Boss::Msg::ListpeersAnalyzedResult
+		     >([this](Boss::Msg::ListpeersAnalyzedResult const& r) {
+		if (r.initial)
+			return init_check(r);
 		else
-			return periodic_check(lp.peers);
+			return periodic_check(r);
 	});
 }
 
-Ev::Io<void> InitialConnect::init_check(Jsmn::Object const& peers) {
-	for (size_t i = 0; i < peers.size(); ++i) {
-		auto peer = peers[i];
-		if (!(peer.is_object() && peer.has("channels")))
-			continue;
-		auto channels = peer["channels"];
-		if (!channels.is_array())
-			continue;
-		for (size_t j = 0; j < channels.size(); ++j) {
-			auto channel = channels[j];
-			if (!(channel.is_object() && channel.has("state")))
-				continue;
-			auto state = channel["state"];
-			if (!state.is_string())
-				continue;
-			auto state_s = std::string(state);
-			if ( state_s == "CHANNELD_AWAITING_LOCKIN"
-			  || state_s == "CHANNELD_NORMAL"
-			  || state_s == "CHANNELD_SHUTTING_DOWN"
-			   )
-				return Ev::lift();
-		}
-	}
+Ev::Io<void>
+InitialConnect::init_check(Msg::ListpeersAnalyzedResult const& r) {
+	/* If there are any channeled peers, it is likely that
+	 * `lightningd` will naturally connect to them.  */
+	if ( !r.connected_channeled.empty()
+	  || !r.disconnected_channeled.empty()
+	   )
+		return Ev::lift();
 
-	/* If we got through all the peers and none of them
-	 * are CHANNELD_*, then it is likely lightningd will
-	 * not connect to anyone, so we should try adding
-	 * more connections.  */
+	/* Otherwise there are no peers with live channels, so
+	 * we shold try to live them.  */
 	return needs_connect("No peers with live channels.");
 }
 
-Ev::Io<void> InitialConnect::periodic_check(Jsmn::Object const& peers) {
-	for (size_t i = 0; i < peers.size(); ++i) {
-		auto peer = peers[i];
-		if (!(peer.is_object() && peer.has("connected")))
-			continue;
-		auto connected = peer["connected"];
-		if ( connected.is_boolean()
-		  && bool(connected)
-		   )
-			/* At least one connected peer.  */
-			return Ev::lift();
-	}
+Ev::Io<void>
+InitialConnect::periodic_check(Msg::ListpeersAnalyzedResult const& r) {
+	/* If there are any connected peers, no need to get more.  */
+	if ( !r.connected_channeled.empty()
+	  || !r.connected_unchanneled.empty()
+	   )
+		return Ev::lift();
 
-	/* If we got through all the peers and none of them
-	 * are connected, we should probably try adding more
-	 * connections.  */
 	return needs_connect("No connected peers.");
 }
 

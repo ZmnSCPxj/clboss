@@ -6,6 +6,7 @@
 #include"Boss/Msg/ManifestNotification.hpp"
 #include"Boss/Msg/Manifestation.hpp"
 #include"Boss/Msg/Notification.hpp"
+#include"Boss/Msg/PreinvestigateChannelCandidates.hpp"
 #include"Boss/Msg/ProposeChannelCandidates.hpp"
 #include"Boss/Msg/SolicitChannelCandidates.hpp"
 #include"Boss/Msg/TaskCompletion.hpp"
@@ -342,128 +343,52 @@ private:
 		return Boss::log( bus, Info
 				, "%s", log.str().c_str()
 				).then([this]() {
-			return try_connect();
+			/* Preinvestigate the selected nodes.  */
+			return Ev::map( std::bind( &Impl::preinvestigate
+						 , this
+						 , std::placeholders::_1
+						 )
+				      , std::move(selected)
+				      );
+		}).then([this](std::vector<int>) {
+			return signal_task_completion(false);
 		});
 	}
 
-	/* Shuffles the peers of a particular selected node,
-	 * then tries to connect each peer in sequence.
-	 */
-	class ConnectChecker {
-	private:
-		S::Bus& bus;
-		Boss::Mod::Rpc& rpc;
-		struct Impl {
-			Ln::NodeId node;
-			std::vector<Ln::NodeId> peers;
-			std::vector<Ln::NodeId>::const_iterator peer_it;
-			S::Bus* bus;
-			Boss::Mod::Rpc* rpc;
-		};
-	public:
-		ConnectChecker() =delete;
-		explicit
-		ConnectChecker( S::Bus& bus_
-			      , Boss::Mod::Rpc& rpc_
-			      ) : bus(bus_)
-				, rpc(rpc_)
-				{ }
-		/* Functor.  */
-		Ev::Io<bool> operator()(Popular p) {
-			auto self = std::make_shared<Impl>();
-			self->node = std::move(p.node);
-			std::copy( p.peers.begin(), p.peers.end()
-				 , std::back_inserter(self->peers)
-				 );
-			std::shuffle( self->peers.begin()
-				    , self->peers.end()
-				    , Boss::random_engine
-				    );
-			self->peer_it = self->peers.begin();
-			self->bus = &bus;
-			self->rpc = &rpc;
-			return loop(std::move(self));
-		}
-	private:
-		static
-		Ev::Io<bool> loop(std::shared_ptr<Impl> self) {
-			if (self->peer_it == self->peers.end())
-				return Ev::lift(false);
-			/* FIXME: Use Connector object.  */
-			auto params = Json::Out()
-					.start_object()
-						.field( "id"
-						      , std::string(*self->peer_it)
-						      )
-					.end_object()
-					;
-			return self->rpc->command("connect"
-						 , params
-						 ).then([](Jsmn::Object _) {
-				return Ev::lift(true);
-			}).catching<RpcError>([](RpcError const& _) {
-				return Ev::lift(false);
-			}).then([self](bool success) {
-				/* If succeeded, send proposal and exit
-				 * loop.  */
-				if (success) {
-					return self->bus->raise(Msg::ProposeChannelCandidates{
-						*self->peer_it,
-						self->node
-					}).then([]() {
-						return Ev::lift(true);
-					});
-				} else {
-					/* Keep looping.  */
-					++self->peer_it;
-					return loop(self);
-				}
-			});
-		}
-	};
-
-	size_t proposals_made;
-
-	Ev::Io<void> try_connect() {
-		/* Now we try to connect to each of the peers
-		 * of each of the selected nodes.
-		 * If we manage to connect to one of the peers,
-		 * we propose that peer and set the popular node
-		 * as the patron.
-		 *
-		 * We go over each of the selected nodes by Ev::map,
-		 * which runs all the selected nodes in parallel.
-		 */
-		return Ev::map( ConnectChecker(bus, *rpc)
-			      , std::move(selected)
-			      ).then([this](std::vector<bool> results) {
-			/* Count number of true.  */
-			proposals_made = 0;
-			for (auto const& flag : results)
-				if (flag)
-					++proposals_made;
-			return completed_solicit();
+	Ev::Io<int> preinvestigate(Popular p) {
+		return Boss::log( bus, Debug
+				, "ChannelFinderByPopularity: "
+				  "Preinvestigating peers of %s"
+				, std::string(p.node).c_str()
+				).then(std::bind( &Impl::preinvestigate_core
+						, this
+						, std::move(p)
+						)).then([this]() {
+			return Ev::lift(0);
 		});
 	}
 
+	Ev::Io<void> preinvestigate_core(Popular p) {
+		/* Copy the peers and shuffle.  */
+		auto peers = std::vector<Ln::NodeId>();
+		std::copy( p.peers.begin(), p.peers.end()
+			 , std::back_inserter(peers)
+			 );
+		std::shuffle(peers.begin(), peers.end(), Boss::random_engine);
 
-	Ev::Io<void> completed_solicit() {
-		return Ev::yield().then([this]() {
-			if (proposals_made != 0)
-				return Boss::log( bus, Info
-						, "ChannelFinderByPopularity: "
-						  "Proposed %zu nodes to "
-						  "channel to, finished."
-						, proposals_made
-						);
-			else
-				return Boss::log( bus, Warn
-						, "ChannelFinderByPopularity: "
-						  "No nodes were proposed."
-						);
-		}).then([this]() {
-			return signal_task_completion(proposals_made == 0);
+		/* Create the message.  */
+		auto msg = Msg::PreinvestigateChannelCandidates();
+		std::transform( peers.begin(), peers.end()
+			      , std::back_inserter(msg.candidates)
+			      , [&p](Ln::NodeId peer) {
+			return Msg::ProposeChannelCandidates{
+				/* proposal = */peer, /*patron = */p.node
+			};
 		});
+		/* For this popular node, only select one candidate.  */
+		msg.max_candidates = 1;
+
+		return bus.raise(msg);
 	}
 
 	Ev::Io<void> signal_task_completion(bool failed) {

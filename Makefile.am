@@ -16,6 +16,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/BlockTracker.hpp \
 	Boss/Mod/CommandReceiver.cpp \
 	Boss/Mod/CommandReceiver.hpp \
+	Boss/Mod/ChannelCandidateInvestigator/Gumshoe.cpp \
+	Boss/Mod/ChannelCandidateInvestigator/Gumshoe.hpp \
 	Boss/Mod/ChannelCandidateInvestigator/Secretary.cpp \
 	Boss/Mod/ChannelCandidateInvestigator/Secretary.hpp \
 	Boss/Mod/ChannelFinderByPopularity.cpp \
@@ -159,6 +161,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 AM_DEFAULT_SOURCE_EXT = .cpp
 TESTS = \
+	tests/boss/channelcandidateinvestigator/test_gumshoe \
 	tests/boss/channelcandidateinvestigator/test_secretary \
 	tests/boss/test_needsconnectsolicitor \
 	tests/boss/test_rpc \

@@ -5,14 +5,6 @@
 #include<queue>
 #include<sqlite3.h>
 
-#ifdef HAVE_CONFIG_H
-# include"config.h"
-#endif
-
-#ifndef HAVE_SQLITE3
-#error "SQLITE3 library required, try installing libsqlite3 or libsqlite3-dev"
-#endif
-
 namespace Sqlite3 {
 
 class Db::Impl {

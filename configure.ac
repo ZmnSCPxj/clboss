@@ -25,7 +25,7 @@ AX_PTHREAD([:],[
 	AC_MSG_ERROR([Need pthread.])
 ])
 AX_LIB_EV
-AX_LIB_SQLITE3
+PKG_CHECK_MODULES([SQLITE3], [sqlite3 >= 3.0.0])
 
 # Checks for header files.
 

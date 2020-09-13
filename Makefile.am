@@ -167,7 +167,7 @@ EXTRA_DIST = \
 
 AM_CXXFLAGS = -Wall -Werror $(PTHREAD_CFLAGS) $(libev_CFLAGS) $(SQLITE3_CFLAGS)
 AM_CPPFLAGS = -I $(top_srcdir)/external/jsmn
-LDADD = libclboss.la $(PTHREAD_LIBS) $(libev_LIBS) $(SQLITE3_LDFLAGS)
+LDADD = libclboss.la $(PTHREAD_LIBS) $(libev_LIBS) $(SQLITE3_LIBS)
 
 ACLOCAL_AMFLAGS = -I m4
 

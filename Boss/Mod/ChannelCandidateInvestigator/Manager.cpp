@@ -131,6 +131,12 @@ void Manager::start() {
 	/* Remove candidates we already have a channel with.  */
 	bus.subscribe<Msg::ListpeersResult
 		     >([this](Msg::ListpeersResult const& l) {
+		/* If this is the initial one, we might not have a
+		 * db yet.
+		 */
+		if (l.initial)
+			return Ev::lift();
+
 		auto to_remove = std::make_shared<std::vector<Ln::NodeId>>();
 		for (auto i = std::size_t(0); i < l.peers.size(); ++i) {
 			auto peer = l.peers[i];

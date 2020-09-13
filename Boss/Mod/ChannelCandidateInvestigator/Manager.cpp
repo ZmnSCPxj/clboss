@@ -2,7 +2,7 @@
 #include"Boss/Mod/ChannelCandidateInvestigator/Manager.hpp"
 #include"Boss/Mod/ChannelCandidateInvestigator/Secretary.hpp"
 #include"Boss/Msg/Init.hpp"
-#include"Boss/Msg/ListpeersResult.hpp"
+#include"Boss/Msg/ListpeersAnalyzedResult.hpp"
 #include"Boss/Msg/ProposeChannelCandidates.hpp"
 #include"Boss/Msg/SolicitChannelCandidates.hpp"
 #include"Boss/Msg/TimerRandomHourly.hpp"
@@ -12,6 +12,8 @@
 #include"Ln/NodeId.hpp"
 #include"S/Bus.hpp"
 #include"Sqlite3.hpp"
+#include<algorithm>
+#include<iterator>
 #include<random>
 
 namespace {
@@ -129,51 +131,24 @@ void Manager::start() {
 	});
 
 	/* Remove candidates we already have a channel with.  */
-	bus.subscribe<Msg::ListpeersResult
-		     >([this](Msg::ListpeersResult const& l) {
+	bus.subscribe<Msg::ListpeersAnalyzedResult
+		     >([this](Msg::ListpeersAnalyzedResult const& l) {
 		/* If this is the initial one, we might not have a
 		 * db yet.
 		 */
-		if (l.initial)
+		if (!db)
 			return Ev::lift();
 
+		/* Remove the peers already listed as channeled.  */
 		auto to_remove = std::make_shared<std::vector<Ln::NodeId>>();
-		for (auto i = std::size_t(0); i < l.peers.size(); ++i) {
-			auto peer = l.peers[i];
-			if (!peer.is_object() || !peer.has("id"))
-				continue;
-			if (!peer.has("channels"))
-				continue;
-			auto id = peer["id"];
-			if (!id.is_string())
-				continue;
-			auto node = Ln::NodeId(std::string(id));
-			auto chans = peer["channels"];
-			if (!chans.is_array())
-				continue;
-
-			for (auto j = std::size_t(0); j < chans.size(); ++j) {
-				auto chan = chans[i];
-				if (!chan.is_object() || !chan.has("state"))
-					continue;
-				auto state = chan["state"];
-				if (!state.is_string())
-					continue;
-				auto state_s = std::string(state);
-				if (state_s.size() < 8)
-					continue;
-				auto prefix = std::string( state_s.begin()
-							 , state_s.begin() + 8
-							 );
-				if ( prefix != "CHANNELD"
-				  && prefix != "OPENINGD"
-				   )
-					continue;
-				/* We have a live channel with them!  */
-				to_remove->emplace_back(std::move(node));
-				break;
-			}
-		}
+		std::copy( l.connected_channeled.begin()
+			 , l.connected_channeled.end()
+			 , std::back_inserter(*to_remove)
+			 );
+		std::copy( l.disconnected_channeled.begin()
+			 , l.disconnected_channeled.end()
+			 , std::back_inserter(*to_remove)
+			 );
 
 		/* Now have the secretary update our records.  */
 		return db.transact().then([this, to_remove](Sqlite3::Tx tx) {

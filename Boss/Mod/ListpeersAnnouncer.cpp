@@ -3,6 +3,7 @@
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ListpeersResult.hpp"
 #include"Boss/Msg/Timer10Minutes.hpp"
+#include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Ev/Io.hpp"
 #include"Jsmn/Object.hpp"
@@ -46,11 +47,11 @@ void ListpeersAnnouncer::start() {
 	bus.subscribe<Msg::Init
 		     >([this, do_listpeers](Msg::Init const& init) {
 		rpc = &init.rpc;
-		return do_listpeers(true);
+		return Boss::concurrent(do_listpeers(true));
 	});
 	bus.subscribe<Msg::Timer10Minutes
 		     >([this, do_listpeers](Msg::Timer10Minutes const& _) {
-		return do_listpeers(false);
+		return Boss::concurrent(do_listpeers(false));
 	});
 }
 

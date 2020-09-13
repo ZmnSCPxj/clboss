@@ -1,4 +1,5 @@
 #include"Boss/Mod/BlockTracker.hpp"
+#include"Boss/Mod/ChannelCandidateInvestigator/Main.hpp"
 #include"Boss/Mod/ChannelFinderByPopularity.hpp"
 #include"Boss/Mod/ConnectFinderByDns.hpp"
 #include"Boss/Mod/ConnectFinderByHardcode.hpp"
@@ -15,12 +16,6 @@
 #include"Boss/Mod/Timers.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Mod/all.hpp"
-#include"Boss/Msg/Init.hpp"
-#include"Boss/Msg/Manifestation.hpp"
-#include"Boss/Msg/ManifestNotification.hpp"
-#include"Boss/Msg/SolicitChannelCandidates.hpp"
-#include"Boss/concurrent.hpp"
-#include"S/Bus.hpp"
 #include<vector>
 
 namespace {
@@ -35,25 +30,6 @@ public:
 		auto ptr = std::make_shared<M>(as...);
 		modules.push_back(std::shared_ptr<void>(ptr));
 		return ptr;
-	}
-};
-
-class Dummy {
-private:
-	S::Bus& bus;
-
-	void start() {
-		bus.subscribe<Boss::Msg::Manifestation>([this](Boss::Msg::Manifestation const& _) {
-			return bus.raise(Boss::Msg::ManifestNotification{"forward_event"});
-		});
-		bus.subscribe<Boss::Msg::Init>([this](Boss::Msg::Init const& _) {
-			return Boss::concurrent(bus.raise(Boss::Msg::SolicitChannelCandidates()));
-		});
-	}
-
-public:
-	explicit Dummy( S::Bus& bus_) : bus(bus_) {
-		start();
 	}
 };
 
@@ -88,8 +64,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<Reconnector>(bus);
 	all->install<ChannelFinderByPopularity>(bus, *waiter);
 	all->install<OnchainFeeMonitor>(bus);
-
-	all->install<Dummy>(bus);
+	all->install<ChannelCandidateInvestigator::Main>(bus);
 
 	return all;
 }

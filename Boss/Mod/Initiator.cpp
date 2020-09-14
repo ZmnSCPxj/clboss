@@ -8,10 +8,14 @@
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
 #include"Ln/NodeId.hpp"
+#include"Net/Connector.hpp"
+#include"Net/DirectConnector.hpp"
 #include"Net/Fd.hpp"
+#include"Net/ProxyConnector.hpp"
 #include"S/Bus.hpp"
 #include"Sqlite3.hpp"
 #include"Util/make_unique.hpp"
+#include<algorithm>
 #include<assert.h>
 #include<sstream>
 #include<stdlib.h>
@@ -45,6 +49,8 @@ private:
 	Boss::Msg::Network network;
 	std::unique_ptr<Boss::Mod::Rpc> rpc;
 
+	std::unique_ptr<Net::Connector> connector;
+
 	Ev::Io<void> error( std::string const& comment
 			  , Jsmn::Object const& params
 			  ) {
@@ -58,15 +64,37 @@ private:
 			return Ev::lift();
 		});
 	}
-	Ev::Io<void> invalid_getinfo(Jsmn::Object info) {
+	Ev::Io<void> invalid_result(char const* meth, Jsmn::Object info) {
 		auto is = stringify_jsmn(info);
 		return Boss::log( bus, Boss::Error
-				, "Unexpected getinfo result: %s"
+				, "Unexpected %s result: %s"
+				, meth
 				, is.c_str()
 				).then([]() {
 			throw std::runtime_error("Unexpected result.");
 			return Ev::lift();
 		});
+	}
+
+	void setup_proxy(std::string proxy) {
+		auto host = std::string();
+		auto port = int();
+		auto rit = std::find( proxy.rbegin(), proxy.rend()
+				   , ':'
+				   );
+		if (rit == proxy.rend()) {
+			host = proxy;
+			port = 9050;
+		} else {
+			auto it = rit.base();
+			host = std::string(proxy.begin(), it - 1);
+			auto port_s = std::string(it, proxy.end());
+			auto is = std::istringstream(port_s);
+			is >> port;
+		}
+		connector = Util::make_unique<Net::ProxyConnector>(
+			std::move(connector), host, port
+		);
 	}
 
 public:
@@ -179,6 +207,12 @@ public:
 						   , Json::Out::empty_object()
 						   );
 			}).then([this](Jsmn::Object info) {
+				auto invalid_getinfo = [this](Jsmn::Object r) {
+					return invalid_result( "getinfo"
+							     , std::move(r)
+							     );
+				};
+
 				if (!info.is_object() || !info.has("id"))
 					return invalid_getinfo(
 						std::move(info)
@@ -196,8 +230,35 @@ public:
 
 				self_id = Ln::NodeId(s_id);
 
+				connector = Util::make_unique<
+					Net::DirectConnector
+				>();
+
+				return Ev::lift();
+			}).then([this]() {
+				return rpc->command( "listconfigs"
+						   , Json::Out::empty_object()
+						   );
+			}).then([this](Jsmn::Object cfg) {
+				auto invalid_cfg = [this](Jsmn::Object r) {
+					return invalid_result( "listconfigs"
+							     , std::move(r)
+							     );
+				};
+				if (!cfg.is_object())
+					return invalid_cfg(std::move(cfg));
+				if ( cfg.has("proxy")
+				  && cfg["proxy"].is_string()
+				   ) {
+					auto proxy = std::string(
+						cfg["proxy"]
+					);
+					setup_proxy(proxy);
+				}
+
 				return bus.raise(Boss::Msg::Init{
-					network, *rpc, self_id, db
+					network, *rpc, self_id, db,
+					*connector
 				});
 			}).then([this]() {
 				return Boss::log( bus, Debug

@@ -6,6 +6,7 @@
 #include"Sqlite3/Db.hpp"
 
 namespace Boss { namespace Mod { class Rpc; }}
+namespace Net { class Connector; }
 
 namespace Boss { namespace Msg {
 
@@ -19,6 +20,7 @@ struct Init {
 	Boss::Mod::Rpc& rpc;
 	Ln::NodeId self_id;
 	Sqlite3::Db db;
+	Net::Connector& connector;
 };
 
 }}

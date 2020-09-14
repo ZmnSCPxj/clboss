@@ -100,8 +100,9 @@ private:
 			auto self = shared_from_this();
 			return Boss::log( bus, Info
 					, "ChannelCandidatesPreinvestigator: "
-					  "Proposing %s"
+					  "Proposing %s (patron %s)"
 					, std::string(p.proposal).c_str()
+					, std::string(p.patron).c_str()
 					).then([self, p]() {
 				return self->bus.raise(p);
 			}).then([self]() {

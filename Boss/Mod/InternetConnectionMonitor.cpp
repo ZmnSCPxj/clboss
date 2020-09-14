@@ -3,6 +3,8 @@
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ListpeersAnalyzedResult.hpp"
+#include"Boss/Msg/NeedsConnect.hpp"
+#include"Boss/Msg/TaskCompletion.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
@@ -113,6 +115,19 @@ private:
 			/* Copy connected nodes.  */
 			return periodic_check(l);
 		});
+		/* If the NeedsConnectSolicitor failed, it might be due to
+		 * Internet connection problems.  */
+		bus.subscribe< Msg::TaskCompletion
+			     >([this](Msg::TaskCompletion const& comp) {
+			if (!connector || checking_connectivity)
+				return Ev::lift();
+			if (comp.comment != "NeedsConnectSolicitor")
+				return Ev::lift();
+			if (!comp.failed)
+				return Ev::lift();
+			checking_connectivity = true;
+			return server_check();
+		});
 	}
 
 	Ev::Io<void> server_check() {
@@ -156,13 +171,20 @@ private:
 	}
 
 	Ev::Io<void> set_online(bool n_online) {
+		auto was_online = online;
 		online = n_online;
 		return Boss::log( bus, Info
 				, "InternetConnectionMonitor: %s."
 				, online ? "online" : "offline"
-				).then([this]() {
+				).then([this, was_online]() {
 			if (online) {
 				checking_connectivity = false;
+				/* If we moved from offline->online,
+				 * raise NeedsConnect to get us back
+				 * to gossiping.
+				 */
+				if (!was_online)
+					return bus.raise(Msg::NeedsConnect());
 				return Ev::lift();
 			}
 			return offline_quick_loop();

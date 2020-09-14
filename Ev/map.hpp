@@ -37,6 +37,8 @@ namespace Ev {
  *
  * The action will not return until all the
  * parallel executions have completed.
+ *
+ * See also: `Ev::foreach`.
  */
 /* mapIO :: (a -> IO b) -> [a] -> IO [b] */
 template<typename f, typename a>
@@ -175,26 +177,26 @@ private:
 template<typename b, typename f, typename a>
 class MapBind : public std::enable_shared_from_this<MapBind<b, f, a>> {
 private:
-	f func;
+	std::shared_ptr<f> pfunc;
 	a arg;
 
-	MapBind(f func_, a arg_)
-		: func(std::move(func_)), arg(std::move(arg_))
+	MapBind(std::shared_ptr<f> pfunc_, a arg_)
+		: pfunc(std::move(pfunc_)), arg(std::move(arg_))
 		{ }
 
 public:
 	static
 	std::shared_ptr<MapBind<b, f, a>>
-	create(f func, a arg) {
+	create(std::shared_ptr<f> pfunc, a arg) {
 		return std::shared_ptr<MapBind<b, f, a>>(
-			new MapBind<b, f, a>(std::move(func), std::move(arg))
+			new MapBind<b, f, a>(std::move(pfunc), std::move(arg))
 		);
 	}
 
 	Io<b> bind() {
 		auto self = MapBind<b, f, a>::shared_from_this();
 		return Ev::lift().then([self]() {
-			return self->func(std::move(self->arg));
+			return (*self->pfunc)(std::move(self->arg));
 		});
 	}
 };
@@ -205,17 +207,21 @@ template<typename f, typename a>
 Io<std::vector<typename Detail::IoInner<typename std::result_of<f(a)>::type>::type>>
 map(f func, std::vector<a> as) {
 	using b = typename Detail::IoInner<typename std::result_of<f(a)>::type>::type;
+
+	/* Save the function into shared storage.  */
+	auto pfunc = std::make_shared<f>(std::move(func));
 	/* Construct all the actions.  */
 	auto actions = std::vector<Io<b>>();
 	actions.reserve(as.size());
 	std::transform( as.begin(), as.end()
 		      , std::back_inserter(actions)
-		      , [func](a& val) {
+		      , [pfunc](a& val) {
 		auto binder = Detail::MapBind<b, f, a>::create(
-			func, std::move(val)
+			pfunc, std::move(val)
 		);
 		return binder->bind();
 	});
+	pfunc = nullptr;
 
 	/* Create the MapRun object.  */
 	auto runner = Detail::MapRun<b>::create(std::move(actions));

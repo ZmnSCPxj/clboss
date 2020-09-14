@@ -10,6 +10,7 @@
 #include"Boss/Msg/ProposeChannelCandidates.hpp"
 #include"Boss/Msg/SolicitChannelCandidates.hpp"
 #include"Boss/Msg/TaskCompletion.hpp"
+#include"Boss/Msg/Timer10Minutes.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
@@ -60,7 +61,7 @@ auto const min_nodes_to_process = size_t(200);
  * nodes, and a new connection appears, how many seconds
  * should we wait for them to update us about the network?
  */
-auto const seconds_after_connect = double(150);
+auto const seconds_after_connect = double(210);
 
 }
 
@@ -106,6 +107,16 @@ private:
 			}
 			return Ev::lift();
 		});
+		bus.subscribe< Msg::Timer10Minutes
+			     >([this](Msg::Timer10Minutes const& _) {
+			if (try_later) {
+				try_later = false;
+				return Boss::concurrent(Ev::lift().then([this]() {
+					return solicit();
+				}));
+			}
+			return Ev::lift();
+		});
 
 		/* Also do try_later when we successfully connect.  */
 		bus.subscribe< Msg::Manifestation
@@ -132,6 +143,9 @@ private:
 		Ln::NodeId node;
 		std::set<Ln::NodeId> peers;
 	};
+	/* Number of nodes with at least one peer that passed through
+	 * the A-Chao algorithm.  */
+	std::size_t num_processed;
 	/* A-Chao algorithm.  */
 	double wsum;
 	std::vector<Popular> selected;
@@ -217,6 +231,7 @@ private:
 				all_nodes.emplace(std::string(id));
 			}
 			/* Initialize the A-Chao algorithm.  */
+			num_processed = 0;
 			wsum = 0;
 			selected.clear();
 			/* Print details.  */
@@ -294,6 +309,11 @@ private:
 				entry.peers.emplace(Ln::NodeId(dest_s));
 			}
 
+			if (entry.peers.size() == 0)
+				return select_by_popularity();
+
+			++num_processed;
+
 			/* ***Finally*** determine if we should select
 			 * this entry.  */
 			wsum += entry.peers.size();
@@ -325,6 +345,23 @@ private:
 	}
 
 	Ev::Io<void> complete_select_by_popularity() {
+		/* Did the number of number of nodes processed
+		 * even reach the min_nodes_to_process?
+		 */
+		if (num_processed < min_nodes_to_process) {
+			selected.clear();
+			try_later = true;
+			return Boss::log( bus, Info
+					, "ChannelFinderByPopularity: "
+					  "Not enough nodes with >0 "
+					  "channels in routemap "
+					  "(only %zu, need %zu), "
+					  "will try again later."
+					, num_processed
+					, min_nodes_to_process
+					);
+		}
+
 		/* Generate a log.  */
 		auto log = std::ostringstream();
 		log << "ChannelFinderByPopularity: "

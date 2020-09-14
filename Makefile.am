@@ -40,6 +40,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/InitialConnect.hpp \
 	Boss/Mod/Initiator.cpp \
 	Boss/Mod/Initiator.hpp \
+	Boss/Mod/InternetConnectionMonitor.cpp \
+	Boss/Mod/InternetConnectionMonitor.hpp \
 	Boss/Mod/JsonOutputter.cpp \
 	Boss/Mod/JsonOutputter.hpp \
 	Boss/Mod/ListpeersAnalyzer.cpp \

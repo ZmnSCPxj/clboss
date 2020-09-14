@@ -9,6 +9,7 @@
 #include"Boss/Mod/CommandReceiver.hpp"
 #include"Boss/Mod/InitialConnect.hpp"
 #include"Boss/Mod/Initiator.hpp"
+#include"Boss/Mod/InternetConnectionMonitor.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
 #include"Boss/Mod/ListpeersAnalyzer.hpp"
 #include"Boss/Mod/ListpeersAnnouncer.hpp"
@@ -52,6 +53,11 @@ std::shared_ptr<void> all( std::ostream& cout
 
 	/* The waiter is shared among most of the other modules.  */
 	auto waiter = all->install<Waiter>(bus);
+	auto imon = all->install<InternetConnectionMonitor>( bus
+							   , threadpool
+							   , *waiter
+							   );
+	(void) imon;
 	all->install<JsonOutputter>(cout, bus);
 	all->install<CommandReceiver>(bus);
 	all->install<Manifester>(bus);

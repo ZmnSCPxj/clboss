@@ -52,25 +52,30 @@ public:
 	IoBase(CoreFunc core_) : core(std::move(core_)) { }
 
 	template<typename e>
-	Io<a> catching(std::function<Io<a>(e const&)> handler) const {
-		auto core_copy = core;
-		return Io<a>([ core_copy
-			     , handler
+	Io<a> catching(std::function<Io<a>(e const&)> handler)&& {
+		auto pcore = std::make_shared<CoreFunc>(std::move(core));
+		auto phandler = std::make_shared<std::function<Io<a>(e const&)>>(std::move(handler));
+		return Io<a>([ pcore
+			     , phandler
 			     ]( typename Detail::PassFunc<a>::type pass
 			      , std::function<void (std::exception_ptr)> fail
 			      ) {
 			auto sub_fail = [ pass, fail
-					, handler
+					, phandler
 					](std::exception_ptr err) {
 				try {
 					std::rethrow_exception(err);
 				} catch (e const& err) {
-					handler(err).core(pass, fail);
+					try {
+						(*phandler)(err).core(pass, fail);
+					} catch (...) {
+						fail(std::current_exception());
+					}
 				} catch (...) {
 					fail(std::current_exception());
 				}
 			};
-			core_copy(pass, sub_fail);
+			(*pcore)(pass, sub_fail);
 		});
 	}
 };
@@ -79,26 +84,29 @@ public:
 
 template<typename a>
 class Io : public Detail::IoBase<a> {
+private:
+	typedef typename Detail::IoBase<a>::CoreFunc CoreFunc;
 public:
 	Io(typename Detail::IoBase<a>::CoreFunc core_) : Detail::IoBase<a>(std::move(core_)) { }
 
 	/* (>>=) :: IO a -> (a -> IO b) -> IO b*/
 	template<typename f>
 	Io<typename Detail::IoInner<typename std::result_of<f(a)>::type>::type>
-	then(f func) const {
+	then(f func)&& {
 		using b = typename Detail::IoInner<typename std::result_of<f(a)>::type>::type;
-		auto core_copy = this->core;
+		auto pcore = std::make_shared<CoreFunc>(std::move(this->core));
+		auto pfunc = std::make_shared<f>(std::move(func));
 		/* Continuation Monad.  */
-		return Io<b>([ core_copy
-			     , func
+		return Io<b>([ pcore
+			     , pfunc
 			     ]( typename Detail::PassFunc<b>::type pass
 			      , std::function<void (std::exception_ptr)> fail
 			      ) {
 			try {
-				auto sub_pass = [func, pass, fail](a value) {
-					func(std::move(value)).core(pass, fail);
+				auto sub_pass = [pfunc, pass, fail](a value) {
+					(*pfunc)(std::move(value)).core(pass, fail);
 				};
-				core_copy(sub_pass, fail);
+				(*pcore)(sub_pass, fail);
 			} catch (...) {
 				fail(std::current_exception());
 			}
@@ -135,30 +143,33 @@ public:
 /* Create a separate then-implementation for Io<void> */
 template<>
 class Io<void> : public Detail::IoBase<void> {
+private:
+	typedef typename Detail::IoBase<void>::CoreFunc CoreFunc;
 public:
 	Io(typename Detail::IoBase<void>::CoreFunc core_) : Detail::IoBase<void>(std::move(core_)) { }
 
 	/* (>>=) :: IO () -> (() -> IO b) -> IO b*/
 	template<typename f>
 	Io<typename Detail::IoInner<typename std::result_of<f()>::type>::type>
-	then(f func) const {
+	then(f func)&& {
 		using b = typename Detail::IoInner<typename std::result_of<f()>::type>::type;
-		auto core_copy = core;
+		auto pcore = std::make_shared<CoreFunc>(std::move(this->core));
+		auto pfunc = std::make_shared<f>(std::move(func));
 		/* Continuation Monad.  */
-		return Io<b>([ core_copy
-			     , func
+		return Io<b>([ pcore
+			     , pfunc
 			     ]( typename Detail::PassFunc<b>::type pass
 			      , std::function<void (std::exception_ptr)> fail
 			      ) {
 			try {
-				auto sub_pass = [func, pass, fail]() {
+				auto sub_pass = [pfunc, pass, fail]() {
 					try {
-						func().core(pass, fail);
+						(*pfunc)().core(pass, fail);
 					} catch (...) {
 						fail(std::current_exception());
 					}
 				};
-				core_copy(sub_pass, fail);
+				(*pcore)(sub_pass, fail);
 			} catch (...) {
 				fail(std::current_exception());
 			}

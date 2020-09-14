@@ -64,6 +64,9 @@ Ev::Io<void> io_main() {
 			assert(*flag2);
 			return Ev::lift();
 		});
+	}).then([bus] () {
+		/* This function just keeps the bus alive.  */
+		return Ev::lift();
 	});
 }
 

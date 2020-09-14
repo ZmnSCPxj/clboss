@@ -133,8 +133,17 @@ libclboss_la_SOURCES = \
 	Json/Out.hpp \
 	Ln/NodeId.cpp \
 	Ln/NodeId.hpp \
+	Net/Connector.hpp \
+	Net/Detail/AddrInfoReleaser.cpp \
+	Net/Detail/AddrInfoReleaser.hpp \
+	Net/DirectConnector.cpp \
+	Net/DirectConnector.hpp \
 	Net/Fd.cpp \
 	Net/Fd.hpp \
+	Net/ProxyConnector.cpp \
+	Net/ProxyConnector.hpp \
+	Net/SocketFd.cpp \
+	Net/SocketFd.hpp \
 	S/Bus.cpp \
 	S/Bus.hpp \
 	S/Detail/Signal.hpp \

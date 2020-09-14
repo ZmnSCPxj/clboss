@@ -57,7 +57,6 @@ std::shared_ptr<void> all( std::ostream& cout
 							   , threadpool
 							   , *waiter
 							   );
-	(void) imon;
 	all->install<JsonOutputter>(cout, bus);
 	all->install<CommandReceiver>(bus);
 	all->install<Manifester>(bus);
@@ -75,7 +74,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ChannelFinderByPopularity>(bus, *waiter);
 	all->install<OnchainFeeMonitor>(bus);
 	all->install<ChannelCandidatePreinvestigator>(bus);
-	all->install<ChannelCandidateInvestigator::Main>(bus);
+	all->install<ChannelCandidateInvestigator::Main>(bus, *imon);
 	all->install<AutoDisconnector>(bus);
 
 	return all;

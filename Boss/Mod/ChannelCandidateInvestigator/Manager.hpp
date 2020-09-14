@@ -6,6 +6,7 @@
 
 namespace Boss { namespace Mod { namespace ChannelCandidateInvestigator { class Gumshoe; }}}
 namespace Boss { namespace Mod { namespace ChannelCandidateInvestigator { class Secretary; }}}
+namespace Boss { namespace Mod { class InternetConnectionMonitor; }}
 namespace S { class Bus; }
 
 namespace Boss { namespace Mod { namespace ChannelCandidateInvestigator {
@@ -20,6 +21,7 @@ private:
 	S::Bus& bus;
 	Secretary& secretary;
 	Gumshoe& gumshoe;
+	InternetConnectionMonitor& imon;
 
 	Sqlite3::Db db;
 
@@ -35,9 +37,11 @@ public:
 	Manager( S::Bus& bus_
 	       , Secretary& secretary_
 	       , Gumshoe& gumshoe_
+	       , InternetConnectionMonitor& imon_
 	       ) : bus(bus_)
 		 , secretary(secretary_)
 		 , gumshoe(gumshoe_)
+		 , imon(imon_)
 		 {
 		start();
 	}

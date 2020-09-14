@@ -3,6 +3,7 @@
 
 #include<memory>
 
+namespace Boss { namespace Mod { class InternetConnectionMonitor; }}
 namespace S { class Bus; }
 
 namespace Boss { namespace Mod { namespace ChannelCandidateInvestigator {
@@ -23,7 +24,9 @@ public:
 	~Main();
 
 	explicit
-	Main(S::Bus& bus);
+	Main( S::Bus& bus
+	    , Boss::Mod::InternetConnectionMonitor& imon
+	    );
 };
 
 }}}

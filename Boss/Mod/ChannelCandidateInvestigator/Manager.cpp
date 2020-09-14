@@ -1,6 +1,7 @@
 #include"Boss/Mod/ChannelCandidateInvestigator/Gumshoe.hpp"
 #include"Boss/Mod/ChannelCandidateInvestigator/Manager.hpp"
 #include"Boss/Mod/ChannelCandidateInvestigator/Secretary.hpp"
+#include"Boss/Mod/InternetConnectionMonitor.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ListpeersAnalyzedResult.hpp"
 #include"Boss/Msg/ProposeChannelCandidates.hpp"
@@ -106,6 +107,17 @@ void Manager::start() {
 			return Boss::log( bus, Info
 					, "ChannelCandidateInvestigator: %s"
 					, report->c_str()
+					);
+		}).then([=]() {
+			/* If we are online, continue.  */
+			if (imon.is_online())
+				return Ev::lift();
+
+			/* We are offline, suppress investigation.  */
+			cases->clear();
+			return Boss::log( bus, Info
+					, "ChannelCandidateInvestigator: "
+					  "Offline.  Not investigating."
 					);
 		}).then([=]() {
 			/* If too few candidates, get more.  */

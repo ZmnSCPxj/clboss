@@ -12,13 +12,15 @@ Main::Main(Main&& o) : secretary(std::move(o.secretary))
 		     { }
 Main::~Main() {}
 
-Main::Main(S::Bus& bus
+Main::Main( S::Bus& bus
+	  , InternetConnectionMonitor& imon
 	  ) : secretary(Util::make_unique<Secretary>())
 	    , gumshoe(Util::make_unique<Gumshoe>(bus))
 	    {
 	manager = Util::make_unique<Manager>( bus
 					    , *secretary
 					    , *gumshoe
+					    , imon
 					    );
 }
 

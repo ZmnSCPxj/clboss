@@ -1,6 +1,7 @@
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Shutdown.hpp"
 #include"Ev/Io.hpp"
+#include"Ev/yield.hpp"
 #include"S/Bus.hpp"
 #include"Util/make_unique.hpp"
 #include<ev.h>
@@ -99,6 +100,58 @@ public:
 			ev_timer_start(EV_DEFAULT_ &*it);
 		});
 	}
+
+	struct TimedCoreData {
+		typedef std::function<void()> PassF;
+		typedef std::function<void(std::exception_ptr)> FailF;
+		PassF pass;
+		FailF fail;
+		bool flag;
+	};
+
+	Ev::Io<void> timed_core(double timeout, Ev::Io<void> action) {
+		auto paction = std::make_shared<Ev::Io<void>>(
+			std::move(action)
+		);
+		return Ev::Io<void>([ this
+				    , timeout
+				    , paction
+				    ]( std::function<void()> pass
+				     , std::function<void(std::exception_ptr)> fail
+				     ) {
+			auto sh = std::make_shared<TimedCoreData>(TimedCoreData{
+				std::move(pass), std::move(fail), false
+			});
+			auto sub_pass = [sh]() {
+				/* Pass case.  */
+				if (sh->flag)
+					return;
+				sh->flag = true;
+				auto pass = std::move(sh->pass);
+				sh->fail = nullptr;
+				pass();
+			};
+			auto sub_fail = [sh](std::exception_ptr e) {
+				/* Pass case.  */
+				if (sh->flag)
+					return;
+				sh->flag = true;
+				auto fail = std::move(sh->fail);
+				sh->pass = nullptr;
+				fail(e);
+			};
+			wait(timeout).run([sub_fail]() {
+				try {
+					throw TimedOut{};
+				} catch (...) {
+					sub_fail(std::current_exception());
+				}
+			}, sub_fail);
+			std::move(*paction).run(sub_pass, sub_fail);
+		}).then([]() {
+			return Ev::yield();
+		});
+	}
 };
 
 Waiter::Waiter(S::Bus& bus) : pimpl(Util::make_unique<Impl>(bus)) {}
@@ -106,6 +159,9 @@ Waiter::~Waiter() { }
 
 Ev::Io<void> Waiter::wait(double seconds) {
 	return pimpl->wait(seconds);
+}
+Ev::Io<void> Waiter::timed_core(double timeout, Ev::Io<void> action) {
+	return pimpl->timed_core(timeout, std::move(action));
 }
 
 }}

@@ -187,6 +187,7 @@ TESTS = \
 	tests/boss/test_needsconnectsolicitor \
 	tests/boss/test_rpc \
 	tests/boss/test_version \
+	tests/boss/test_waiter_timed \
 	tests/dnsseed/test_decode_bech32_node \
 	tests/dnsseed/test_get \
 	tests/dnsseed/test_parse_dig_srv \

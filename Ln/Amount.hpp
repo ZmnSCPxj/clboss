@@ -90,6 +90,9 @@ public:
 	Amount operator/(double i) const {
 		return Amount(*this) /= i;
 	}
+	double operator/(Amount const& i) const {
+		return ((double)v) / ((double)i.v);
+	}
 
 	bool operator<(Amount const& o) const {
 		return v < o.v;

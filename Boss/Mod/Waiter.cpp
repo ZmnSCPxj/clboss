@@ -147,7 +147,7 @@ public:
 					sub_fail(std::current_exception());
 				}
 			}, sub_fail);
-			std::move(*paction).run(sub_pass, sub_fail);
+			paction->run(sub_pass, sub_fail);
 		}).then([]() {
 			return Ev::yield();
 		});

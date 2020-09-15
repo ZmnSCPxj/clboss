@@ -30,6 +30,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelCandidatePreinvestigator.hpp \
 	Boss/Mod/ChannelFinderByPopularity.cpp \
 	Boss/Mod/ChannelFinderByPopularity.hpp \
+	Boss/Mod/ChannelFundsComputer.cpp \
+	Boss/Mod/ChannelFundsComputer.hpp \
 	Boss/Mod/ConnectFinderByDns.cpp \
 	Boss/Mod/ConnectFinderByDns.hpp \
 	Boss/Mod/ConnectFinderByHardcode.cpp \
@@ -70,6 +72,7 @@ libclboss_la_SOURCES = \
 	Boss/Mod/all.hpp \
 	Boss/Msg/Begin.hpp \
 	Boss/Msg/Block.hpp \
+	Boss/Msg/ChannelFunds.hpp \
 	Boss/Msg/CommandRequest.hpp \
 	Boss/Msg/CommandResponse.hpp \
 	Boss/Msg/Init.hpp \

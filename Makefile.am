@@ -54,6 +54,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/NeedsConnectSolicitor.hpp \
 	Boss/Mod/OnchainFeeMonitor.cpp \
 	Boss/Mod/OnchainFeeMonitor.hpp \
+	Boss/Mod/OnchainFundsAnnouncer.cpp \
+	Boss/Mod/OnchainFundsAnnouncer.hpp \
 	Boss/Mod/Reconnector.cpp \
 	Boss/Mod/Reconnector.hpp \
 	Boss/Mod/Rpc.cpp \
@@ -80,6 +82,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/NeedsConnect.hpp \
 	Boss/Msg/Network.hpp \
 	Boss/Msg/Notification.hpp \
+	Boss/Msg/OnchainFunds.hpp \
 	Boss/Msg/PreinvestigateChannelCandidates.hpp \
 	Boss/Msg/ProposeChannelCandidates.hpp \
 	Boss/Msg/ProposeConnectCandidates.hpp \

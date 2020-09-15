@@ -16,6 +16,7 @@
 #include"Boss/Mod/Manifester.hpp"
 #include"Boss/Mod/NeedsConnectSolicitor.hpp"
 #include"Boss/Mod/OnchainFeeMonitor.hpp"
+#include"Boss/Mod/OnchainFundsAnnouncer.hpp"
 #include"Boss/Mod/Reconnector.hpp"
 #include"Boss/Mod/Timers.hpp"
 #include"Boss/Mod/Waiter.hpp"
@@ -76,6 +77,8 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ChannelCandidatePreinvestigator>(bus);
 	all->install<ChannelCandidateInvestigator::Main>(bus, *imon);
 	all->install<AutoDisconnector>(bus);
+
+	all->install<OnchainFundsAnnouncer>(bus);
 
 	return all;
 }

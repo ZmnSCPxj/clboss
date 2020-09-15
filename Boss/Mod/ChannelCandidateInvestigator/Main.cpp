@@ -2,6 +2,7 @@
 #include"Boss/Mod/ChannelCandidateInvestigator/Main.hpp"
 #include"Boss/Mod/ChannelCandidateInvestigator/Manager.hpp"
 #include"Boss/Mod/ChannelCandidateInvestigator/Secretary.hpp"
+#include"Ev/Io.hpp"
 #include"Util/make_unique.hpp"
 
 namespace Boss { namespace Mod { namespace ChannelCandidateInvestigator {
@@ -22,6 +23,10 @@ Main::Main( S::Bus& bus
 					    , *gumshoe
 					    , imon
 					    );
+}
+Ev::Io<std::vector<std::pair<Ln::NodeId, Ln::NodeId>>>
+Main::get_channel_candidates() {
+	return manager->get_channel_candidates();
 }
 
 }}}

@@ -3,10 +3,13 @@
 
 #include"Sqlite3/Db.hpp"
 #include<cstddef>
+#include<utility>
+#include<vector>
 
 namespace Boss { namespace Mod { namespace ChannelCandidateInvestigator { class Gumshoe; }}}
 namespace Boss { namespace Mod { namespace ChannelCandidateInvestigator { class Secretary; }}}
 namespace Boss { namespace Mod { class InternetConnectionMonitor; }}
+namespace Ln { class NodeId; }
 namespace S { class Bus; }
 
 namespace Boss { namespace Mod { namespace ChannelCandidateInvestigator {
@@ -45,6 +48,9 @@ public:
 		 {
 		start();
 	}
+
+	Ev::Io<std::vector<std::pair<Ln::NodeId, Ln::NodeId>>>
+	get_channel_candidates();
 };
 
 }}}

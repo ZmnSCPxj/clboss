@@ -1,7 +1,10 @@
 #ifndef BOSS_MOD_CHANNELCANDIDATEINVESTIGATOR_MAIN_HPP
 #define BOSS_MOD_CHANNELCANDIDATEINVESTIGATOR_MAIN_HPP
 
+#include"Ln/NodeId.hpp"
 #include<memory>
+#include<utility>
+#include<vector>
 
 namespace Boss { namespace Mod { class InternetConnectionMonitor; }}
 namespace S { class Bus; }
@@ -27,6 +30,17 @@ public:
 	Main( S::Bus& bus
 	    , Boss::Mod::InternetConnectionMonitor& imon
 	    );
+
+	/** Main::get_channel_candidates
+	 *
+	 * @brief gets the channel candidates, in order from
+	 * best score to worst score.
+	 * `.first` is the actual node to channel with,
+	 * `.second` is the reason why we think the actual node
+	 * is a good idea.
+	 */
+	Ev::Io<std::vector<std::pair<Ln::NodeId, Ln::NodeId>>>
+	get_channel_candidates();
 };
 
 }}}

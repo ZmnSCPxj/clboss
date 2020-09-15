@@ -189,4 +189,24 @@ Ev::Io<void> Manager::solicit_candidates(std::size_t good_candidates) {
 	});
 }
 
+Ev::Io<std::vector<std::pair<Ln::NodeId, Ln::NodeId>>>
+Manager::get_channel_candidates() {
+	return Ev::lift().then([this]() {
+		return db.transact();
+	}).then([this](Sqlite3::Tx tx) {
+		auto candidates = secretary.get_for_channeling(tx);
+		tx.commit();
+
+		auto ncandidates = std::vector<std::pair<Ln::NodeId, Ln::NodeId>>(candidates.size());
+		/* Transform.  */
+		std::transform( candidates.begin(), candidates.end()
+			      , ncandidates.begin()
+			      , [](Msg::ProposeChannelCandidates const& p) {
+			return std::make_pair(p.proposal, p.patron);
+		});
+
+		return Ev::lift(std::move(ncandidates));
+	});
+}
+
 }}}

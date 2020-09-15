@@ -201,6 +201,7 @@ AM_DEFAULT_SOURCE_EXT = .cpp
 TESTS = \
 	tests/boss/channelcandidateinvestigator/test_gumshoe \
 	tests/boss/channelcandidateinvestigator/test_secretary \
+	tests/boss/test_channelcreationdecider \
 	tests/boss/test_needsconnectsolicitor \
 	tests/boss/test_rpc \
 	tests/boss/test_version \

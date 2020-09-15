@@ -3,6 +3,7 @@
 
 #include<memory>
 
+namespace Boss { namespace Mod { class Waiter; }}
 namespace S { class Bus; }
 
 namespace Boss { namespace Mod {
@@ -25,7 +26,7 @@ private:
 public:
 	OnchainFeeMonitor() =delete;
 	OnchainFeeMonitor(OnchainFeeMonitor const&) =delete;
-	OnchainFeeMonitor(S::Bus&);
+	OnchainFeeMonitor(S::Bus&, Boss::Mod::Waiter&);
 	OnchainFeeMonitor(OnchainFeeMonitor&&);
 	~OnchainFeeMonitor();
 

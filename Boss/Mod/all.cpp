@@ -77,7 +77,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ListpeersAnalyzer>(bus);
 	all->install<Reconnector>(bus);
 	all->install<ChannelFinderByPopularity>(bus, *waiter);
-	all->install<OnchainFeeMonitor>(bus);
+	all->install<OnchainFeeMonitor>(bus, *waiter);
 	all->install<ChannelCandidatePreinvestigator>(bus);
 	all->install<ChannelCandidateInvestigator::Main>(bus, *imon);
 	all->install<AutoDisconnector>(bus);

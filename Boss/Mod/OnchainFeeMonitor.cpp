@@ -1,6 +1,8 @@
 #include"Boss/Mod/OnchainFeeMonitor.hpp"
 #include"Boss/Mod/Rpc.hpp"
+#include"Boss/Mod/Waiter.hpp"
 #include"Boss/Msg/Init.hpp"
+#include"Boss/Msg/OnchainFee.hpp"
 #include"Boss/Msg/TimerRandomHourly.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
@@ -53,6 +55,7 @@ namespace Boss { namespace Mod {
 class OnchainFeeMonitor::Impl {
 private:
 	S::Bus& bus;
+	Boss::Mod::Waiter& waiter;
 	Boss::Mod::Rpc *rpc;
 	Sqlite3::Db db;
 
@@ -89,7 +92,9 @@ private:
 				return Boss::log( bus, Debug
 						, "OnchainFeeMonitor: Init: "
 						  "Fee unknown."
-						);
+						).then([this]() {
+					return Boss::concurrent(retry());
+				});
 
 			/* Feerate is known, save it in the shared variable.  */
 			*saved_feerate = *feerate;
@@ -165,7 +170,9 @@ private:
 				, "OnchainFeeMonitor: %s: %s fees."
 				, msg
 				, is_low_fee_flag ? "low" : "high"
-				);
+				).then([this]() {
+			return bus.raise(Msg::OnchainFee{is_low_fee_flag});
+		});
 	}
 
 	Ev::Io<void> on_timer() {
@@ -214,10 +221,41 @@ private:
 		});
 	}
 
+	/* Loop until we get fees.  */
+	Ev::Io<void> retry() {
+		auto saved_feerate = std::make_shared<double>();
+		return waiter.wait(30).then([this]() {
+			return get_feerate();
+		}).then([this, saved_feerate
+			](std::unique_ptr<double> feerate) {
+			if (!feerate)
+				return Boss::log( bus, Debug
+						, "OnchainFeeMonitor: "
+						  "Init retried: "
+						  "Fee still unknown."
+						).then([this]() {
+					return retry();
+				});
+
+			return db.transact().then([ this
+						  , saved_feerate
+						  ](Sqlite3::Tx tx) {
+				auto mean = update_mean( std::move(tx)
+						       , *saved_feerate
+						       );
+				is_low_fee_flag = *saved_feerate < mean;
+				return report_fee("Init retried");
+			});
+		});
+	}
 
 public:
 	explicit
-	Impl(S::Bus& bus_) : bus(bus_), rpc(nullptr), is_low_fee_flag(false) {
+	Impl( S::Bus& bus_
+	    , Boss::Mod::Waiter& waiter_
+	    ) : bus(bus_), waiter(waiter_)
+	      , rpc(nullptr), is_low_fee_flag(false)
+	      {
 		start();
 	}
 
@@ -226,8 +264,10 @@ public:
 	}
 };
 
-OnchainFeeMonitor::OnchainFeeMonitor(S::Bus& bus)
-	: pimpl(Util::make_unique<Impl>(bus)) { }
+OnchainFeeMonitor::OnchainFeeMonitor( S::Bus& bus
+				    , Boss::Mod::Waiter& waiter
+				    )
+	: pimpl(Util::make_unique<Impl>(bus, waiter)) { }
 OnchainFeeMonitor::OnchainFeeMonitor(OnchainFeeMonitor&& o)
 	: pimpl(std::move(o.pimpl)) { }
 OnchainFeeMonitor::~OnchainFeeMonitor() { }

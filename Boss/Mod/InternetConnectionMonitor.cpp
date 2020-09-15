@@ -79,7 +79,7 @@ auto const servers = std::vector<std::pair<std::string, int>>
 , {"acinq.co", 443}
 };
 auto dist = std::uniform_int_distribution<std::size_t>(
-	0, servers.size()
+	0, servers.size() - 1
 );
 
 }

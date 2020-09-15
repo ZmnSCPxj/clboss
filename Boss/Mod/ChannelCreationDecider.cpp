@@ -70,8 +70,10 @@ private:
 		if (*onchain < min_amount + reserve) {
 			/* Double up the reserve here because fees.  */
 			auto more = (min_amount + reserve * 2) - *onchain;
+			auto more_btc = more.to_btc();
 			return decide( std::string("Onchain amount too low, ")
-				     + "add " + std::string(more) + " or more"
+				     + "add " + Util::stringify(more_btc)
+				     + " or more"
 				     , nullptr
 				     );
 		}

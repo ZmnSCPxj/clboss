@@ -150,6 +150,8 @@ libclboss_la_SOURCES = \
 	Ln/Amount.hpp \
 	Ln/NodeId.cpp \
 	Ln/NodeId.hpp \
+	Ln/Scid.cpp \
+	Ln/Scid.hpp \
 	Net/Connector.hpp \
 	Net/Detail/AddrInfoReleaser.cpp \
 	Net/Detail/AddrInfoReleaser.hpp \
@@ -218,6 +220,7 @@ TESTS = \
 	tests/json/test_out_simple \
 	tests/ln/test_amount \
 	tests/ln/test_nodeid \
+	tests/ln/test_scid \
 	tests/s/test_bus \
 	tests/sqlite3/test_sqlite3 \
 	tests/stats/test_running_mean

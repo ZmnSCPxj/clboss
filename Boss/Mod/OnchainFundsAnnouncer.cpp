@@ -84,8 +84,8 @@ Ev::Io<void> OnchainFundsAnnouncer::on_block() {
 
 		return Boss::log( bus, Debug
 				, "OnchainFundsAnnouncer: "
-				  "Found %s onchain."
-				, excess_msat_s
+				  "Found %s (after deducting fee to spend) onchain."
+				, excess_msat_s.c_str()
 				).then([this, amount]() {
 			return bus.raise(Msg::OnchainFunds{amount});
 		});

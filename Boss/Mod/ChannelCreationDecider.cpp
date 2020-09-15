@@ -66,11 +66,18 @@ private:
 		/* Get this trigger.  */
 		auto onchain = std::move(saved_onchain);
 
+		/* Is the amount the reserve?  */
+		if (*onchain <= reserve)
+			/* Do nothing and be silent.  */
+			return decide_do_nothing_silently();
+
 		/* Below our minimum channeling amount?  */
 		if (*onchain < min_amount + reserve) {
 			/* Double up the reserve here because fees.  */
 			auto more = (min_amount + reserve * 2) - *onchain;
 			auto more_btc = more.to_btc();
+			/* Totally not a "just send me more funds to
+			 * redeem your money" scam.  */
 			return decide( std::string("Onchain amount too low, ")
 				     + "add " + Util::stringify(more_btc)
 				     + " or more"
@@ -121,6 +128,9 @@ private:
 					, std::string(reserve).c_str()
 					);
 		});
+	}
+	Ev::Io<void> decide_do_nothing_silently() {
+		return Ev::lift();
 	}
 
 public:

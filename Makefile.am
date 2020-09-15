@@ -133,6 +133,8 @@ libclboss_la_SOURCES = \
 	Jsmn/jsonify_string.cpp \
 	Jsmn/jsonify_string.hpp \
 	Json/Out.hpp \
+	Ln/Amount.cpp \
+	Ln/Amount.hpp \
 	Ln/NodeId.cpp \
 	Ln/NodeId.hpp \
 	Net/Connector.hpp \
@@ -199,6 +201,7 @@ TESTS = \
 	tests/ev/test_runcmd \
 	tests/ev/test_throw_in_then \
 	tests/json/test_out_simple \
+	tests/ln/test_amount \
 	tests/ln/test_nodeid \
 	tests/s/test_bus \
 	tests/sqlite3/test_sqlite3 \

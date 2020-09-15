@@ -37,17 +37,28 @@ public:
 		ret.v = v * (100000000.0 * 1000.0);
 		return ret;
 	}
+	double to_btc() const {
+		return ((double) v) / (100000000.0 * 1000.0);
+	}
+
 	static
 	Amount sat(std::uint64_t v) {
 		auto ret = Amount();
 		ret.v = v * 1000;
 		return ret;
 	}
+	std::uint64_t to_sat() const {
+		return (v + 999) / 1000;
+	}
+
 	static
 	Amount msat(std::uint64_t v) {
 		auto ret = Amount();
 		ret.v = v;
 		return ret;
+	}
+	std::uint64_t to_mast() const {
+		return v;
 	}
 
 	/* Saturates.  */

@@ -11,6 +11,7 @@
 #include"Boss/Mod/Initiator.hpp"
 #include"Boss/Mod/InternetConnectionMonitor.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
+#include"Boss/Mod/ListfundsAnnouncer.hpp"
 #include"Boss/Mod/ListpeersAnalyzer.hpp"
 #include"Boss/Mod/ListpeersAnnouncer.hpp"
 #include"Boss/Mod/Manifester.hpp"
@@ -69,6 +70,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<NeedsConnectSolicitor>(bus);
 	all->install<ConnectFinderByDns>(bus);
 	all->install<ConnectFinderByHardcode>(bus);
+	all->install<ListfundsAnnouncer>(bus);
 	all->install<ListpeersAnnouncer>(bus);
 	all->install<ListpeersAnalyzer>(bus);
 	all->install<Reconnector>(bus);

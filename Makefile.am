@@ -44,6 +44,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/InternetConnectionMonitor.hpp \
 	Boss/Mod/JsonOutputter.cpp \
 	Boss/Mod/JsonOutputter.hpp \
+	Boss/Mod/ListfundsAnnouncer.cpp \
+	Boss/Mod/ListfundsAnnouncer.hpp \
 	Boss/Mod/ListpeersAnalyzer.cpp \
 	Boss/Mod/ListpeersAnalyzer.hpp \
 	Boss/Mod/ListpeersAnnouncer.cpp \
@@ -73,6 +75,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/Init.hpp \
 	Boss/Msg/JsonCin.hpp \
 	Boss/Msg/JsonCout.hpp \
+	Boss/Msg/ListfundsResult.hpp \
 	Boss/Msg/ListpeersAnalyzedResult.hpp \
 	Boss/Msg/ListpeersResult.hpp \
 	Boss/Msg/ManifestCommand.hpp \

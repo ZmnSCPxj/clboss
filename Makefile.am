@@ -90,6 +90,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/NeedsConnect.hpp \
 	Boss/Msg/Network.hpp \
 	Boss/Msg/Notification.hpp \
+	Boss/Msg/OnchainFee.hpp \
 	Boss/Msg/OnchainFunds.hpp \
 	Boss/Msg/PreinvestigateChannelCandidates.hpp \
 	Boss/Msg/ProposeChannelCandidates.hpp \

@@ -180,7 +180,8 @@ libclboss_la_SOURCES = \
 	Util/Rw.hpp \
 	Util/Str.cpp \
 	Util/Str.hpp \
-	Util/make_unique.hpp
+	Util/make_unique.hpp \
+	Util/stringify.hpp
 
 # Externals
 EXTRA_DIST = \

@@ -30,6 +30,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelCandidatePreinvestigator.hpp \
 	Boss/Mod/ChannelCreationDecider.cpp \
 	Boss/Mod/ChannelCreationDecider.hpp \
+	Boss/Mod/ChannelCreator/Dowser.cpp \
+	Boss/Mod/ChannelCreator/Dowser.hpp \
 	Boss/Mod/ChannelFinderByPopularity.cpp \
 	Boss/Mod/ChannelFinderByPopularity.hpp \
 	Boss/Mod/ChannelFundsComputer.cpp \

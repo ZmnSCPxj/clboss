@@ -3,7 +3,7 @@
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/OnchainFee.hpp"
-#include"Boss/Msg/TimerRandomHourly.hpp"
+#include"Boss/Msg/Timer10Minutes.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Ev/Io.hpp"
@@ -67,7 +67,7 @@ private:
 			db = ini.db;
 			return on_init();
 		});
-		bus.subscribe<Msg::TimerRandomHourly>([this](Msg::TimerRandomHourly const&) {
+		bus.subscribe<Msg::Timer10Minutes>([this](Msg::Timer10Minutes const&) {
 			return on_timer();
 		});
 	}

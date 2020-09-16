@@ -57,7 +57,7 @@ public:
 		ret.v = v;
 		return ret;
 	}
-	std::uint64_t to_mast() const {
+	std::uint64_t to_msat() const {
 		return v;
 	}
 

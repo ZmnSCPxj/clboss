@@ -14,7 +14,7 @@
 
 namespace Boss { namespace Mod { namespace ChannelCreator {
 
-class Impl : public std::enable_shared_from_this<Impl> {
+class Dowser::Impl : public std::enable_shared_from_this<Impl> {
 private:
 	Boss::Mod::Rpc& rpc;
 	Ln::NodeId proposal;
@@ -211,5 +211,16 @@ private:
 		});
 	}
 };
+
+Dowser::Dowser( Boss::Mod::Rpc& rpc
+	      , Ln::NodeId const& self
+	      , Ln::NodeId const& proposal
+	      , Ln::NodeId const& patron
+	      ) : pimpl(std::make_shared<Impl>(rpc, self, proposal, patron))
+		{ }
+
+Ev::Io<Ln::Amount> Dowser::run() {
+	return pimpl->run();
+}
 
 }}}

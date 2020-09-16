@@ -32,6 +32,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelCreationDecider.hpp \
 	Boss/Mod/ChannelCreator/Dowser.cpp \
 	Boss/Mod/ChannelCreator/Dowser.hpp \
+	Boss/Mod/ChannelCreator/Planner.cpp \
+	Boss/Mod/ChannelCreator/Planner.hpp \
 	Boss/Mod/ChannelFinderByPopularity.cpp \
 	Boss/Mod/ChannelFinderByPopularity.hpp \
 	Boss/Mod/ChannelFundsComputer.cpp \
@@ -207,6 +209,7 @@ TESTS = \
 	tests/boss/channelcandidateinvestigator/test_gumshoe \
 	tests/boss/channelcandidateinvestigator/test_secretary \
 	tests/boss/test_channelcreationdecider \
+	tests/boss/test_channelcreator_planner \
 	tests/boss/test_needsconnectsolicitor \
 	tests/boss/test_rpc \
 	tests/boss/test_version \

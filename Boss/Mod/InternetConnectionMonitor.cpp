@@ -271,6 +271,7 @@ private:
 	Ev::Io<bool> do_ln_ping(Ln::NodeId const& p) {
 		return Ev::lift().then([this, p]() {
 			auto p_s = std::string(p);
+			auto presult = std::make_shared<bool>();
 			return rpc->command( "ping"
 					   , Json::Out()
 						.start_object()
@@ -280,6 +281,15 @@ private:
 				return Ev::lift(true);
 			}).catching<RpcError>([](RpcError const& e) {
 				return Ev::lift(false);
+			}).then([this, presult](bool result) {
+				*presult = result;
+				return Boss::log( bus, Debug
+						, "InternetConnectionMonitor: "
+						  "do_ln_ping: ping %s."
+						, result ? "success" : "failed"
+						);
+			}).then([presult]() {
+				return Ev::lift(*presult);
 			});
 		});
 	}

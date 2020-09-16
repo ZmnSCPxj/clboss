@@ -122,6 +122,7 @@ public:
 			auto sh = std::make_shared<TimedCoreData>(TimedCoreData{
 				std::move(pass), std::move(fail), false
 			});
+			sh->flag = false;
 			auto sub_pass = [sh]() {
 				/* Pass case.  */
 				if (sh->flag)
@@ -132,7 +133,7 @@ public:
 				pass();
 			};
 			auto sub_fail = [sh](std::exception_ptr e) {
-				/* Pass case.  */
+				/* Fail case.  */
 				if (sh->flag)
 					return;
 				sh->flag = true;
@@ -147,7 +148,7 @@ public:
 					sub_fail(std::current_exception());
 				}
 			}, sub_fail);
-			paction->run(sub_pass, sub_fail);
+			std::move(*paction).run(sub_pass, sub_fail);
 		}).then([]() {
 			return Ev::yield();
 		});

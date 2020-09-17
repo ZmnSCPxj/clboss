@@ -82,20 +82,28 @@ public:
 		return Amount(*this) -= i;
 	}
 	Amount& operator*=(double i) {
-		auto tmp = v;
-		v *= i;
-		if (v / i != tmp)
+		auto dv = double(v);
+		dv *= i;
+		if (dv < 0)
+			v = 0;
+		else if (dv > double(UINT64_MAX))
 			v = UINT64_MAX;
+		else
+			v = dv;
 		return *this;
 	}
 	Amount operator*(double i) const {
 		return Amount(*this) *= i;
 	}
 	Amount& operator/=(double i) {
-		auto tmp = v;
-		v /= i;
-		if (v * i != tmp)
+		auto dv = double(v);
+		dv /= i;
+		if (dv < 0)
 			v = 0;
+		else if (dv > double(UINT64_MAX))
+			v = UINT64_MAX;
+		else
+			v = dv;
 		return *this;
 	}
 	Amount operator/(double i) const {

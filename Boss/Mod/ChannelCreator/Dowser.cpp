@@ -12,6 +12,15 @@
 #include<string>
 #include<vector>
 
+namespace {
+
+/* Maximum number of routes to try.  */
+auto const dowser_limit = std::size_t(5);
+/* Maximum length of routes.  */
+auto const route_limit = std::size_t(6);
+
+}
+
 namespace Boss { namespace Mod { namespace ChannelCreator {
 
 class Dowser::Impl : public std::enable_shared_from_this<Impl> {
@@ -23,6 +32,8 @@ private:
 	std::vector<std::string> excludes;
 	Ln::Amount amount;
 
+	std::size_t tries;
+
 public:
 	Impl( Boss::Mod::Rpc& rpc_
 	    , Ln::NodeId const& self
@@ -32,6 +43,7 @@ public:
 	      , proposal(proposal_)
 	      , patron(patron_)
 	      , amount(Ln::Amount::sat(0))
+	      , tries(0)
 	      {
 		/* Exclude ourself from routing.  */
 		excludes.emplace_back(std::string(self));
@@ -64,6 +76,9 @@ private:
 				 * default `maxfeepercent`.
 				 */
 				amount += amt * 0.985;
+				++tries;
+				if (tries >= dowser_limit)
+					return Ev::lift();
 				return core_run();
 			});
 		});
@@ -82,7 +97,7 @@ private:
 				.field("riskfactor", 10.0)
 				.field("exclude", exc)
 				.field("fuzzpercent", 0.0)
-				.field("maxhops", 7)
+				.field("maxhops", (double) route_limit)
 			.end_object()
 			;
 		return rpc.command( "getroute"

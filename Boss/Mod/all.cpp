@@ -56,7 +56,7 @@ std::shared_ptr<void> all( std::ostream& cout
 			 ) {
 	auto all = std::make_shared<All>();
 
-	/* The waiter is shared among most of the other modules.  */
+	/* Basic.  */
 	auto waiter = all->install<Waiter>(bus);
 	auto imon = all->install<InternetConnectionMonitor>( bus
 							   , threadpool
@@ -64,30 +64,39 @@ std::shared_ptr<void> all( std::ostream& cout
 							   );
 	all->install<JsonOutputter>(cout, bus);
 	all->install<CommandReceiver>(bus);
+
+	/* Startup.  */
 	all->install<Manifester>(bus);
 	all->install<Initiator>(bus, threadpool, std::move(open_rpc_socket));
+
+	/* Regular timers.  */
 	all->install<BlockTracker>(bus);
 	all->install<Timers>(bus, *waiter);
+
+	/* Connection wrangling.  */
 	all->install<InitialConnect>(bus);
 	all->install<Connector>(bus);
 	all->install<NeedsConnectSolicitor>(bus);
 	all->install<ConnectFinderByDns>(bus);
 	all->install<ConnectFinderByHardcode>(bus);
-	all->install<ListfundsAnnouncer>(bus);
+	all->install<Reconnector>(bus);
+	all->install<AutoDisconnector>(bus);
+
+	/* Status monitors.  */
 	all->install<ChannelFundsComputer>(bus);
 	all->install<ListpeersAnnouncer>(bus);
 	all->install<ListpeersAnalyzer>(bus);
-	all->install<Reconnector>(bus);
-	all->install<ChannelFinderByPopularity>(bus, *waiter);
 	all->install<OnchainFeeMonitor>(bus, *waiter);
+	all->install<ListfundsAnnouncer>(bus);
+	all->install<OnchainFundsAnnouncer>(bus);
+
+	/* Channel creation wrangling.  */
+	all->install<ChannelFinderByPopularity>(bus, *waiter);
 	all->install<ChannelCandidatePreinvestigator>(bus);
 	auto investigator = all->install< ChannelCandidateInvestigator::Main
 					>(bus, *imon);
 	all->install<ChannelCreationDecider>(bus);
 	all->install<ChannelCreator::Main>(bus, *investigator);
-	all->install<AutoDisconnector>(bus);
-
-	all->install<OnchainFundsAnnouncer>(bus);
 
 	return all;
 }

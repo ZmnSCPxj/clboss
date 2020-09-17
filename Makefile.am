@@ -76,6 +76,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Reconnector.hpp \
 	Boss/Mod/Rpc.cpp \
 	Boss/Mod/Rpc.hpp \
+	Boss/Mod/StatusCommand.cpp \
+	Boss/Mod/StatusCommand.hpp \
 	Boss/Mod/Timers.cpp \
 	Boss/Mod/Timers.hpp \
 	Boss/Mod/Waiter.cpp \
@@ -106,11 +108,13 @@ libclboss_la_SOURCES = \
 	Boss/Msg/PreinvestigateChannelCandidates.hpp \
 	Boss/Msg/ProposeChannelCandidates.hpp \
 	Boss/Msg/ProposeConnectCandidates.hpp \
+	Boss/Msg/ProvideStatus.hpp \
 	Boss/Msg/RequestChannelCreation.hpp \
 	Boss/Msg/RequestConnect.hpp \
 	Boss/Msg/ResponseConnect.hpp \
 	Boss/Msg/SolicitChannelCandidates.hpp \
 	Boss/Msg/SolicitConnectCandidates.hpp \
+	Boss/Msg/SolicitStatus.hpp \
 	Boss/Msg/TaskCompletion.hpp \
 	Boss/Msg/Timer10Minutes.hpp \
 	Boss/Msg/TimerRandomDaily.hpp \

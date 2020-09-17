@@ -22,6 +22,7 @@
 #include"Boss/Mod/OnchainFeeMonitor.hpp"
 #include"Boss/Mod/OnchainFundsAnnouncer.hpp"
 #include"Boss/Mod/Reconnector.hpp"
+#include"Boss/Mod/StatusCommand.hpp"
 #include"Boss/Mod/Timers.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Mod/all.hpp"
@@ -97,6 +98,9 @@ std::shared_ptr<void> all( std::ostream& cout
 					>(bus, *imon);
 	all->install<ChannelCreationDecider>(bus);
 	all->install<ChannelCreator::Main>(bus, *waiter, *investigator);
+
+	/* Status.  */
+	all->install<StatusCommand>(bus);
 
 	return all;
 }

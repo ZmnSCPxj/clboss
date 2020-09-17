@@ -26,6 +26,9 @@ AX_PTHREAD([:],[
 ])
 AX_LIB_EV
 PKG_CHECK_MODULES([SQLITE3], [sqlite3 >= 3.0.0])
+AX_LIB_CURL(,[:],{
+	AC_MSG_ERROR([Need libcurl.])
+})
 
 # Checks for header files.
 

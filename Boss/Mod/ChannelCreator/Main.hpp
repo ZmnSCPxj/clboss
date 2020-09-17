@@ -10,6 +10,7 @@ namespace Boss { namespace Mod { namespace ChannelCreator {
 	class Carpenter;
 }}}
 namespace Boss { namespace Mod { namespace ChannelCreator { class Manager; }}}
+namespace Boss { namespace Mod { class Waiter; }}
 namespace S { class Bus; }
 
 namespace Boss { namespace Mod { namespace ChannelCreator {
@@ -36,6 +37,7 @@ public:
 	Main(Main&&) =delete;
 
 	Main( S::Bus& bus
+	    , Boss::Mod::Waiter& waiter
 	    , Boss::Mod::ChannelCandidateInvestigator::Main& investigator
 	    );
 	~Main();

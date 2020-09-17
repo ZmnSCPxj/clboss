@@ -96,7 +96,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	auto investigator = all->install< ChannelCandidateInvestigator::Main
 					>(bus, *imon);
 	all->install<ChannelCreationDecider>(bus);
-	all->install<ChannelCreator::Main>(bus, *investigator);
+	all->install<ChannelCreator::Main>(bus, *waiter, *investigator);
 
 	return all;
 }

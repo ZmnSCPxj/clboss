@@ -27,6 +27,7 @@ private:
 	S::Bus& bus;
 	Boss::Mod::Rpc* rpc;
 	Boss::Mod::ChannelCandidateInvestigator::Main& investigator;
+	Boss::Mod::ChannelCreator::Carpenter& carpenter;
 	Ln::NodeId self;
 
 	void start();
@@ -37,13 +38,14 @@ public:
 	Manager(Manager const&) =delete;
 	Manager(Manager&&) =delete;
 
-	/* TODO: require carpenter.  */
 	explicit
 	Manager( S::Bus& bus_
 	       , Boss::Mod::ChannelCandidateInvestigator::Main& investigator_
+	       , Boss::Mod::ChannelCreator::Carpenter& carpenter_
 	       ) : bus(bus_)
 		 , rpc(nullptr)
 		 , investigator(investigator_)
+		 , carpenter(carpenter_)
 		 , self()
 		 {
 		start();

@@ -1,4 +1,5 @@
 #include"Boss/Mod/ChannelCandidateInvestigator/Main.hpp"
+#include"Boss/Mod/ChannelCreator/Carpenter.hpp"
 #include"Boss/Mod/ChannelCreator/Dowser.hpp"
 #include"Boss/Mod/ChannelCreator/Manager.hpp"
 #include"Boss/Mod/ChannelCreator/Planner.hpp"
@@ -134,8 +135,7 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 		if (plan->empty())
 			return Ev::lift();
 
-		// TODO: instruct carpenter to build channels.
-		return Ev::lift();
+		return carpenter.construct(std::move(*plan));
 	});
 }
 

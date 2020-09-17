@@ -1,0 +1,217 @@
+#include"Boss/Mod/ChannelCreator/Carpenter.hpp"
+#include"Boss/Mod/Rpc.hpp"
+#include"Boss/Mod/Waiter.hpp"
+#include"Boss/Msg/ChannelCreateResult.hpp"
+#include"Boss/Msg/Init.hpp"
+#include"Boss/concurrent.hpp"
+#include"Boss/log.hpp"
+#include"Ev/Io.hpp"
+#include"Ev/foreach.hpp"
+#include"Ev/yield.hpp"
+#include"Jsmn/Object.hpp"
+#include"Json/Out.hpp"
+#include"Ln/Amount.hpp"
+#include"Ln/NodeId.hpp"
+#include"S/Bus.hpp"
+#include<algorithm>
+#include<assert.h>
+#include<iterator>
+#include<queue>
+#include<sstream>
+
+namespace {
+
+/* Round down the amount to nearest satoshi.  */
+Ln::Amount rounddown_to_sat(Ln::Amount in) {
+	auto msat = in.to_msat();
+	auto out_msat = (msat / 1000) * 1000;
+	return Ln::Amount::msat(out_msat);
+}
+
+}
+
+namespace Boss { namespace Mod { namespace ChannelCreator {
+
+void Carpenter::start() {
+	bus.subscribe< Boss::Msg::Init
+		     >([this](Boss::Msg::Init const& init) {
+		rpc = &init.rpc;
+		return Ev::lift();
+	});
+}
+
+Ev::Io<void>
+Carpenter::construct(std::map<Ln::NodeId, Ln::Amount> plan) {
+	assert(!plan.empty());
+
+	if (!rpc)
+		return Boss::log( bus, Error
+				, "ChannelCreator: attempt to "
+				  "construct before RPC available."
+				);
+
+	/* Move the plan to shared storage.  */
+	auto pplan = std::make_shared<std::map<Ln::NodeId, Ln::Amount>>(
+		std::move(plan)
+	);
+	/* Nodes that failed to create.  */
+	auto pfails = std::make_shared<std::queue<Ln::NodeId>>();
+	/* Nodes that successfully created.  */
+	auto ppasses = std::make_shared<std::queue<Ln::NodeId>>();
+
+	return Ev::yield().then([this, pplan]() {
+		/* First, try to connect to all of them in parallel,
+		 * as recommended in the manpage of multifundchannel.  */
+		auto nodes = std::vector<Ln::NodeId>();
+		std::transform( pplan->begin(), pplan->end()
+			      , std::back_inserter(nodes)
+			      , [](std::pair<Ln::NodeId, Ln::Amount> const& e){
+			return e.first;
+		});
+		return Ev::foreach( std::bind( &Carpenter::connect_1
+					     , this
+					     , std::placeholders::_1
+					     )
+				  , std::move(nodes)
+				  );
+	}).then([this]() {
+		/* Now wait a few seconds as per multifundchannel manpage.  */
+		return waiter.wait(3.0);
+	}).then([this, pplan]() {
+
+		/* The plan might have sub-satoshi amounts that are not
+		 * rounded off.
+		 * Just round down everything; fees for each channel are
+		 * likely to dominate anyway.
+		 */
+		for (auto& p : *pplan)
+			p.second = rounddown_to_sat(p.second);
+
+		/* Now construct params.  */
+		auto params = Json::Out()
+			.start_object()
+				.field( "destinations"
+				      , json_plan(*pplan)
+				      )
+				.field("feerate", std::string("normal"))
+				.field("minchannels", (double) 1)
+			.end_object()
+			;
+		return rpc->command("multifundchannel", std::move(params));
+	}).then([this, ppasses, pfails, pplan](Jsmn::Object res) {
+		auto report = std::ostringstream();
+		try {
+			auto chans = res["channel_ids"];
+			auto first = true;
+			for (auto i = std::size_t(0); i < chans.size(); ++i) {
+				auto c = chans[i];
+				auto node = Ln::NodeId(std::string(c["id"]));
+				ppasses->push(std::move(node));
+				if (first)
+					first = false;
+				else
+					report << ", ";
+				report << node << ": "
+				       << (*pplan)[node]
+				       ;
+			}
+
+			auto bads = res["failed"];
+			if (bads.size() > 0)
+				report << "; FAILED: ";
+			first = true;
+			for (auto i = std::size_t(0); i < bads.size(); ++i) {
+				auto b = bads[i];
+				auto node = Ln::NodeId(std::string(b["id"]));
+				pfails->push(std::move(node));
+				if (first)
+					first = false;
+				else
+					report << ", ";
+				report << node;
+			}
+		} catch (std::invalid_argument const&) {
+			auto os = std::ostringstream();
+			os << res;
+			return Boss::log( bus, Error
+					, "ChannelCreator::Carpenter: "
+					  "Unexpected result from "
+					  "multifundchannel: %s"
+					, os.str().c_str()
+					);
+		}
+
+		return Boss::log( bus, Info
+				, "ChannelCreator: Created: %s"
+				, report.str().c_str()
+				);
+	}).catching<RpcError>([this, pplan, pfails](RpcError const& e) {
+		/* RPC error means all failed.  */
+		for (auto const& p : *pplan)
+			pfails->push(p.first);
+		return Boss::log( bus, Info
+				, "ChannelCreator: all channels failed to "
+				  "construct."
+				);
+	}).then([this, pfails]() {
+		return Boss::concurrent(report_channelings(
+			std::move(*pfails), false
+		));
+	}).then([this, ppasses]() {
+		return Boss::concurrent(report_channelings(
+			std::move(*ppasses), true
+		));
+	});
+}
+
+Json::Out
+Carpenter::json_single_plan(Ln::NodeId const& n, Ln::Amount const& a) {
+	return Json::Out()
+		.start_object()
+			.field("id", std::string(n))
+			.field("amount", std::string(a))
+			.field("announce", true)
+		.end_object()
+		;
+}
+Json::Out
+Carpenter::json_plan(std::map<Ln::NodeId, Ln::Amount> const& plan) {
+	auto parms = Json::Out();
+	auto arr = parms.start_array();
+	for (auto const& p : plan)
+		arr.entry(json_single_plan(p.first, p.second));
+	arr.end_array();
+	return parms;
+}
+Ev::Io<void>
+Carpenter::connect_1(Ln::NodeId node) {
+	return rpc->command("connect"
+			   , Json::Out()
+				.start_object()
+					.field("id", std::string(node))
+				.end_object()
+			   ).then([](Jsmn::Object) {
+		return Ev::lift();
+	}).catching<RpcError>([](RpcError const& e) {
+		return Ev::lift();
+	});
+}
+
+Ev::Io<void>
+Carpenter::report_channelings(std::queue<Ln::NodeId> nodes, bool ok) {
+	auto pq = std::make_shared<std::queue<Ln::NodeId>>(std::move(
+		nodes
+	));
+	return Ev::yield().then([this, pq, ok]() {
+		if (pq->empty())
+			return Ev::lift();
+		return bus.raise(Msg::ChannelCreateResult{
+			std::move(pq->front()), ok
+		}).then([this, pq, ok](){
+			pq->pop();
+			return report_channelings(std::move(*pq), ok);
+		});
+	});
+}
+
+}}}

@@ -2,6 +2,7 @@
 #include"Boss/Mod/ChannelCandidateInvestigator/Manager.hpp"
 #include"Boss/Mod/ChannelCandidateInvestigator/Secretary.hpp"
 #include"Boss/Mod/InternetConnectionMonitor.hpp"
+#include"Boss/Msg/ChannelCreateResult.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ListpeersAnalyzedResult.hpp"
 #include"Boss/Msg/ProposeChannelCandidates.hpp"
@@ -171,6 +172,27 @@ void Manager::start() {
 		return db.transact().then([this, to_remove](Sqlite3::Tx tx) {
 			for (auto const& n : *to_remove)
 				secretary.remove_candidate(tx, n);
+			tx.commit();
+			return Ev::lift();
+		});
+	});
+
+	/* Remove candidates that we have tried to channel with, regardless
+	 * of whether the attempt failed or succeeded.  */
+	bus.subscribe<Msg::ChannelCreateResult
+		     >([this](Msg::ChannelCreateResult const& c) {
+		if (!db)
+			return Ev::lift();
+		auto to_remove = std::make_shared<Ln::NodeId>(c.node);
+		return Boss::log( bus, Debug
+				, "ChannelCandidateInvestigator: "
+				  "Node %s used in channeling attempt, "
+				  "removing from investigation."
+				, std::string(c.node)
+				).then([this]() {
+			return db.transact();
+		}).then([this, to_remove](Sqlite3::Tx tx) {
+			secretary.remove_candidate(tx, *to_remove);
 			tx.commit();
 			return Ev::lift();
 		});

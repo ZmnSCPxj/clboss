@@ -30,6 +30,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelCandidatePreinvestigator.hpp \
 	Boss/Mod/ChannelCreationDecider.cpp \
 	Boss/Mod/ChannelCreationDecider.hpp \
+	Boss/Mod/ChannelCreator/Carpenter.cpp \
+	Boss/Mod/ChannelCreator/Carpenter.hpp \
 	Boss/Mod/ChannelCreator/Dowser.cpp \
 	Boss/Mod/ChannelCreator/Dowser.hpp \
 	Boss/Mod/ChannelCreator/Main.cpp \
@@ -82,6 +84,7 @@ libclboss_la_SOURCES = \
 	Boss/Mod/all.hpp \
 	Boss/Msg/Begin.hpp \
 	Boss/Msg/Block.hpp \
+	Boss/Msg/ChannelCreateResult.hpp \
 	Boss/Msg/ChannelFunds.hpp \
 	Boss/Msg/CommandRequest.hpp \
 	Boss/Msg/CommandResponse.hpp \

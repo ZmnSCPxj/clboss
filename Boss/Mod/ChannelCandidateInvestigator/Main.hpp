@@ -7,6 +7,7 @@
 #include<vector>
 
 namespace Boss { namespace Mod { class InternetConnectionMonitor; }}
+namespace Ev { template<typename a> class Io; }
 namespace S { class Bus; }
 
 namespace Boss { namespace Mod { namespace ChannelCandidateInvestigator {

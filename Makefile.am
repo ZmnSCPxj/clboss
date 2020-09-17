@@ -32,6 +32,10 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelCreationDecider.hpp \
 	Boss/Mod/ChannelCreator/Dowser.cpp \
 	Boss/Mod/ChannelCreator/Dowser.hpp \
+	Boss/Mod/ChannelCreator/Main.cpp \
+	Boss/Mod/ChannelCreator/Main.hpp \
+	Boss/Mod/ChannelCreator/Manager.cpp \
+	Boss/Mod/ChannelCreator/Manager.hpp \
 	Boss/Mod/ChannelCreator/Planner.cpp \
 	Boss/Mod/ChannelCreator/Planner.hpp \
 	Boss/Mod/ChannelFinderByPopularity.cpp \

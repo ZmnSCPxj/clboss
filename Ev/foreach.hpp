@@ -67,9 +67,9 @@ Io<void> foreach(f func, std::vector<a> as) {
 	 * FIXME: copy and rewrite the plumbing of map
 	 * so we can get rid of this extra unused vector.
 	 */
-	return Ev::map( ForeachRun(std::move(func))
+	return Ev::map( Detail::ForeachRun<f, a>(std::move(func))
 		      , std::move(as)
-		      ).then([](std::vector<int>) {
+		      ).then([](std::vector<char>) {
 		return Ev::lift();
 	});
 }

@@ -182,7 +182,7 @@ private:
 					  , saved_feerate
 					  ](std::unique_ptr<double> feerate) {
 			if (!feerate)
-				return report_fee("Hourly: fee unknown, retaining");
+				return report_fee("Periodic: fee unknown, retaining");
 
 			*saved_feerate = *feerate;
 
@@ -216,7 +216,7 @@ private:
 					if (feerate_base <= ref)
 						is_low_fee_flag = true;
 				}
-				return report_fee("Hourly");
+				return report_fee("Periodic");
 			});
 		});
 	}

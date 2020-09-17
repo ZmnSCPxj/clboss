@@ -6,7 +6,9 @@
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ListpeersAnalyzedResult.hpp"
 #include"Boss/Msg/ProposeChannelCandidates.hpp"
+#include"Boss/Msg/ProvideStatus.hpp"
 #include"Boss/Msg/SolicitChannelCandidates.hpp"
+#include"Boss/Msg/SolicitStatus.hpp"
 #include"Boss/Msg/TimerRandomHourly.hpp"
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
@@ -195,6 +197,36 @@ void Manager::start() {
 			secretary.remove_candidate(tx, *to_remove);
 			tx.commit();
 			return Ev::lift();
+		});
+	});
+
+	/* Get status.  */
+	bus.subscribe<Msg::SolicitStatus
+		     >([this](Msg::SolicitStatus const& c) {
+		if (!db)
+			return Ev::lift();
+		return db.transact().then([this](Sqlite3::Tx tx) {
+			auto all = secretary.get_all(tx);
+			tx.commit();
+			auto status = Json::Out();
+			auto arr = status.start_array();
+			for (auto const& p : all) {
+				auto e = Json::Out()
+					.start_object()
+						.field( "id"
+						      , std::string(p.first)
+						      )
+						.field( "score"
+						      , double(p.second)
+						      )
+					.end_object()
+					;
+				arr.entry(std::move(e));
+			}
+			arr.end_array();
+			return bus.raise(Msg::ProvideStatus{
+				"channel_candidates", std::move(status)
+			});
 		});
 	});
 }

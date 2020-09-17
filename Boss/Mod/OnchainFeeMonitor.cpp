@@ -3,6 +3,8 @@
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/OnchainFee.hpp"
+#include"Boss/Msg/ProvideStatus.hpp"
+#include"Boss/Msg/SolicitStatus.hpp"
 #include"Boss/Msg/Timer10Minutes.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
@@ -60,6 +62,7 @@ private:
 	Sqlite3::Db db;
 
 	bool is_low_fee_flag;
+	std::unique_ptr<double> last_feerate;
 
 	void start() {
 		bus.subscribe<Msg::Init>([this](Msg::Init const& ini) {
@@ -69,6 +72,41 @@ private:
 		});
 		bus.subscribe<Msg::Timer10Minutes>([this](Msg::Timer10Minutes const&) {
 			return on_timer();
+		});
+		/* Report status.  */
+		bus.subscribe<Msg::SolicitStatus
+			     >([this](Msg::SolicitStatus const& _) {
+			if (!db)
+				return Ev::lift();
+			return db.transact().then([this](Sqlite3::Tx tx) {
+				auto mean = double();
+				auto samples = std::size_t();
+				auto fetch = tx.query(q_get).execute();
+				for (auto& r : fetch) {
+					mean = r.get<double>(0);
+					samples = r.get<std::size_t>(1);
+				}
+				tx.commit();
+
+				auto status = Json::Out()
+					.start_object()
+						.field("mean_perkw", mean)
+						.field( "samples"
+						      , (double)samples
+						      )
+						.field( "last_feerate_perkw"
+						      , last_feerate ? *last_feerate : -1.0
+						      )
+						.field( "judgment"
+						      , std::string(is_low_fee_flag ? "low fees" : "high fees")
+						      )
+					.end_object()
+					;
+				return bus.raise(Msg::ProvideStatus{
+					"onchain_feerate",
+					std::move(status)
+				});
+			});
 		});
 	}
 
@@ -98,6 +136,7 @@ private:
 
 			/* Feerate is known, save it in the shared variable.  */
 			*saved_feerate = *feerate;
+			last_feerate = std::move(feerate);
 
 			/* Now access the db and check if it is lower or
 			 * higher than the mean, to know our current
@@ -255,6 +294,7 @@ public:
 	    , Boss::Mod::Waiter& waiter_
 	    ) : bus(bus_), waiter(waiter_)
 	      , rpc(nullptr), is_low_fee_flag(false)
+	      , last_feerate(nullptr)
 	      {
 		start();
 	}

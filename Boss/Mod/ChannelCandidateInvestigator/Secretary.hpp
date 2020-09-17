@@ -4,6 +4,7 @@
 #include<cstdint>
 #include<cstdlib>
 #include<string>
+#include<utility>
 #include<vector>
 
 namespace Boss { namespace Msg { class ProposeChannelCandidates; }}
@@ -96,6 +97,15 @@ public:
 	 * @brief create a human-readable report.
 	 */
 	std::string report(Sqlite3::Tx& tx);
+
+	/** Secretary::get_all
+	 *
+	 * @brief get all nodes under investigation and
+	 * their current scores, in order from highest
+	 * to lowest.
+	 */
+	std::vector<std::pair<Ln::NodeId, std::int64_t>>
+	get_all(Sqlite3::Tx& tx);
 };
 
 }}}

@@ -4,6 +4,8 @@
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ListpeersAnalyzedResult.hpp"
 #include"Boss/Msg/NeedsConnect.hpp"
+#include"Boss/Msg/ProvideStatus.hpp"
+#include"Boss/Msg/SolicitStatus.hpp"
 #include"Boss/Msg/TaskCompletion.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
@@ -127,6 +129,21 @@ private:
 				return Ev::lift();
 			checking_connectivity = true;
 			return server_check();
+		});
+		/* Report status.  */
+		bus.subscribe< Msg::SolicitStatus
+			     >([this](Msg::SolicitStatus const&) {
+			auto status = Json::Out()
+				.start_object()
+					.field( "connection"
+					      , online ? std::string("online")
+						       : std::string("offline")
+					      )
+				.end_object()
+				;
+			return bus.raise(Msg::ProvideStatus{
+				"internet", std::move(status)
+			});
 		});
 	}
 

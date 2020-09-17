@@ -183,5 +183,22 @@ Secretary::report(Sqlite3::Tx& tx) {
 
 	return os.str();
 }
+std::vector<std::pair<Ln::NodeId, std::int64_t>>
+Secretary::get_all(Sqlite3::Tx& tx) {
+	auto rv = std::vector<std::pair<Ln::NodeId, std::int64_t>>();
+	auto res = tx.query(R"QRY(
+		SELECT proposal, score
+		  FROM "ChannelCandidateInvestigator"
+		 ORDER BY score DESC
+		     ;
+	)QRY").execute();
+	for (auto& r : res) {
+		rv.emplace_back( Ln::NodeId(r.get<std::string>(0))
+			       , r.get<std::int64_t>(1)
+			       );
+	}
+
+	return rv;
+}
 
 }}}

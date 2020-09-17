@@ -81,6 +81,13 @@ private:
 					amt = max_amount;
 				if (amt > remaining)
 					amt = remaining;
+				/* If we need at least 2, and this is
+				 * the first proposal, limit it to up
+				 * to half of remaining funds.  */
+				if ( at_least_2 && result.size() == 0
+				  && amt > (remaining / 2)
+				   )
+					amt = remaining / 2;
 
 				/* Update.  */
 				result[proposals.front().first] = amt;
@@ -94,35 +101,8 @@ private:
 
 	Ev::Io<void> on_complete() {
 		if (at_least_2 && result.size() < 2) {
-			if (proposals.empty()) {
-				/* Insufficient proposals, leave the
-				 * money on the table.  */
-				result.clear();
-				return Ev::lift();
-			}
-			auto p1 = Ln::NodeId();
-			auto p2 = Ln::NodeId();
-			if (result.size() == 1) {
-				/* Select the existing proposal.  */
-				p1 = result.begin()->first;
-				p2 = proposals.front().first;
-				proposals.pop();
-			} else {
-				/* Select the top two proposals.  */
-				p1 = proposals.front().first;
-				proposals.pop();
-				if (!proposals.empty()) {
-					p2 = proposals.front().first;
-					proposals.pop();
-				} else {
-					/* Insufficient proposals, leave
-					 * the money on the table.  */
-					result.clear();
-					return Ev::lift();
-				}
-			}
+			/* Not enough proposals.  */
 			result.clear();
-			result[p1] = result[p2] = total / 2;
 			return Ev::lift();
 		}
 		if (remaining > Ln::Amount::sat(0)) {

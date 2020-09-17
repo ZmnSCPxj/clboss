@@ -15,9 +15,9 @@
 namespace {
 
 /* Maximum number of routes to try.  */
-auto const dowser_limit = std::size_t(5);
+auto const dowser_limit = std::size_t(10);
 /* Maximum length of routes.  */
-auto const route_limit = std::size_t(6);
+auto const route_limit = std::size_t(3);
 
 }
 

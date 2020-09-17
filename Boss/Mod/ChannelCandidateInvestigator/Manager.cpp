@@ -188,7 +188,7 @@ void Manager::start() {
 				, "ChannelCandidateInvestigator: "
 				  "Node %s used in channeling attempt, "
 				  "removing from investigation."
-				, std::string(c.node)
+				, std::string(c.node).c_str()
 				).then([this]() {
 			return db.transact();
 		}).then([this, to_remove](Sqlite3::Tx tx) {

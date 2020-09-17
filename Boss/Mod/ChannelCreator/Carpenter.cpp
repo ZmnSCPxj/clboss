@@ -106,7 +106,7 @@ Carpenter::construct(std::map<Ln::NodeId, Ln::Amount> plan) {
 			for (auto i = std::size_t(0); i < chans.size(); ++i) {
 				auto c = chans[i];
 				auto node = Ln::NodeId(std::string(c["id"]));
-				ppasses->push(std::move(node));
+				ppasses->push(node);
 				if (first)
 					first = false;
 				else
@@ -123,7 +123,7 @@ Carpenter::construct(std::map<Ln::NodeId, Ln::Amount> plan) {
 			for (auto i = std::size_t(0); i < bads.size(); ++i) {
 				auto b = bads[i];
 				auto node = Ln::NodeId(std::string(b["id"]));
-				pfails->push(std::move(node));
+				pfails->push(node);
 				if (first)
 					first = false;
 				else

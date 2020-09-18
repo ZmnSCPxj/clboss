@@ -40,7 +40,8 @@ public:
 	/* Send an API request.  */
 	Ev::Io<Jsmn::Object>
 	api( std::string api /* e.g. "/createswap" */
-	   , Json::Out params
+	   /* nullptr if GET, or the request body if POST.  */
+	   , std::unique_ptr<Json::Out> params
 	   );
 };
 

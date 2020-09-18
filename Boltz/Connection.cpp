@@ -8,6 +8,8 @@
 #include<assert.h>
 #include<curl/curl.h>
 
+#include<iostream>
+
 #ifdef HAVE_CONFIG_H
 # include"config.h"
 #endif
@@ -49,10 +51,10 @@ public:
 	static
 	Jsmn::Object run( std::string const& proxy
 			, std::string const& api
-			, Json::Out parms
+			, std::unique_ptr<Json::Out> parms
 			) {
 		EasyHandle self;
-		self.run_core(proxy, api, parms);
+		self.run_core(proxy, api, std::move(parms));
 		return std::move(self.result);
 	}
 
@@ -73,8 +75,9 @@ private:
 	}
 	void run_core( std::string const& proxy
 		     , std::string const& api
-		     , Json::Out parms
+		     , std::unique_ptr<Json::Out> parms
 		     ) {
+
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_cb_s);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 		/* From --libcurl output.  */
@@ -87,11 +90,17 @@ private:
 					, (long)CURLPROXY_SOCKS5
 					);
 		}
-		auto postfields = parms.output();
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfields.c_str());
-		curl_easy_setopt( curl, CURLOPT_POSTFIELDSIZE_LARGE
-				, (curl_off_t) postfields.size()
-				);
+		/* Needs to survive until after curl_easy_perform.  */
+		auto postfields = std::string();
+		if (parms) {
+			postfields = parms->output();
+			curl_easy_setopt( curl, CURLOPT_POSTFIELDS
+					, postfields.c_str()
+					);
+			curl_easy_setopt( curl, CURLOPT_POSTFIELDSIZE_LARGE
+					, (curl_off_t) postfields.size()
+					);
+		}
 		curl_easy_setopt( curl, CURLOPT_USERAGENT
 				, "clboss/" PACKAGE_VERSION
 				);
@@ -136,14 +145,17 @@ public:
 	      { }
 
 	Ev::Io<Jsmn::Object>
-	api(std::string api, Json::Out params) {
+	api(std::string api, std::unique_ptr<Json::Out> params) {
+		auto pparams = std::make_shared<std::unique_ptr<Json::Out>>(
+			std::move(params)
+		);
 		return threadpool.background<Jsmn::Object>([ this
 							   , api
-							   , params
+							   , pparams
 							   ]() {
 			return EasyHandle::run( proxy
 					      , api_base + api
-					      , params
+					      , std::move(*pparams)
 					      );
 		});
 	}
@@ -161,8 +173,8 @@ Connection::Connection( Ev::ThreadPool& threadpool
 			{ }
 
 Ev::Io<Jsmn::Object>
-Connection::api(std::string api, Json::Out params) {
-	return pimpl->api(api, params);
+Connection::api(std::string api, std::unique_ptr<Json::Out> params) {
+	return pimpl->api(api, std::move(params));
 }
 
 }

@@ -135,6 +135,11 @@ private:
 
 public:
 	Out() : content(std::make_shared<Json::Detail::Content>()) { }
+	explicit
+	Out(Jsmn::Object js
+	   ) : content(std::make_shared<Json::Detail::Content>()){
+		*content << js;
+	}
 
 	std::string output() const {
 		return content->str();

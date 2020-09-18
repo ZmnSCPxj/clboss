@@ -1,6 +1,8 @@
 bin_PROGRAMS = clboss
 clboss_SOURCES = \
 	main.cpp
+noinst_PROGRAMS = \
+	dev-boltz-api
 
 # These are the actual source files of clboss.
 # We separate them here so that we can test parts of

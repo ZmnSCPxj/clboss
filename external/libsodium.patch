@@ -1,0 +1,54 @@
+diff --git a/Makefile.am b/Makefile.am
+index 1f43ff31..b58c512e 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -17,8 +17,3 @@ SUBDIRS = \
+ 	src \
+ 	test
+ 
+-pkgconfigdir = $(libdir)/pkgconfig
+-pkgconfig_DATA = @PACKAGE_NAME@.pc
+-
+-DISTCLEANFILES = $(pkgconfig_DATA)
+-
+diff --git a/configure.ac b/configure.ac
+index fc3d5801..2774bbe4 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -256,16 +256,7 @@ int main(void) { return 0; }
+     )
+   ])
+ 
+-LIBTOOL_OLD_FLAGS="$LIBTOOL_EXTRA_FLAGS"
+-LIBTOOL_EXTRA_FLAGS="$LIBTOOL_EXTRA_FLAGS -version-info $SODIUM_LIBRARY_VERSION"
+-AC_ARG_ENABLE(soname-versions,
+-  [AC_HELP_STRING([--enable-soname-versions], [enable soname versions (must be disabled for Android) (default: enabled)])],
+-    [
+-        AS_IF([test "x$enableval" = "xno"], [
+-          LIBTOOL_EXTRA_FLAGS="$LIBTOOL_OLD_FLAGS -avoid-version"
+-        ])
+-    ]
+-)
++LIBTOOL_EXTRA_FLAGS="$LIBTOOL_EXTRA_FLAGS -avoid-version"
+ 
+ AS_CASE([$host_os],
+   [cygwin*|mingw*|msys|pw32*|cegcc*], [
+diff --git a/src/libsodium/Makefile.am b/src/libsodium/Makefile.am
+index 92de4fd3..ca9b0b5e 100644
+--- a/src/libsodium/Makefile.am
++++ b/src/libsodium/Makefile.am
+@@ -1,4 +1,4 @@
+-lib_LTLIBRARIES = \
++noinst_LTLIBRARIES = \
+ 	libsodium.la
+ 
+ libsodium_la_SOURCES = \
+@@ -195,7 +195,7 @@ SUBDIRS = \
+ 	include
+ 
+ libsodium_la_LIBADD = libaesni.la libsse2.la libssse3.la libsse41.la libavx2.la libavx512f.la
+-noinst_LTLIBRARIES  = libaesni.la libsse2.la libssse3.la libsse41.la libavx2.la libavx512f.la
++noinst_LTLIBRARIES += libaesni.la libsse2.la libssse3.la libsse41.la libavx2.la libavx512f.la
+ 
+ librdrand_la_LDFLAGS = $(libsodium_la_LDFLAGS)
+ librdrand_la_CPPFLAGS = $(libsodium_la_CPPFLAGS) \

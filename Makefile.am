@@ -209,6 +209,8 @@ libclboss_la_SOURCES = \
 	Util/stringify.hpp
 
 # Externals
+SUBDIRS = \
+	external/libsodium/
 EXTRA_DIST = \
 	external/jsmn/LICENSE \
 	external/jsmn/jsmn.h

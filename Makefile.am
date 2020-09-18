@@ -187,6 +187,8 @@ libclboss_la_SOURCES = \
 	S/Bus.hpp \
 	S/Detail/Signal.hpp \
 	S/Detail/SignalBase.hpp \
+	Sha256/Hash.cpp \
+	Sha256/Hash.hpp \
 	Sqlite3.hpp \
 	Sqlite3/Db.cpp \
 	Sqlite3/Db.hpp \
@@ -209,6 +211,12 @@ libclboss_la_SOURCES = \
 	Util/make_unique.hpp \
 	Util/stringify.hpp
 
+libclboss_la_LIBADD = \
+	external/libsodium/src/libsodium/libsodium.la
+libclboss_la_CPPFLAGS = \
+	-I$(top_srcdir)/external/libsodium/src/libsodium/include/ \
+	-I$(top_srcdir)/external/jsmn
+
 # Externals
 SUBDIRS = \
 	external/libsodium/
@@ -217,7 +225,6 @@ EXTRA_DIST = \
 	external/jsmn/jsmn.h
 
 AM_CXXFLAGS = -Wall -Werror $(PTHREAD_CFLAGS) $(libev_CFLAGS) $(SQLITE3_CFLAGS) $(CURL_CFLAGS)
-AM_CPPFLAGS = -I $(top_srcdir)/external/jsmn
 LDADD = libclboss.la $(PTHREAD_LIBS) $(libev_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS)
 
 ACLOCAL_AMFLAGS = -I m4
@@ -245,6 +252,7 @@ TESTS = \
 	tests/ln/test_nodeid \
 	tests/ln/test_scid \
 	tests/s/test_bus \
+	tests/sha256/test_hash \
 	tests/sqlite3/test_sqlite3 \
 	tests/stats/test_running_mean
 check_PROGRAMS = $(TESTS)

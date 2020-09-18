@@ -8,6 +8,8 @@ clboss_SOURCES = \
 # in the main file.
 noinst_LTLIBRARIES = libclboss.la
 libclboss_la_SOURCES = \
+	Boltz/Connection.cpp \
+	Boltz/Connection.hpp \
 	Boss/JsonInput.cpp \
 	Boss/JsonInput.hpp \
 	Boss/Main.cpp \

@@ -143,6 +143,7 @@ libclboss_la_SOURCES = \
 	Ev/ThreadPool.hpp \
 	Ev/concurrent.cpp \
 	Ev/concurrent.hpp \
+	Ev/foreach.hpp \
 	Ev/map.hpp \
 	Ev/runcmd.cpp \
 	Ev/runcmd.hpp \

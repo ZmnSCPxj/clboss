@@ -189,6 +189,9 @@ libclboss_la_SOURCES = \
 	S/Detail/SignalBase.hpp \
 	Sha256/Hash.cpp \
 	Sha256/Hash.hpp \
+	Sha256/Hasher.cpp \
+	Sha256/Hasher.hpp \
+	Sha256/fun.hpp \
 	Sqlite3.hpp \
 	Sqlite3/Db.cpp \
 	Sqlite3/Db.hpp \
@@ -253,6 +256,7 @@ TESTS = \
 	tests/ln/test_scid \
 	tests/s/test_bus \
 	tests/sha256/test_hash \
+	tests/sha256/test_hasher \
 	tests/sqlite3/test_sqlite3 \
 	tests/stats/test_running_mean
 check_PROGRAMS = $(TESTS)

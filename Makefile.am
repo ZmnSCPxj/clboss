@@ -195,6 +195,8 @@ libclboss_la_SOURCES = \
 	Sha256/Hash.hpp \
 	Sha256/Hasher.cpp \
 	Sha256/Hasher.hpp \
+	Sha256/HasherStream.cpp \
+	Sha256/HasherStream.hpp \
 	Sha256/fun.hpp \
 	Sqlite3.hpp \
 	Sqlite3/Db.cpp \

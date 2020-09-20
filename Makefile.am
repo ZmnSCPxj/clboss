@@ -10,6 +10,8 @@ noinst_PROGRAMS = \
 # in the main file.
 noinst_LTLIBRARIES = libclboss.la
 libclboss_la_SOURCES = \
+	Bitcoin/le.cpp \
+	Bitcoin/le.hpp \
 	Bitcoin/varint.cpp \
 	Bitcoin/varint.hpp \
 	Boltz/Connection.cpp \
@@ -236,7 +238,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 AM_DEFAULT_SOURCE_EXT = .cpp
 TESTS = \
-	tests/bitcoin/test_varint \
+	tests/bitcoin/test_serial \
 	tests/boss/channelcandidateinvestigator/test_gumshoe \
 	tests/boss/channelcandidateinvestigator/test_secretary \
 	tests/boss/test_channelcreationdecider \

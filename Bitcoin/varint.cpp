@@ -46,37 +46,25 @@ std::istream& operator>>(std::istream& is, Bitcoin::Detail::VarInt o) {
 	auto t = char();
 	char c[8];
 
-	is >> t;
+	is.get(t);
 	if (std::uint8_t(t) < 0xFD)
 		o.v = std::uint64_t(std::uint8_t(t));
 	else if (std::uint8_t(t) == 0xFD) {
-		is >> c[0]
-		   >> c[1]
-		   ;
+		is.get(c[0]).get(c[1]);
 		o.v = (std::uint64_t(std::uint8_t(c[0])) << 0)
 		    | (std::uint64_t(std::uint8_t(c[1])) << 8)
 		    ;
 	} else if (std::uint8_t(t) == 0xFE) {
-		is >> c[0]
-		   >> c[1]
-		   >> c[2]
-		   >> c[3]
-		   ;
+		is.get(c[0]).get(c[1]).get(c[2]).get(c[3]);
 		o.v = (std::uint64_t(std::uint8_t(c[0])) << 0)
 		    | (std::uint64_t(std::uint8_t(c[1])) << 8)
 		    | (std::uint64_t(std::uint8_t(c[2])) << 16)
 		    | (std::uint64_t(std::uint8_t(c[3])) << 24)
 		    ;
 	} else {
-		is >> c[0]
-		   >> c[1]
-		   >> c[2]
-		   >> c[3]
-		   >> c[4]
-		   >> c[5]
-		   >> c[6]
-		   >> c[7]
-		   ;
+		is.get(c[0]).get(c[1]).get(c[2]).get(c[3])
+		  .get(c[4]).get(c[5]).get(c[6]).get(c[7])
+		  ;
 		o.v = (std::uint64_t(std::uint8_t(c[0])) << 0)
 		    | (std::uint64_t(std::uint8_t(c[1])) << 8)
 		    | (std::uint64_t(std::uint8_t(c[2])) << 16)

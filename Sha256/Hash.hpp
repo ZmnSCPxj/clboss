@@ -54,6 +54,15 @@ public:
 	bool operator!=(Hash const& i) const {
 		return !(*this == i);
 	}
+
+	void to_buffer(std::uint8_t d[32]) const {
+		for (auto i = std::size_t(0); i < 32; ++i)
+			d[i] = pimpl->d[i];
+	}
+	void from_buffer(std::uint8_t const d[32]) {
+		for (auto i = std::size_t(0); i < 32; ++i)
+			pimpl->d[i] = d[i];
+	}
 };
 
 inline

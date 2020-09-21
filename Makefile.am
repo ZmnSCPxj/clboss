@@ -178,6 +178,8 @@ libclboss_la_SOURCES = \
 	Ln/Amount.hpp \
 	Ln/NodeId.cpp \
 	Ln/NodeId.hpp \
+	Ln/Preimage.cpp \
+	Ln/Preimage.hpp \
 	Ln/Scid.cpp \
 	Ln/Scid.hpp \
 	Net/Connector.hpp \

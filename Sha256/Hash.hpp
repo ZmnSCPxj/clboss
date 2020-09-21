@@ -56,10 +56,16 @@ public:
 	}
 
 	void to_buffer(std::uint8_t d[32]) const {
-		for (auto i = std::size_t(0); i < 32; ++i)
-			d[i] = pimpl->d[i];
+		if (pimpl)
+			for (auto i = std::size_t(0); i < 32; ++i)
+				d[i] = pimpl->d[i];
+		else
+			for (auto i = std::size_t(0); i < 32; ++i)
+				d[i] = 0;
 	}
 	void from_buffer(std::uint8_t const d[32]) {
+		if (!pimpl)
+			pimpl = std::make_shared<Impl>();
 		for (auto i = std::size_t(0); i < 32; ++i)
 			pimpl->d[i] = d[i];
 	}

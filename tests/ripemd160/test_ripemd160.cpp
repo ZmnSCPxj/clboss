@@ -51,5 +51,10 @@ int main() {
 		      , "52783243c1697bdbe16d37f97f68f08325dc1528"
 		      );
 
+	auto tmp = Util::Str::hexread("91fbaf549578fd7c2cb26b216441825bd780d85dba1f3d706e2f206587e96266");
+	auto hasher = Ripemd160::Hasher();
+	hasher.feed(&tmp[0], tmp.size());
+	assert(std::move(hasher).finalize() == Ripemd160::Hash("2c2d5441ef4a4469eae063941463e3c65ee926c0"));
+
 	return 0;
 }

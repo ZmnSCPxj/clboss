@@ -1,0 +1,53 @@
+diff --git a/Makefile.am b/Makefile.am
+index de56754..ca039f5 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,9 +1,8 @@
+ ACLOCAL_AMFLAGS = -I build-aux/m4
+ 
+-lib_LTLIBRARIES = libsecp256k1.la
+-include_HEADERS = include/secp256k1.h
+-include_HEADERS += include/secp256k1_preallocated.h
+-noinst_HEADERS =
++noinst_LTLIBRARIES = libsecp256k1.la
++noinst_HEADERS = include/secp256k1.h
++noinst_HEADERS += include/secp256k1_preallocated.h
+ noinst_HEADERS += src/scalar.h
+ noinst_HEADERS += src/scalar_4x64.h
+ noinst_HEADERS += src/scalar_8x32.h
+@@ -51,13 +50,13 @@ noinst_HEADERS += contrib/lax_der_privatekey_parsing.c
+ 
+ if USE_EXTERNAL_ASM
+ COMMON_LIB = libsecp256k1_common.la
+-noinst_LTLIBRARIES = $(COMMON_LIB)
++noinst_LTLIBRARIES += $(COMMON_LIB)
+ else
+ COMMON_LIB =
+ endif
+ 
+ pkgconfigdir = $(libdir)/pkgconfig
+-pkgconfig_DATA = libsecp256k1.pc
++noinst_DATA = libsecp256k1.pc
+ 
+ if USE_EXTERNAL_ASM
+ if USE_ASM_ARM
+diff --git a/src/modules/ecdh/Makefile.am.include b/src/modules/ecdh/Makefile.am.include
+index e3088b4..24f762e 100644
+--- a/src/modules/ecdh/Makefile.am.include
++++ b/src/modules/ecdh/Makefile.am.include
+@@ -1,4 +1,4 @@
+-include_HEADERS += include/secp256k1_ecdh.h
++noinst_HEADERS += include/secp256k1_ecdh.h
+ noinst_HEADERS += src/modules/ecdh/main_impl.h
+ noinst_HEADERS += src/modules/ecdh/tests_impl.h
+ if USE_BENCHMARK
+diff --git a/src/modules/recovery/Makefile.am.include b/src/modules/recovery/Makefile.am.include
+index bf23c26..dd05f6d 100644
+--- a/src/modules/recovery/Makefile.am.include
++++ b/src/modules/recovery/Makefile.am.include
+@@ -1,4 +1,4 @@
+-include_HEADERS += include/secp256k1_recovery.h
++noinst_HEADERS += include/secp256k1_recovery.h
+ noinst_HEADERS += src/modules/recovery/main_impl.h
+ noinst_HEADERS += src/modules/recovery/tests_impl.h
+ if USE_BENCHMARK

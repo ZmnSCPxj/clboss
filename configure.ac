@@ -37,6 +37,8 @@ AX_LIB_CURL(,[:],{
 # Checks for library functions.
 
 AC_CONFIG_FILES([Makefile external/bitcoin-ripemd160/Makefile])
-AC_CONFIG_SUBDIRS([external/libsodium])
+AC_CONFIG_SUBDIRS([external/libsodium
+		   external/secp256k1
+		  ])
 
 AC_OUTPUT

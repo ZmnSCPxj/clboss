@@ -197,6 +197,19 @@ libclboss_la_SOURCES = \
 	S/Bus.hpp \
 	S/Detail/Signal.hpp \
 	S/Detail/SignalBase.hpp \
+	Secp256k1/Detail/context.cpp \
+	Secp256k1/Detail/context.hpp \
+	Secp256k1/G.cpp \
+	Secp256k1/G.hpp \
+	Secp256k1/KeyPair.hpp \
+	Secp256k1/PrivKey.cpp \
+	Secp256k1/PrivKey.hpp \
+	Secp256k1/PubKey.cpp \
+	Secp256k1/PubKey.hpp \
+	Secp256k1/Random.cpp \
+	Secp256k1/Random.hpp \
+	Secp256k1/Signature.cpp \
+	Secp256k1/Signature.hpp \
 	Sha256/Hash.cpp \
 	Sha256/Hash.hpp \
 	Sha256/Hasher.cpp \

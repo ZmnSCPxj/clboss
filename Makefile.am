@@ -18,6 +18,8 @@ libclboss_la_SOURCES = \
 	Bitcoin/varint.hpp \
 	Boltz/Connection.cpp \
 	Boltz/Connection.hpp \
+	Boltz/Detail/match_lockscript.cpp \
+	Boltz/Detail/match_lockscript.hpp \
 	Boss/JsonInput.cpp \
 	Boss/JsonInput.hpp \
 	Boss/Main.cpp \
@@ -266,6 +268,7 @@ ACLOCAL_AMFLAGS = -I m4
 AM_DEFAULT_SOURCE_EXT = .cpp
 TESTS = \
 	tests/bitcoin/test_serial \
+	tests/boltz/test_match_lockscript \
 	tests/boss/channelcandidateinvestigator/test_gumshoe \
 	tests/boss/channelcandidateinvestigator/test_secretary \
 	tests/boss/test_channelcreationdecider \

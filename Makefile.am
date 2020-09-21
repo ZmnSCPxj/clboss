@@ -10,6 +10,8 @@ noinst_PROGRAMS = \
 # in the main file.
 noinst_LTLIBRARIES = libclboss.la
 libclboss_la_SOURCES = \
+	Bitcoin/hash160.cpp \
+	Bitcoin/hash160.hpp \
 	Bitcoin/le.cpp \
 	Bitcoin/le.hpp \
 	Bitcoin/varint.cpp \

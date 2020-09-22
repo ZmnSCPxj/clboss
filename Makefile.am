@@ -10,6 +10,8 @@ noinst_PROGRAMS = \
 # in the main file.
 noinst_LTLIBRARIES = libclboss.la
 libclboss_la_SOURCES = \
+	Bitcoin/Tx.cpp \
+	Bitcoin/Tx.hpp \
 	Bitcoin/TxId.cpp \
 	Bitcoin/TxId.hpp \
 	Bitcoin/TxIn.cpp \
@@ -278,6 +280,7 @@ ACLOCAL_AMFLAGS = -I m4
 AM_DEFAULT_SOURCE_EXT = .cpp
 TESTS = \
 	tests/bitcoin/test_serial \
+	tests/bitcoin/test_tx \
 	tests/boltz/test_match_lockscript \
 	tests/boss/channelcandidateinvestigator/test_gumshoe \
 	tests/boss/channelcandidateinvestigator/test_secretary \

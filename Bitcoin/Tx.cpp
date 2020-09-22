@@ -89,6 +89,8 @@ Tx::Tx(std::string const& s) {
 	is >> *this;
 	if (!is.good())
 		throw std::invalid_argument("Bitcoin::Tx: invalid hex string input.");
+	if (is.get() != std::char_traits<char>::eof())
+		throw std::invalid_argument("Bitcoin::Tx: input string too long.");
 }
 
 Bitcoin::TxId Tx::get_txid() const {

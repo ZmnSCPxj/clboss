@@ -12,6 +12,10 @@ noinst_LTLIBRARIES = libclboss.la
 libclboss_la_SOURCES = \
 	Bitcoin/TxId.cpp \
 	Bitcoin/TxId.hpp \
+	Bitcoin/TxIn.cpp \
+	Bitcoin/TxIn.hpp \
+	Bitcoin/TxOut.cpp \
+	Bitcoin/TxOut.hpp \
 	Bitcoin/hash160.cpp \
 	Bitcoin/hash160.hpp \
 	Bitcoin/le.cpp \

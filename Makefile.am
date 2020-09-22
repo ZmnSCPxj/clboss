@@ -226,6 +226,7 @@ libclboss_la_SOURCES = \
 	Secp256k1/Random.hpp \
 	Secp256k1/Signature.cpp \
 	Secp256k1/Signature.hpp \
+	Secp256k1/SignerIF.hpp \
 	Sha256/Hash.cpp \
 	Sha256/Hash.hpp \
 	Sha256/Hasher.cpp \

@@ -25,6 +25,8 @@ struct Tx {
 
 	explicit
 	Tx(std::string const&);
+	explicit
+	operator std::string() const;
 
 	bool operator==(Tx const& o) const {
 		return nVersion == o.nVersion

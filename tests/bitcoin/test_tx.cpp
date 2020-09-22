@@ -26,6 +26,7 @@ Bitcoin::Tx test_tx(char const* hextx, char const* hextxid) {
 
 	auto tx_2 = Bitcoin::Tx(hextx);
 	assert(tx == tx_2);
+	assert(std::string(tx) == hextx);
 
 	return tx;
 }

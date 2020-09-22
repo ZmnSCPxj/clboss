@@ -111,4 +111,11 @@ Bitcoin::TxId Tx::get_txid() const {
 	);
 }
 
+Tx::operator std::string() const {
+	auto os = std::ostringstream();
+	os << *this;
+	auto str = os.str();
+	return Util::Str::hexdump(&str[0], str.size());
+}
+
 }

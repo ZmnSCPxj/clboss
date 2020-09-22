@@ -16,6 +16,8 @@ libclboss_la_SOURCES = \
 	Bitcoin/TxIn.hpp \
 	Bitcoin/TxOut.cpp \
 	Bitcoin/TxOut.hpp \
+	Bitcoin/WitnessField.cpp \
+	Bitcoin/WitnessField.hpp \
 	Bitcoin/hash160.cpp \
 	Bitcoin/hash160.hpp \
 	Bitcoin/le.cpp \

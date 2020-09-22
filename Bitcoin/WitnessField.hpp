@@ -33,6 +33,10 @@ namespace Bitcoin {
  */
 struct WitnessField {
 	std::vector<std::vector<std::uint8_t>> witnesses;
+
+	bool empty() const {
+		return witnesses.empty();
+	}
 };
 
 }

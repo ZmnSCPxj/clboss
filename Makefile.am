@@ -24,6 +24,8 @@ libclboss_la_SOURCES = \
 	Bitcoin/hash160.hpp \
 	Bitcoin/le.cpp \
 	Bitcoin/le.hpp \
+	Bitcoin/sighash.cpp \
+	Bitcoin/sighash.hpp \
 	Bitcoin/varint.cpp \
 	Bitcoin/varint.hpp \
 	Boltz/Connection.cpp \
@@ -280,6 +282,7 @@ ACLOCAL_AMFLAGS = -I m4
 AM_DEFAULT_SOURCE_EXT = .cpp
 TESTS = \
 	tests/bitcoin/test_serial \
+	tests/bitcoin/test_sighash \
 	tests/bitcoin/test_tx \
 	tests/boltz/test_match_lockscript \
 	tests/boss/channelcandidateinvestigator/test_gumshoe \

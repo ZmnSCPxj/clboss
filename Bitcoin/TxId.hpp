@@ -8,11 +8,13 @@ namespace Bitcoin {
 
 /** struct Bitcoin::TxId
  *
- * @brief represents a Bitcoin transaction ID.
+ * @brief the reverse double-sha256 of the non-witness
+ * serialization of a transaction.
  *
  * @desc Transactions IDs are just the double-SHA256
  * of a particular encoding of a transaction without
- * the witness part of transactions.
+ * the witness part of transactions, but in reverse
+ * order, because reasons.
  */
 class TxId;
 }
@@ -25,6 +27,7 @@ namespace Bitcoin {
 
 class TxId {
 private:
+	/* The hash stored here is already in reverse order.  */
 	Sha256::Hash hash;
 
 	friend
@@ -39,10 +42,24 @@ public:
 	TxId& operator=(TxId&&) =default;
 	~TxId() =default;
 
+	/* Must be expressed in the expected reversed
+	 * order.
+	 */
 	explicit
-	TxId(std::string const& s) : hash(s) { }
+	TxId(std::string const& s);
+	/* Performs the reversal of bytes.  */
 	explicit
-	TxId(Sha256::Hash hash_) : hash(std::move(hash_)) { }
+	TxId(Sha256::Hash hash_);
+	/* Prints out in the reversed order.  */
+	explicit
+	operator std::string() const;
+
+	bool operator==(Bitcoin::TxId const& o) const {
+		return hash == o.hash;
+	}
+	bool operator!=(Bitcoin::TxId const& o) const {
+		return hash != o.hash;
+	}
 };
 
 }

@@ -7,6 +7,7 @@
 #include"Util/Str.hpp"
 #include<algorithm>
 #include<sstream>
+#include<stdexcept>
 
 std::ostream& operator<<(std::ostream& os, Bitcoin::Tx const& v) {
 	os << Bitcoin::le(v.nVersion);
@@ -86,6 +87,8 @@ Tx::Tx(std::string const& s) {
 	auto str = std::string(buf.begin(), buf.end());
 	auto is = std::istringstream(std::move(str));
 	is >> *this;
+	if (!is.good())
+		throw std::invalid_argument("Bitcoin::Tx: invalid hex string input.");
 }
 
 Bitcoin::TxId Tx::get_txid() const {

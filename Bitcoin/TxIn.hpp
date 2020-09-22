@@ -38,6 +38,17 @@ struct TxIn {
 	Bitcoin::WitnessField witness;
 
 	TxIn() : prevOut(0xFFFFFFFF), nSequence(0xFFFFFFFF) { }
+	bool operator==(TxIn const& o) const {
+		return prevTxid == o.prevTxid
+		    && prevOut == o.prevOut
+		    && scriptSig == o.scriptSig
+		    && nSequence == o.nSequence
+		    && witness == o.witness
+		     ;
+	}
+	bool operator!=(TxIn const& o) const {
+		return !(*this == o);
+	}
 };
 
 }

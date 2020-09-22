@@ -19,6 +19,15 @@ namespace Bitcoin {
 struct TxOut {
 	Ln::Amount amount;
 	std::vector<std::uint8_t> scriptPubKey;
+
+	bool operator==(TxOut const& o) const {
+		return amount == o.amount
+		    && scriptPubKey == o.scriptPubKey
+		     ;
+	}
+	bool operator!=(TxOut const& o) const {
+		return !(*this == o);
+	}
 };
 
 }

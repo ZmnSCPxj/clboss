@@ -25,6 +25,17 @@ struct Tx {
 
 	explicit
 	Tx(std::string const&);
+
+	bool operator==(Tx const& o) const {
+		return nVersion == o.nVersion
+		    && inputs == o.inputs
+		    && outputs == o.outputs
+		    && nLockTime == o.nLockTime
+		     ;
+	}
+	bool operator!=(Tx const& o) const {
+		return !(*this == o);
+	}
 };
 
 }

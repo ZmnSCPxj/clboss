@@ -37,6 +37,12 @@ struct WitnessField {
 	bool empty() const {
 		return witnesses.empty();
 	}
+	bool operator==(WitnessField const& o) const {
+		return witnesses == o.witnesses;
+	}
+	bool operator!=(WitnessField const& o) const {
+		return !(*this == o);
+	}
 };
 
 }

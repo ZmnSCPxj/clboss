@@ -22,6 +22,9 @@ struct Tx {
 	Bitcoin::TxId get_txid() const;
 
 	Tx() : nVersion(2), nLockTime(0) { }
+
+	explicit
+	Tx(std::string const&);
 };
 
 }

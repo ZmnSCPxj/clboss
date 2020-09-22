@@ -4,7 +4,9 @@
 #include"Bitcoin/varint.hpp"
 #include"Sha256/HasherStream.hpp"
 #include"Sha256/fun.hpp"
+#include"Util/Str.hpp"
 #include<algorithm>
+#include<sstream>
 
 std::ostream& operator<<(std::ostream& os, Bitcoin::Tx const& v) {
 	os << Bitcoin::le(v.nVersion);
@@ -78,6 +80,13 @@ std::istream& operator>>(std::istream& is, Bitcoin::Tx& v) {
 }
 
 namespace Bitcoin {
+
+Tx::Tx(std::string const& s) {
+	auto buf = Util::Str::hexread(s);
+	auto str = std::string(buf.begin(), buf.end());
+	auto is = std::istringstream(std::move(str));
+	is >> *this;
+}
 
 Bitcoin::TxId Tx::get_txid() const {
 	/* Copy this, then strip witnesses.

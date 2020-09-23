@@ -3,6 +3,7 @@
 #include"Boss/Msg/CommandRequest.hpp"
 #include"Boss/Msg/CommandResponse.hpp"
 #include"Boss/Msg/Init.hpp"
+#include"Boss/Signer.hpp"
 #include"Boss/log.hpp"
 #include"Ev/ThreadPool.hpp"
 #include"Jsmn/Object.hpp"
@@ -13,6 +14,8 @@
 #include"Net/Fd.hpp"
 #include"Net/ProxyConnector.hpp"
 #include"S/Bus.hpp"
+#include"Secp256k1/Random.hpp"
+#include"Secp256k1/SignerIF.hpp"
 #include"Sqlite3.hpp"
 #include"Util/make_unique.hpp"
 #include<algorithm>
@@ -50,6 +53,9 @@ private:
 	std::unique_ptr<Boss::Mod::Rpc> rpc;
 
 	std::unique_ptr<Net::Connector> connector;
+
+	Secp256k1::Random random;
+	std::unique_ptr<Secp256k1::SignerIF> signer;
 
 	Ev::Io<void> error( std::string const& comment
 			  , Jsmn::Object const& params
@@ -203,6 +209,16 @@ public:
 						, "Database file opened."
 						);
 			}).then([this]() {
+				return Boss::Signer( "keys.clboss"
+						   , random
+						   , db
+						   ).construct();
+			}).then([this](std::unique_ptr<Secp256k1::SignerIF> n_signer) {
+				signer = std::move(n_signer);
+				return Boss::log( bus, Debug
+						, "Privkey file loaded."
+						);
+			}).then([this]() {
 				return rpc->command( "getinfo"
 						   , Json::Out::empty_object()
 						   );
@@ -258,7 +274,7 @@ public:
 
 				return bus.raise(Boss::Msg::Init{
 					network, *rpc, self_id, db,
-					*connector
+					*connector, *signer
 				});
 			}).then([this]() {
 				return Boss::log( bus, Debug

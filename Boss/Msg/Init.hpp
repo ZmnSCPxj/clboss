@@ -7,6 +7,7 @@
 
 namespace Boss { namespace Mod { class Rpc; }}
 namespace Net { class Connector; }
+namespace Secp256k1 { class SignerIF; }
 
 namespace Boss { namespace Msg {
 
@@ -21,6 +22,7 @@ struct Init {
 	Ln::NodeId self_id;
 	Sqlite3::Db db;
 	Net::Connector& connector;
+	Secp256k1::SignerIF& signer;
 };
 
 }}

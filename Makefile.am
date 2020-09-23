@@ -144,6 +144,8 @@ libclboss_la_SOURCES = \
 	Boss/Msg/TimerRandomDaily.hpp \
 	Boss/Msg/TimerRandomHourly.hpp \
 	Boss/Shutdown.hpp \
+	Boss/Signer.cpp \
+	Boss/Signer.hpp \
 	Boss/concurrent.cpp \
 	Boss/concurrent.hpp \
 	Boss/log.cpp \

@@ -23,6 +23,8 @@ struct Init {
 	Sqlite3::Db db;
 	Net::Connector& connector;
 	Secp256k1::SignerIF& signer;
+	/* Empty string if no proxy.  */
+	std::string proxy;
 };
 
 }}

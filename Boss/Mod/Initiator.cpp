@@ -52,6 +52,7 @@ private:
 	Boss::Msg::Network network;
 	std::unique_ptr<Boss::Mod::Rpc> rpc;
 
+	std::string proxy;
 	std::unique_ptr<Net::Connector> connector;
 
 	Secp256k1::Random random;
@@ -101,6 +102,7 @@ private:
 		connector = Util::make_unique<Net::ProxyConnector>(
 			std::move(connector), host, port
 		);
+		this->proxy = std::move(proxy);
 	}
 
 public:
@@ -114,6 +116,7 @@ public:
 	      , open_rpc_socket(std::move(open_rpc_socket_))
 	      , db()
 	      , initted(false)
+	      , proxy("")
 	      {
 		assert(open_rpc_socket);
 
@@ -269,12 +272,13 @@ public:
 					auto proxy = std::string(
 						cfg["proxy"]
 					);
-					setup_proxy(proxy);
+					setup_proxy(std::move(proxy));
 				}
 
 				return bus.raise(Boss::Msg::Init{
 					network, *rpc, self_id, db,
-					*connector, *signer
+					*connector, *signer,
+					proxy
 				});
 			}).then([this]() {
 				return Boss::log( bus, Debug

@@ -32,6 +32,8 @@ libclboss_la_SOURCES = \
 	Boltz/Connection.hpp \
 	Boltz/Detail/match_lockscript.cpp \
 	Boltz/Detail/match_lockscript.hpp \
+	Boltz/ServiceFactory.cpp \
+	Boltz/ServiceFactory.hpp \
 	Boss/JsonInput.cpp \
 	Boss/JsonInput.hpp \
 	Boss/Main.cpp \

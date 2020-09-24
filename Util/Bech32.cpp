@@ -80,7 +80,12 @@ bool decode( std::string& hrp
 	 * so we use `it - 1` as the end to point to the `1` separator.
 	 */
 	assert(it != bech32.begin());
-	hrp = std::string(bech32.begin(), it - 1);
+	hrp.resize(it - 1 - bech32.begin());
+	std::transform( bech32.begin(), it - 1
+		      , hrp.begin()
+		      , [](char c) {
+		return tolower(c);
+	});
 
 	/* Load the data.  */
 	data = std::vector<bool>();

@@ -1,5 +1,6 @@
 #include"Boltz/Detail/ClaimTxHandler.hpp"
 #include"Boltz/Detail/find_lockup_outnum.hpp"
+#include"Boltz/Detail/initial_claim_tx.hpp"
 #include"Boltz/EnvIF.hpp"
 #include"Ev/Io.hpp"
 #include"Secp256k1/SignerIF.hpp"
@@ -154,11 +155,11 @@ Ev::Io<void> ClaimTxHandler::core_run() {
 		return env.get_feerate();
 	}).then([this](std::uint32_t feerate) {
 		/* Generate the claim tx.  */
-#if 0
 		Detail::initial_claim_tx( claim_tx
 					, lockupClaimFees
 
 					, feerate
+					, blockheight
 					, lockup_txid
 					, lockupOut
 					, onchainAmount
@@ -170,7 +171,6 @@ Ev::Io<void> ClaimTxHandler::core_run() {
 
 					, destinationAddress
 					);
-#endif
 		/* Log it.  */
 		auto msg = std::string("Broadcasting claim tx: ")
 			 + std::string(claim_tx)
@@ -201,7 +201,7 @@ Ev::Io<void> ClaimTxHandler::core_run() {
 		   SET lockedUp = 1
 		     , lockupTxid = :lockup_txid
 		     , lockupOut = :lockupOut
-		     , lockupConfirmdHeight = :blockheight
+		     , lockupConfirmedHeight = :blockheight
 		     , lockupClaimFees = :lockupClaimFees
 		     ;
 		)QRY")

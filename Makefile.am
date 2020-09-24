@@ -32,6 +32,8 @@ libclboss_la_SOURCES = \
 	Bitcoin/varint.hpp \
 	Boltz/Connection.cpp \
 	Boltz/Connection.hpp \
+	Boltz/Detail/ClaimTxHandler.cpp \
+	Boltz/Detail/ClaimTxHandler.hpp \
 	Boltz/Detail/match_lockscript.cpp \
 	Boltz/Detail/match_lockscript.hpp \
 	Boltz/EnvIF.hpp \

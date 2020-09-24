@@ -70,6 +70,10 @@ private:
 			     -- in satoshi.
 			     , onchainAmount INTEGER NOT NULL
 
+			     -- whether lockup fields have been set.
+			     -- 0 == false, 1 == true
+			     , lockedUp INTEGER NOT NULL
+
 			     -- from the exchange, after paying invoice.
 			     -- These are the details of the lockup
 			     -- transaction output.
@@ -85,7 +89,7 @@ private:
 			     -- the transaction from the service
 			     -- confirmed.
 			     -- in satoshi.
-			     , claimStartingFee INTEGER NULL
+			     , lockupClaimFees INTEGER NULL
 
 			     -- additional data we might need.
 			     , comment TEXT

@@ -1,4 +1,5 @@
 #include"Boltz/Detail/ClaimTxHandler.hpp"
+#include"Boltz/Detail/find_lockup_outnum.hpp"
 #include"Boltz/EnvIF.hpp"
 #include"Ev/Io.hpp"
 #include"Secp256k1/SignerIF.hpp"
@@ -131,12 +132,9 @@ Ev::Io<void> ClaimTxHandler::core_run() {
 		}
 
 		/* Find the outnum from the lockup_tx.  */
-#if 0
 		auto outnum = Detail::find_lockup_outnum( lockup_tx
 							, redeemScript
 							);
-#endif
-		auto outnum = 0;
 		if (outnum < 0) {
 			auto msg = std::string("Service lockup tx ")
 				 + std::string(lockup_tx) + " "

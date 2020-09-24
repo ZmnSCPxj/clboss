@@ -34,6 +34,8 @@ libclboss_la_SOURCES = \
 	Boltz/Connection.hpp \
 	Boltz/Detail/ClaimTxHandler.cpp \
 	Boltz/Detail/ClaimTxHandler.hpp \
+	Boltz/Detail/find_lockup_outnum.cpp \
+	Boltz/Detail/find_lockup_outnum.hpp \
 	Boltz/Detail/match_lockscript.cpp \
 	Boltz/Detail/match_lockscript.hpp \
 	Boltz/EnvIF.hpp \

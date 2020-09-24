@@ -16,6 +16,8 @@ private:
 	Secp256k1::SignerIF& signer;
 	std::function<Ev::Io<std::uint32_t>()> get_feerate;
 	std::function<Ev::Io<void>(Bitcoin::Tx)> broadcast_tx;
+	std::function<Ev::Io<void>(std::string)> logd;
+	std::function<Ev::Io<void>(std::string)> loge;
 	std::string proxy;
 
 	/* nullptr if we are currently initializing,
@@ -111,12 +113,16 @@ public:
 	    , Secp256k1::SignerIF& signer_
 	    , std::function<Ev::Io<std::uint32_t>()> get_feerate_
 	    , std::function<Ev::Io<void>(Bitcoin::Tx)> broadcast_tx_
+	    , std::function<Ev::Io<void>(std::string)> logd_
+	    , std::function<Ev::Io<void>(std::string)> loge_
 	    , std::string proxy_
 	    ) : threadpool(threadpool_)
 	      , db(std::move(db_))
 	      , signer(signer_)
 	      , get_feerate(std::move(get_feerate_))
 	      , broadcast_tx(std::move(broadcast_tx_))
+	      , logd(std::move(logd_))
+	      , loge(std::move(loge_))
 	      , proxy(std::move(proxy_))
 	      , initted_flag(Util::make_unique<bool>(false))
 	      { }
@@ -139,12 +145,16 @@ ServiceFactory::ServiceFactory( Ev::ThreadPool& threadpool
 			      , Secp256k1::SignerIF& signer
 			      , std::function<Ev::Io<std::uint32_t>()> get_feerate
 			      , std::function<Ev::Io<void>(Bitcoin::Tx)> broadcast_tx
+			      , std::function<Ev::Io<void>(std::string)> logd
+			      , std::function<Ev::Io<void>(std::string)> loge
 			      , std::string proxy
 			      ) : pimpl(Util::make_unique<Impl>( threadpool
 							       , std::move(db)
 							       , signer
 							       , std::move(get_feerate)
 							       , std::move(broadcast_tx)
+							       , std::move(logd)
+							       , std::move(loge)
 							       , std::move(proxy)
 							       ))
 				{ }

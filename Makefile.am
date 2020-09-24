@@ -20,6 +20,8 @@ libclboss_la_SOURCES = \
 	Bitcoin/TxOut.hpp \
 	Bitcoin/WitnessField.cpp \
 	Bitcoin/WitnessField.hpp \
+	Bitcoin/addr_to_scriptPubKey.cpp \
+	Bitcoin/addr_to_scriptPubKey.hpp \
 	Bitcoin/hash160.cpp \
 	Bitcoin/hash160.hpp \
 	Bitcoin/le.cpp \
@@ -288,6 +290,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 AM_DEFAULT_SOURCE_EXT = .cpp
 TESTS = \
+	tests/bitcoin/test_addr_to_scriptpubkey \
 	tests/bitcoin/test_serial \
 	tests/bitcoin/test_sighash \
 	tests/bitcoin/test_tx \

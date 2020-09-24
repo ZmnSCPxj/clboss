@@ -1,5 +1,6 @@
 #include"Bitcoin/addr_to_scriptPubKey.hpp"
 #include"Util/Bech32.hpp"
+#include<algorithm>
 #include<iterator>
 
 namespace Bitcoin {
@@ -43,14 +44,26 @@ addr_to_scriptPubKey(std::string const& addr) {
 
 		/* Get the witness program size in bytes.  */
 		auto witness_program_size = (data.size() - 5) / 8;
-		/* From 1 to 75 bytes.  */
-		if (!(1 <= witness_program_size && witness_program_size <= 75))
+		/* From 2 to 40 bytes as per BIP-173.  */
+		if (!(2 <= witness_program_size && witness_program_size <= 40))
+			throw UnknownAddrType();
+
+		/* Check that any extra padding is zero.  */
+		auto padding_start = data.begin() + 5
+				   + (8 * witness_program_size)
+				   ;
+		if (std::any_of( padding_start, data.end()
+			       , [](bool x){ return x; }
+			       ))
+			throw UnknownAddrType();
+		/* Check extra padding is 4 bits or less.  */
+		if (data.end() - padding_start >= 5)
 			throw UnknownAddrType();
 
 		/* Encode.  */
 		auto rv = std::vector<std::uint8_t>();
 		rv.push_back(segwit_version == 0 ? 0x00
-						 : (0x50 | segwit_version)
+						 : (0x50 + segwit_version)
 						 );
 		rv.push_back(std::uint8_t(witness_program_size));
 		Util::Bech32::bitstream_to_bytes( data.begin() + 5

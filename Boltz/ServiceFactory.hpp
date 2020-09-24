@@ -5,6 +5,7 @@
 #include<memory>
 
 namespace Bitcoin { class Tx; }
+namespace Boltz { class EnvIF; }
 namespace Boltz { class Service; }
 namespace Ev { template<typename a> class Io; }
 namespace Ev { class ThreadPool; }
@@ -42,14 +43,8 @@ public:
 		      , Sqlite3::Db db
 		      /* Signer for reverse submarine swap claims.  */
 		      , Secp256k1::SignerIF& signer
-		      /* Function to get feerate.  */
-		      , std::function<Ev::Io<std::uint32_t>()> get_feerate
-		      /* Function to broadcast transaction.  */
-		      , std::function<Ev::Io<void>(Bitcoin::Tx)> broadcast_tx
-		      /* Function to log debug messages.  */
-		      , std::function<Ev::Io<void>(std::string)> logd
-		      /* Function to log error messages.  */
-		      , std::function<Ev::Io<void>(std::string)> loge
+		      /* Environment we are running in.  */
+		      , Boltz::EnvIF& env
 		      /* SOCKS5 proxy to use.  Empty string means no proxy.  */
 		      , std::string proxy = ""
 		      );

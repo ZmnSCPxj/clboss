@@ -1,3 +1,4 @@
+#include"Boltz/EnvIF.hpp"
 #include"Boltz/Service.hpp"
 #include"Boltz/ServiceFactory.hpp"
 #include"Ev/Io.hpp"
@@ -14,10 +15,7 @@ private:
 	Ev::ThreadPool& threadpool;
 	Sqlite3::Db db;
 	Secp256k1::SignerIF& signer;
-	std::function<Ev::Io<std::uint32_t>()> get_feerate;
-	std::function<Ev::Io<void>(Bitcoin::Tx)> broadcast_tx;
-	std::function<Ev::Io<void>(std::string)> logd;
-	std::function<Ev::Io<void>(std::string)> loge;
+	Boltz::EnvIF& env;
 	std::string proxy;
 
 	/* nullptr if we are currently initializing,
@@ -115,18 +113,12 @@ public:
 	Impl( Ev::ThreadPool& threadpool_
 	    , Sqlite3::Db db_
 	    , Secp256k1::SignerIF& signer_
-	    , std::function<Ev::Io<std::uint32_t>()> get_feerate_
-	    , std::function<Ev::Io<void>(Bitcoin::Tx)> broadcast_tx_
-	    , std::function<Ev::Io<void>(std::string)> logd_
-	    , std::function<Ev::Io<void>(std::string)> loge_
+	    , Boltz::EnvIF& env_
 	    , std::string proxy_
 	    ) : threadpool(threadpool_)
 	      , db(std::move(db_))
 	      , signer(signer_)
-	      , get_feerate(std::move(get_feerate_))
-	      , broadcast_tx(std::move(broadcast_tx_))
-	      , logd(std::move(logd_))
-	      , loge(std::move(loge_))
+	      , env(env_)
 	      , proxy(std::move(proxy_))
 	      , initted_flag(Util::make_unique<bool>(false))
 	      { }
@@ -147,18 +139,12 @@ ServiceFactory::~ServiceFactory() =default;
 ServiceFactory::ServiceFactory( Ev::ThreadPool& threadpool
 			      , Sqlite3::Db db
 			      , Secp256k1::SignerIF& signer
-			      , std::function<Ev::Io<std::uint32_t>()> get_feerate
-			      , std::function<Ev::Io<void>(Bitcoin::Tx)> broadcast_tx
-			      , std::function<Ev::Io<void>(std::string)> logd
-			      , std::function<Ev::Io<void>(std::string)> loge
+			      , Boltz::EnvIF& env
 			      , std::string proxy
 			      ) : pimpl(Util::make_unique<Impl>( threadpool
 							       , std::move(db)
 							       , signer
-							       , std::move(get_feerate)
-							       , std::move(broadcast_tx)
-							       , std::move(logd)
-							       , std::move(loge)
+							       , env
 							       , std::move(proxy)
 							       ))
 				{ }

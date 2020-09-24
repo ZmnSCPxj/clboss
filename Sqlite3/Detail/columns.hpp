@@ -84,6 +84,13 @@ struct Column<std::uint64_t> {
 		return column_i(stmt, c);
 	}
 };
+template<>
+struct Column<bool> {
+	static
+	bool column(void* stmt, int c) {
+		return column_i(stmt, c) != 0;
+	}
+};
 
 template<>
 struct Column<std::string> {

@@ -76,6 +76,12 @@ struct Bind<std::uint64_t> {
 		bind_i(stmt, l, v);
 	}
 };
+template<>
+struct Bind<bool> {
+	static void bind(void *stmt, int l, bool v) {
+		bind_i(stmt, l, v ? 1 : 0);
+	}
+};
 
 template<>
 struct Bind<char const*> {

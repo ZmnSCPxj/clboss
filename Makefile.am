@@ -253,6 +253,8 @@ libclboss_la_SOURCES = \
 	Sqlite3/Tx.hpp \
 	Stats/RunningMean.cpp \
 	Stats/RunningMean.hpp \
+	Util/Bech32.cpp \
+	Util/Bech32.hpp \
 	Util/Rw.cpp \
 	Util/Rw.hpp \
 	Util/Str.cpp \

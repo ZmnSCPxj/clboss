@@ -3,6 +3,8 @@
 
 #include"Jsmn/Detail/Str.hpp"
 #include"Jsmn/Object.hpp"
+#include<cstdint>
+#include<iomanip>
 #include<memory>
 #include<sstream>
 
@@ -32,9 +34,73 @@ struct Serializer<double> {
 	}
 };
 template<>
-struct Serializer<int> {
-	static std::string serialize(int v) {
+struct Serializer<float> {
+	static std::string serialize(float v) {
 		return Jsmn::Detail::Str::from_double(v);
+	}
+};
+template<>
+struct Serializer<std::int8_t> {
+	static std::string serialize(std::int8_t v) {
+		auto os = std::ostringstream();
+		os << std::dec << std::int64_t(v);
+		return os.str();
+	}
+};
+template<>
+struct Serializer<std::int16_t> {
+	static std::string serialize(std::int16_t v) {
+		auto os = std::ostringstream();
+		os << std::dec << std::int64_t(v);
+		return os.str();
+	}
+};
+template<>
+struct Serializer<std::int32_t> {
+	static std::string serialize(std::int32_t v) {
+		auto os = std::ostringstream();
+		os << std::dec << std::int64_t(v);
+		return os.str();
+	}
+};
+template<>
+struct Serializer<std::int64_t> {
+	static std::string serialize(std::int64_t v) {
+		auto os = std::ostringstream();
+		os << std::dec << std::int64_t(v);
+		return os.str();
+	}
+};
+template<>
+struct Serializer<std::uint8_t> {
+	static std::string serialize(std::uint8_t v) {
+		auto os = std::ostringstream();
+		os << std::dec << std::uint64_t(v);
+		return os.str();
+	}
+};
+template<>
+struct Serializer<std::uint16_t> {
+	static std::string serialize(std::uint16_t v) {
+		auto os = std::ostringstream();
+		os << std::dec << std::uint64_t(v);
+		return os.str();
+	}
+};
+template<>
+struct Serializer<std::uint32_t> {
+	static std::string serialize(std::uint32_t v) {
+		auto os = std::ostringstream();
+		os << std::dec << std::uint64_t(v);
+		return os.str();
+	}
+};
+template<>
+struct Serializer<std::uint64_t> {
+	static std::string serialize(std::uint64_t v) {
+		auto os = std::ostringstream();
+		os << std::dec << std::uint64_t(v);
+		return os.str();
 	}
 };
 template<>
@@ -46,6 +112,12 @@ struct Serializer<bool> {
 template<>
 struct Serializer<std::string> {
 	static std::string serialize(std::string const& v) {
+		return "\"" + Jsmn::Detail::Str::to_escaped(v) + "\"";
+	}
+};
+template<std::size_t n>
+struct Serializer<char [n]> {
+	static std::string serialize(char const v[n]) {
 		return "\"" + Jsmn::Detail::Str::to_escaped(v) + "\"";
 	}
 };

@@ -9,9 +9,9 @@ namespace Boltz { namespace Detail {
 int find_lockup_outnum( Bitcoin::Tx const& tx
 		      , std::vector<std::uint8_t> const& redeemScript
 		      ) {
-	auto hash = Sha256::fun(Sha256::fun(
+	auto hash = Sha256::fun(
 		&redeemScript[0], redeemScript.size()
-	));
+	);
 	auto scriptPubKey = std::vector<std::uint8_t>(34);
 	scriptPubKey[0] = 0x00;
 	scriptPubKey[1] = 0x20;

@@ -164,6 +164,11 @@ PubKey::PubKey(std::string const& s) {
 		throw InvalidPubKey();
 	pimpl = Util::make_unique<Impl>(&buf[0]);
 }
+PubKey::operator std::string() const {
+	auto os = std::ostringstream();
+	pimpl->dump(os);
+	return os.str();
+}
 
 PubKey::PubKey(Secp256k1::PrivKey const& sk)
 	: pimpl(Util::make_unique<Impl>(sk)) {}

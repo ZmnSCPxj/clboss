@@ -44,6 +44,8 @@ public:
 	PubKey();
 	/* Load public key from a hex-encoded string.  */
 	explicit PubKey(std::string const&);
+	/* Create hex-encoded string.  */
+	explicit operator std::string() const;
 	/* Get the public key behind the given private key.  */
 	explicit PubKey(Secp256k1::PrivKey const&);
 

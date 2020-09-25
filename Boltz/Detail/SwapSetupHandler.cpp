@@ -139,7 +139,7 @@ Ev::Io<void> SwapSetupHandler::core_run() {
 
 		/* FIXME: We should check the latest quotation!  */
 		if ( (Ln::Amount::sat(tmp_onchainAmount) / offchainAmount)
-		   < 0.95
+		   < 0.90
 		   ) {
 			auto os = std::ostringstream();
 			os << "Onchain amount "

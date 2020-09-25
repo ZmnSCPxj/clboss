@@ -1,5 +1,7 @@
 clboss
 dev-boltz-api
+dev-boltz
+data.dev-boltz
 *.o
 *.la
 *.lo

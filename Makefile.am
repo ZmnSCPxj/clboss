@@ -2,6 +2,7 @@ bin_PROGRAMS = clboss
 clboss_SOURCES = \
 	main.cpp
 noinst_PROGRAMS = \
+	dev-boltz \
 	dev-boltz-api
 
 # These are the actual source files of clboss.

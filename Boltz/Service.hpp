@@ -54,7 +54,8 @@ public:
 	 * @brief create a reverse submarine swap
 	 * paying out to the given address.
 	 *
-	 * @return the invoice to pay.
+	 * @return the invoice to pay, or an empty
+	 * string if setting up failed.
 	 *
 	 * @desc if paying the invoice fails, the
 	 * swap should be considered as automatically

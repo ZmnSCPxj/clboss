@@ -96,7 +96,7 @@ Ev::Io<void> ServiceImpl::swap_on_block( std::uint32_t blockheight
 	auto p_swapId = std::make_shared<std::string>(std::move(swapId));
 	auto parms = Json::Out()
 		.start_object()
-			.field("id", std::move(swapId))
+			.field("id", *p_swapId)
 		.end_object();
 	return conn.api( "/swapstatus"
 		       , Util::make_unique<Json::Out>(std::move(parms))

@@ -54,7 +54,7 @@ initial_claim_tx( Bitcoin::Tx& claim_tx /* written by function */
 	claim_tx.outputs.resize(1);
 	/* Set nLockTime and nSequence.  */
 	claim_tx.nLockTime = blockheight + 1;
-	claim_tx.inputs[0].nSequence = 0xFFFFFFFD; /* RBF!  */
+	claim_tx.inputs[0].nSequence = 0xFFFFFFFF; /* Final!  Not RBF!  */
 
 	/* Set up input.  */
 	claim_tx.inputs[0].prevTxid = lockup_txid;
@@ -114,6 +114,7 @@ initial_claim_tx( Bitcoin::Tx& claim_tx /* written by function */
 	/* Load up the witnesses.  */
 	auto& witnesses = claim_tx.inputs[0].witness.witnesses;
 	witnesses[0] = signature.der_encode();
+	witnesses[0].push_back(std::uint8_t(Bitcoin::SIGHASH_ALL));
 	witnesses[1].resize(32);
 	preimage.to_buffer(&witnesses[1][0]);
 	witnesses[2] = witnessScript;

@@ -148,6 +148,20 @@ Ev::Io<void> ClaimTxHandler::core_run() {
 		}
 		lockupOut = std::size_t(outnum);
 
+		/* Check the onchain amount is correct.  */
+		if ( lockup_tx.outputs[lockupOut].amount
+		  != onchainAmount
+		   ) {
+			auto msg = std::string("Service lockup tx ")
+				 + std::string(lockup_tx) + " "
+				 + "does not pay expected amount."
+				 ;
+			return loge(msg).then([]() {
+				throw End();
+				return Ev::lift();
+			});
+		}
+
 		return Ev::lift();
 	}).then([this]() {
 

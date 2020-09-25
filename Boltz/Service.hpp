@@ -2,6 +2,7 @@
 #define BOLTZ_SERVICE_HPP
 
 #include<cstdint>
+#include<memory>
 #include<string>
 
 namespace Ev { template<typename a> class Io; }
@@ -32,15 +33,20 @@ public:
 
 	/** Boltz::Service::get_quotation
 	 *
-	 * @brief return the fees it would take
-	 * to get a particular amount onchain.
+	 * @brief Return how much will be deducted
+	 * from the given amount in order to appear
+	 * onchain.
 	 *
-	 * @desc this only considers amount from
+	 * @desc this only considers fees charged by
 	 * the BOLTZ instance, and not to claim
 	 * it and put it into unilateral control.
+	 *
+	 * @return `nullptr` if quoting failed,
+	 * or a pointer to the amount to be deducted
+	 * otherwise.
 	 */
 	virtual
-	Ev::Io<Ln::Amount>
+	Ev::Io<std::unique_ptr<Ln::Amount>>
 	get_quotation(Ln::Amount) =0;
 
 	/** Boltz::Service::swap

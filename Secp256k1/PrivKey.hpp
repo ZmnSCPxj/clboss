@@ -35,6 +35,8 @@ public:
 
 	/* Load private key from a hex-encoded string.  */
 	explicit PrivKey(std::string const&);
+	/* Get hex-encoded private key.  */
+	explicit operator std::string() const;
 	/* Pick a random private key.  */
 	explicit PrivKey(Secp256k1::Random& rand);
 	/* Copy an existing private key.  */

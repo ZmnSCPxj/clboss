@@ -36,6 +36,11 @@ PrivKey::PrivKey(std::string const& s) {
 		throw InvalidPrivKey();
 	memcpy(key, &buf[0], 32);
 }
+PrivKey::operator std::string() const {
+	auto os = std::ostringstream();
+	os << *this;
+	return os.str();
+}
 
 PrivKey::PrivKey(Secp256k1::Random& rand) {
 	do {

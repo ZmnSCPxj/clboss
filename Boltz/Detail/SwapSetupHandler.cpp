@@ -89,7 +89,7 @@ Ev::Io<void> SwapSetupHandler::core_run() {
 			tmp_swapId = (std::string) res["id"];
 			tmp_s_redeemScript = (std::string) res["redeemScript"];
 			tmp_invoice = (std::string) res["invoice"];
-			tmp_timeoutBlockheight = (std::uint32_t) (double) res["timeoutBlockheight"];
+			tmp_timeoutBlockheight = (std::uint32_t) (double) res["timeoutBlockHeight"];
 			tmp_onchainAmount = (std::uint64_t) (double) res["onchainAmount"];
 		} catch (Jsmn::TypeError const& e) {
 			auto os = std::ostringstream();

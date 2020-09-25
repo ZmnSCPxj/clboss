@@ -1,0 +1,116 @@
+#ifndef BOLTZ_DETAIL_SWAPSETUPHANDLER_HPP
+#define BOLTZ_DETAIL_SWAPSETUPHANDLER_HPP
+
+#include"Ln/Amount.hpp"
+#include"Ln/Preimage.hpp"
+#include"Secp256k1/PrivKey.hpp"
+#include"Secp256k1/PubKey.hpp"
+#include"Ripemd160/Hash.hpp"
+#include"Sha256/Hash.hpp"
+#include"Sqlite3/Db.hpp"
+#include<cstdint>
+#include<memory>
+#include<string>
+#include<vector>
+
+namespace Boltz { class Connection; }
+namespace Boltz { class EnvIF; }
+namespace Ev { template<typename a> class Io; }
+namespace Secp256k1 { class SignerIF; }
+
+namespace Boltz { namespace Detail {
+
+/** class Boltz::Detail::SwapSetupHandler
+ *
+ * @brief sets up a reverse submarine swap with
+ * the given server, updating the database
+ * appropriately.
+ */
+class SwapSetupHandler
+	: public std::enable_shared_from_this<SwapSetupHandler> {
+private:
+	Secp256k1::SignerIF& signer;
+	Sqlite3::Db db;
+	Boltz::EnvIF& env;
+	std::string api_endpoint;
+	Boltz::Connection& conn;
+	Secp256k1::Random& random;
+	std::string destinationAddress;
+	Ln::Amount offchainAmount;
+
+	SwapSetupHandler( Secp256k1::SignerIF& signer_
+			, Sqlite3::Db db_
+			, Boltz::EnvIF& env_
+			, std::string const& api_endpoint_
+			, Boltz::Connection& conn_
+			, Secp256k1::Random& random_
+			, std::string const& destinationAddress_
+			, Ln::Amount offchainAmount_
+			) : signer(signer_)
+			  , db(std::move(db_))
+			  , env(env_)
+			  , api_endpoint(api_endpoint_)
+			  , conn(conn_)
+			  , random(random_)
+			  , destinationAddress(destinationAddress_)
+			  , offchainAmount(offchainAmount_)
+
+			  , tweak(random)
+			  , preimage(random)
+			  { }
+
+public:
+	static
+	std::shared_ptr<SwapSetupHandler>
+	create( Secp256k1::SignerIF& signer
+	      , Sqlite3::Db db
+	      , Boltz::EnvIF& env
+	      , std::string const& api_endpoint
+	      , Boltz::Connection& conn
+	      , Secp256k1::Random& random
+	      , std::string const& destinationAddress
+	      , Ln::Amount offchainAmount
+	      ) {
+		return std::shared_ptr<SwapSetupHandler>(
+			new SwapSetupHandler( signer
+					    , std::move(db)
+					    , env
+					    , api_endpoint
+					    , conn
+					    , random
+					    , destinationAddress
+					    , offchainAmount
+					    )
+		);
+	}
+
+	/* Returns the invoice.  */
+	Ev::Io<std::string> run();
+private:
+	Ev::Io<void> core_run();
+
+	Ev::Io<void> logd(std::string);
+	Ev::Io<void> loge(std::string);
+	std::string prefixlog(std::string);
+
+	/* Data we generate.  */
+	Secp256k1::PrivKey tweak;
+	Ln::Preimage preimage;
+	/* Derived from above.  */
+	Secp256k1::PubKey tweakPubKey;
+	Sha256::Hash preimageHash;
+	Ripemd160::Hash preimageHash160;
+
+	/* Data from server.  */
+	std::unique_ptr<std::string> swapId;
+	std::vector<std::uint8_t> redeemScript;
+	std::uint32_t timeoutBlockheight;
+	Ln::Amount onchainAmount;
+
+	/* The invoice to pay, or empty string on failure.  */
+	std::string invoice;
+};
+
+}}
+
+#endif /* !defined(BOLTZ_DETAIL_SWAPSETUPHANDLER_HPP) */

@@ -31,8 +31,10 @@ CREATE TABLE IF NOT EXISTS "OnchainFeeMonitor_meanfee"
 	);
 INSERT OR IGNORE INTO "OnchainFeeMonitor_meanfee" VALUES
 	( 0
-	, 253
-	, 1
+	-- from a CLBOSS node that has been running for
+	-- about a week.
+	, 10034.9455307263
+	, 1432
 	);
 )INIT";
 

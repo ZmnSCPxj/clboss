@@ -1,4 +1,4 @@
-#include"Boltz/EnvIF.hpp"
+#include"Boltz/Detail/ServiceImpl.hpp"
 #include"Boltz/Service.hpp"
 #include"Boltz/ServiceFactory.hpp"
 #include"Ev/Io.hpp"
@@ -126,8 +126,16 @@ public:
 	Ev::Io<std::unique_ptr<Service>>
 	create_service(std::string const& api_endpoint) {
 		return try_initialize().then([this, api_endpoint]() {
-			// TODO
-			return Ev::lift(std::unique_ptr<Service>());
+			auto ptr = std::unique_ptr<Service>();
+			ptr = Util::make_unique<Detail::ServiceImpl>
+				( threadpool
+				, db
+				, signer
+				, env
+				, proxy
+				, api_endpoint
+				);
+			return Ev::lift(std::move(ptr));
 		});
 	}
 };

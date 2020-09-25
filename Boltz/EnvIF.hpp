@@ -40,14 +40,14 @@ public:
 	 * @brief prints a Debug-level log.
 	 */
 	virtual
-	Ev::Io<void> logd(std::string);
+	Ev::Io<void> logd(std::string) =0;
 
 	/** Boltz::EnvIF::loge
 	 *
 	 * @brief prints an Erro-level log.
 	 */
 	virtual
-	Ev::Io<void> loge(std::string);
+	Ev::Io<void> loge(std::string) =0;
 };
 
 }

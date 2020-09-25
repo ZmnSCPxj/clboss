@@ -36,7 +36,7 @@ Ev::Io<void> ServiceImpl::on_block(std::uint32_t blockheight) {
 		dbtx.query(R"QRY(
 		DELETE FROM "BoltzServiceFactory_rsub"
 		 WHERE apiAccess = :apiAccess
-		   AMD timeoutBlockheight <= :blockheight
+		   AND timeoutBlockheight <= :blockheight
 		     ;
 		)QRY")
 			.bind(":apiAccess", api_endpoint)

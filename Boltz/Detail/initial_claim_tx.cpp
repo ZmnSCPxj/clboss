@@ -103,11 +103,23 @@ initial_claim_tx( Bitcoin::Tx& claim_tx /* written by function */
 	}
 
 	/* Sign!  */
+	/* FIXME: I am not at all certain exactly what the first byte of
+	 * scriptCode is *actually* supposed to be.
+	 * It might be a `varint`, or it might be an `OP_PUSHDATA`.
+	 * The below works in practice, so it is considered "okay"
+	 * for now.
+	 * That took several hours of spinning....
+	 */
+	auto scriptCode = std::vector<std::uint8_t>(witnessScript.size() + 1);
+	scriptCode[0] = std::uint8_t(witnessScript.size());
+	std::copy( witnessScript.begin(), witnessScript.end()
+		 , scriptCode.begin() + 1
+		 );
 	auto sighash = Bitcoin::sighash( claim_tx
 				       , Bitcoin::SIGHASH_ALL
 				       , 0
 				       , lockup_amount
-				       , witnessScript
+				       , scriptCode
 				       );
 	auto signature = signer.get_signature_tweak(tweak, sighash);
 

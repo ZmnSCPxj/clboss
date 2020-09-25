@@ -28,6 +28,8 @@ private:
 		 );
 	Signature(std::uint8_t const buffer[64]);
 
+	bool sig_has_low_r() const;
+
 public:
 	Signature();
 	Signature(Signature const&) =default;

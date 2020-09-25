@@ -31,20 +31,38 @@ Signature::Signature( Secp256k1::PrivKey const& sk
 		    ) {
 	std::uint8_t mbuf[32];
 	m.to_buffer(mbuf);
+	unsigned char extra_entropy[32] = { 0 };
 
-	auto res = secp256k1_ecdsa_sign
+	do {
+		auto res = secp256k1_ecdsa_sign
+			( context.get()
+			, reinterpret_cast<secp256k1_ecdsa_signature*>(data)
+			, reinterpret_cast<const unsigned char*>(mbuf)
+			, reinterpret_cast<const unsigned char*>(sk.key)
+			, nullptr
+			, extra_entropy
+			);
+		if (res == 0)
+			/* Extremely unlikely to happen.
+			 * TODO: backtrace-capturing.
+			 */
+			throw std::runtime_error("Nonce generation for signing failed.");
+		++(*reinterpret_cast<std::uint64_t*>(extra_entropy));
+	} while (!sig_has_low_r());
+}
+
+bool Signature::sig_has_low_r() const {
+	/* As policy, Bitcoin requires signatures to have low-R for
+	 * compactness, and would fail to propgate if not.
+	 * Below was cribbed form lightningd.
+	 */
+	unsigned char compact_sig[64];
+	secp256k1_ecdsa_signature_serialize_compact
 		( context.get()
-		, reinterpret_cast<secp256k1_ecdsa_signature*>(data)
-		, reinterpret_cast<const unsigned char*>(mbuf)
-		, reinterpret_cast<const unsigned char*>(sk.key)
-		, nullptr
-		, nullptr
+		, compact_sig
+		, reinterpret_cast<secp256k1_ecdsa_signature const*>(data)
 		);
-	if (res == 0)
-		/* Extremely unlikely to happen.
-		 * TODO: backtrace-capturing.
-		 */
-		throw std::runtime_error("Nonce generation for signing failed.");
+	return compact_sig[0] < 0x80;
 }
 
 Signature::Signature() {

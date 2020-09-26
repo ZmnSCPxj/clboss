@@ -11,6 +11,7 @@
 #include<cstdint>
 #include<memory>
 #include<string>
+#include<utility>
 #include<vector>
 
 namespace Boltz { class Connection; }
@@ -37,6 +38,7 @@ private:
 	Secp256k1::Random& random;
 	std::string destinationAddress;
 	Ln::Amount offchainAmount;
+	std::uint32_t current_blockheight;
 
 	SwapSetupHandler( Secp256k1::SignerIF& signer_
 			, Sqlite3::Db db_
@@ -46,6 +48,7 @@ private:
 			, Secp256k1::Random& random_
 			, std::string const& destinationAddress_
 			, Ln::Amount offchainAmount_
+			, std::uint32_t current_blockheight_
 			) : signer(signer_)
 			  , db(std::move(db_))
 			  , env(env_)
@@ -54,6 +57,7 @@ private:
 			  , random(random_)
 			  , destinationAddress(destinationAddress_)
 			  , offchainAmount(offchainAmount_)
+			  , current_blockheight(current_blockheight_)
 
 			  , tweak(random)
 			  , preimage(random)
@@ -70,6 +74,7 @@ public:
 	      , Secp256k1::Random& random
 	      , std::string const& destinationAddress
 	      , Ln::Amount offchainAmount
+	      , std::uint32_t current_blockheight
 	      ) {
 		return std::shared_ptr<SwapSetupHandler>(
 			new SwapSetupHandler( signer
@@ -80,12 +85,14 @@ public:
 					    , random
 					    , destinationAddress
 					    , offchainAmount
+					    , current_blockheight
 					    )
 		);
 	}
 
-	/* Returns the invoice.  */
-	Ev::Io<std::string> run();
+	/* Returns the invoice and the absolute timeout of the
+	 * swap.  */
+	Ev::Io<std::pair<std::string, std::uint32_t>> run();
 private:
 	Ev::Io<void> core_run();
 

@@ -276,9 +276,10 @@ ServiceImpl::delete_swap(std::shared_ptr<std::string> swapId) {
 	});
 }
 
-Ev::Io<std::string>
+Ev::Io<std::pair<std::string, std::uint32_t>>
 ServiceImpl::swap( Ln::Amount offchainAmount
 		 , std::string onchain_address
+		 , std::uint32_t current_blockheight
 		 ) {
 	auto handler = SwapSetupHandler::create
 		( signer
@@ -289,6 +290,7 @@ ServiceImpl::swap( Ln::Amount offchainAmount
 		, random
 		, onchain_address
 		, offchainAmount
+		, current_blockheight
 		);
 	return handler->run();
 }

@@ -123,8 +123,8 @@ int main(int argc, char** c_argv) {
 	if (argv.size() < 3) {
 		std::cout << "Need argument:" << std::endl
 			  << "  get-quotation $satoshis" << std::endl
-			  << "  on-block $blockheight" << std::endl
-			  << "  swap $satoshis $addr" << std::endl
+			  << "  on-block $currentblockheight" << std::endl
+			  << "  swap $satoshis $addr $currentblockheight" << std::endl
 			   ;
 		return 0;
 	}
@@ -165,13 +165,19 @@ int main(int argc, char** c_argv) {
 			return service->on_block(num).then([]() {
 				return Ev::lift(0);
 			});
-		} else if (argv[1] == "swap" && argv.size() >= 4) {
+		} else if (argv[1] == "swap" && argv.size() >= 5) {
 			auto num = to_number(argv[2]);
 			auto value = Ln::Amount::sat(num);
 			auto addr = argv[3];
-			return service->swap(value, addr
-			).then([](std::string invoice) {
+			auto blockheight = std::uint32_t(to_number(argv[4]));
+			return service->swap(value, addr, blockheight
+			).then([](std::pair< std::string
+					   , std::uint32_t
+					   > result) {
+				auto invoice = result.first;
+				auto timeout = result.second;
 				std::cout << invoice << std::endl;
+				std::cout << timeout << std::endl;
 				return Ev::lift(0);
 			});
 		}

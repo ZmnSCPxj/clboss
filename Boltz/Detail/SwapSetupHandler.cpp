@@ -18,6 +18,10 @@ namespace {
 /* Thrown to get out and fail.  */
 struct Fail {};
 
+/* Timeout must be within this number of blocks from current block height.  */
+auto const min_timeout = std::uint32_t(12);
+auto const max_timeout = std::uint32_t(288);
+
 }
 
 namespace Boltz { namespace Detail {
@@ -38,10 +42,12 @@ std::string SwapSetupHandler::prefixlog(std::string msg) {
 	return prefix + msg;
 }
 
-Ev::Io<std::string> SwapSetupHandler::run() {
+Ev::Io<std::pair<std::string, std::uint32_t>> SwapSetupHandler::run() {
 	auto self = shared_from_this();
 	return self->core_run().then([self]() {
-		return Ev::lift(std::move(self->invoice));
+		return Ev::lift(std::make_pair( std::move(self->invoice)
+					      , self->timeoutBlockheight
+					      ));
 	});
 }
 
@@ -153,6 +159,23 @@ Ev::Io<void> SwapSetupHandler::core_run() {
 			});
 		}
 
+		/* Check we have enough time.  */
+		if ( current_blockheight + min_timeout > tmp_timeoutBlockheight
+		  || current_blockheight + max_timeout < tmp_timeoutBlockheight
+		   ) {
+			auto os = std::ostringstream();
+			os << "Timeout " << tmp_timeoutBlockheight << " "
+			   << "is not within "
+			   << min_timeout << " -> " << max_timeout << " "
+			   << "blocks of current height "
+			   << current_blockheight << "."
+			    ;
+			return loge(os.str()).then([]() {
+				throw Fail();
+				return Ev::lift();
+			});
+		}
+
 		/* Validation is okay!  Save the data into the object.  */
 		swapId = Util::make_unique<std::string>(std::move(tmp_swapId));
 		redeemScript = std::move(tmp_redeemScript);
@@ -237,9 +260,11 @@ Ev::Io<void> SwapSetupHandler::core_run() {
 		return logd(std::string("Swap created: ") + invoice);
 	}).catching<Fail>([this](Fail const& _) {
 		invoice = "";
+		timeoutBlockheight = 0;
 		return Ev::lift();
 	}).catching<Boltz::ApiError>([this](Boltz::ApiError const& _){
 		invoice = "";
+		timeoutBlockheight = 0;
 		return loge("Failed to access API endpoint.");
 	});
 }

@@ -54,8 +54,9 @@ public:
 	 * @brief create a reverse submarine swap
 	 * paying out to the given address.
 	 *
-	 * @return the invoice to pay, or an empty
-	 * string if setting up failed.
+	 * @return the invoice to pay plus the absolute
+	 * timeout of the swap, or an empty string and
+	 * 0 on failure.
 	 *
 	 * @desc if paying the invoice fails, the
 	 * swap should be considered as automatically
@@ -64,9 +65,10 @@ public:
 	 * must no longer be paid.
 	 */
 	virtual
-	Ev::Io<std::string>
+	Ev::Io<std::pair<std::string, std::uint32_t>>
 	swap( Ln::Amount
 	    , std::string onchain_address
+	    , std::uint32_t current_blockheight
 	    ) =0;
 };
 

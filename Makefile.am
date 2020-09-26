@@ -56,6 +56,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/AutoDisconnector.hpp \
 	Boss/Mod/BlockTracker.cpp \
 	Boss/Mod/BlockTracker.hpp \
+	Boss/Mod/BoltzSwapper/ServiceModule.cpp \
+	Boss/Mod/BoltzSwapper/ServiceModule.hpp \
 	Boss/Mod/CommandReceiver.cpp \
 	Boss/Mod/CommandReceiver.hpp \
 	Boss/Mod/ChannelCandidateInvestigator/Gumshoe.cpp \
@@ -124,6 +126,7 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Waiter.hpp \
 	Boss/Mod/all.cpp \
 	Boss/Mod/all.hpp \
+	Boss/Msg/AcceptSwapQuotation.hpp \
 	Boss/Msg/Begin.hpp \
 	Boss/Msg/Block.hpp \
 	Boss/Msg/ChannelCreateResult.hpp \
@@ -149,12 +152,15 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ProposeChannelCandidates.hpp \
 	Boss/Msg/ProposeConnectCandidates.hpp \
 	Boss/Msg/ProvideStatus.hpp \
+	Boss/Msg/ProvideSwapQuotation.hpp \
 	Boss/Msg/RequestChannelCreation.hpp \
 	Boss/Msg/RequestConnect.hpp \
 	Boss/Msg/ResponseConnect.hpp \
 	Boss/Msg/SolicitChannelCandidates.hpp \
 	Boss/Msg/SolicitConnectCandidates.hpp \
 	Boss/Msg/SolicitStatus.hpp \
+	Boss/Msg/SolicitSwapQuotation.hpp \
+	Boss/Msg/SwapCreation.hpp \
 	Boss/Msg/TaskCompletion.hpp \
 	Boss/Msg/Timer10Minutes.hpp \
 	Boss/Msg/TimerRandomDaily.hpp \

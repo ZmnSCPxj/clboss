@@ -272,6 +272,7 @@ ServiceImpl::delete_swap(std::shared_ptr<std::string> swapId) {
 			.bind(":swapId", *swapId)
 			.execute()
 			;
+		tx.commit();
 		return Ev::lift();
 	});
 }

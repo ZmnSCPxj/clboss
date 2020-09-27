@@ -30,7 +30,7 @@ private:
 	    , std::queue<std::string> instances_
 	    , std::vector<std::unique_ptr<ServiceModule>>& services_
 	    ) : bus(bus_)
-	      , factory(std::move(factory))
+	      , factory(std::move(factory_))
 	      , instances(std::move(instances_))
 	      , services(services_)
 	      { }

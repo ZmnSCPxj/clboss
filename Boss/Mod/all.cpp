@@ -1,5 +1,6 @@
 #include"Boss/Mod/AutoDisconnector.hpp"
 #include"Boss/Mod/BlockTracker.hpp"
+#include"Boss/Mod/BoltzSwapper/Main.hpp"
 #include"Boss/Mod/ChannelCandidatePreinvestigator.hpp"
 #include"Boss/Mod/ChannelCandidateInvestigator/Main.hpp"
 #include"Boss/Mod/ChannelCreationDecider.hpp"
@@ -101,6 +102,9 @@ std::shared_ptr<void> all( std::ostream& cout
 
 	/* Status.  */
 	all->install<StatusCommand>(bus);
+
+	/* Offchain-to-onchain swap.  */
+	all->install<BoltzSwapper::Main>(bus, threadpool);
 
 	return all;
 }

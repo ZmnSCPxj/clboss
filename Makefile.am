@@ -56,6 +56,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/AutoDisconnector.hpp \
 	Boss/Mod/BlockTracker.cpp \
 	Boss/Mod/BlockTracker.hpp \
+	Boss/Mod/BoltzSwapper/Env.cpp \
+	Boss/Mod/BoltzSwapper/Env.hpp \
 	Boss/Mod/BoltzSwapper/ServiceCreator.cpp \
 	Boss/Mod/BoltzSwapper/ServiceCreator.hpp \
 	Boss/Mod/BoltzSwapper/ServiceModule.cpp \

@@ -286,7 +286,9 @@ libclboss_la_SOURCES = \
 	Util/Str.cpp \
 	Util/Str.hpp \
 	Util/make_unique.hpp \
-	Util/stringify.hpp
+	Util/stringify.hpp \
+	Uuid.cpp \
+	Uuid.hpp
 
 libclboss_la_LIBADD = \
 	external/bitcoin-ripemd160/libbitcoin-ripemd160.la \
@@ -344,5 +346,6 @@ TESTS = \
 	tests/sha256/test_hash \
 	tests/sha256/test_hasher \
 	tests/sqlite3/test_sqlite3 \
-	tests/stats/test_running_mean
+	tests/stats/test_running_mean \
+	tests/test_uuid
 check_PROGRAMS = $(TESTS)

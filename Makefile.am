@@ -143,6 +143,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ChannelFunds.hpp \
 	Boss/Msg/CommandRequest.hpp \
 	Boss/Msg/CommandResponse.hpp \
+	Boss/Msg/DbResource.hpp \
 	Boss/Msg/Init.hpp \
 	Boss/Msg/JsonCin.hpp \
 	Boss/Msg/JsonCout.hpp \

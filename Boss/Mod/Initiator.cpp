@@ -2,6 +2,7 @@
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/Msg/CommandRequest.hpp"
 #include"Boss/Msg/CommandResponse.hpp"
+#include"Boss/Msg/DbResource.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Signer.hpp"
 #include"Boss/log.hpp"
@@ -211,6 +212,8 @@ public:
 				return Boss::log( bus, Debug
 						, "Database file opened."
 						);
+			}).then([this]() {
+				return bus.raise(Msg::DbResource{db});
 			}).then([this]() {
 				return Boss::Signer( "keys.clboss"
 						   , random

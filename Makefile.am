@@ -112,6 +112,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/JsonOutputter.hpp \
 	Boss/Mod/ListfundsAnnouncer.cpp \
 	Boss/Mod/ListfundsAnnouncer.hpp \
+	Boss/Mod/ListpaysHandler.cpp \
+	Boss/Mod/ListpaysHandler.hpp \
 	Boss/Mod/ListpeersAnalyzer.cpp \
 	Boss/Mod/ListpeersAnalyzer.hpp \
 	Boss/Mod/ListpeersAnnouncer.cpp \
@@ -167,11 +169,14 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ProvideSwapQuotation.hpp \
 	Boss/Msg/RequestChannelCreation.hpp \
 	Boss/Msg/RequestConnect.hpp \
+	Boss/Msg/RequestListpays.hpp \
 	Boss/Msg/ResponseConnect.hpp \
+	Boss/Msg/ResponseListpays.hpp \
 	Boss/Msg/SolicitChannelCandidates.hpp \
 	Boss/Msg/SolicitConnectCandidates.hpp \
 	Boss/Msg/SolicitStatus.hpp \
 	Boss/Msg/SolicitSwapQuotation.hpp \
+	Boss/Msg/StatusListpays.hpp \
 	Boss/Msg/SwapCreation.hpp \
 	Boss/Msg/TaskCompletion.hpp \
 	Boss/Msg/Timer10Minutes.hpp \

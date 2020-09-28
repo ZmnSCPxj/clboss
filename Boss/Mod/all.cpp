@@ -17,6 +17,7 @@
 #include"Boss/Mod/InvoicePayer.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
 #include"Boss/Mod/ListfundsAnnouncer.hpp"
+#include"Boss/Mod/ListpaysHandler.hpp"
 #include"Boss/Mod/ListpeersAnalyzer.hpp"
 #include"Boss/Mod/ListpeersAnnouncer.hpp"
 #include"Boss/Mod/Manifester.hpp"
@@ -109,6 +110,7 @@ std::shared_ptr<void> all( std::ostream& cout
 
 	/* Invoice wrangling.  */
 	all->install<InvoicePayer>(bus);
+	all->install<ListpaysHandler>(bus);
 
 	return all;
 }

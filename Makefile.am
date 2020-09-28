@@ -122,6 +122,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Manifester.hpp \
 	Boss/Mod/NeedsConnectSolicitor.cpp \
 	Boss/Mod/NeedsConnectSolicitor.hpp \
+	Boss/Mod/NewaddrHandler.cpp \
+	Boss/Mod/NewaddrHandler.hpp \
 	Boss/Mod/OnchainFeeMonitor.cpp \
 	Boss/Mod/OnchainFeeMonitor.hpp \
 	Boss/Mod/OnchainFundsAnnouncer.cpp \
@@ -170,8 +172,10 @@ libclboss_la_SOURCES = \
 	Boss/Msg/RequestChannelCreation.hpp \
 	Boss/Msg/RequestConnect.hpp \
 	Boss/Msg/RequestListpays.hpp \
+	Boss/Msg/RequestNewaddr.hpp \
 	Boss/Msg/ResponseConnect.hpp \
 	Boss/Msg/ResponseListpays.hpp \
+	Boss/Msg/ResponseNewaddr.hpp \
 	Boss/Msg/SolicitChannelCandidates.hpp \
 	Boss/Msg/SolicitConnectCandidates.hpp \
 	Boss/Msg/SolicitStatus.hpp \

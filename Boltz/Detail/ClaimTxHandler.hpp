@@ -92,6 +92,7 @@ private:
 	/* Additional data from table.  */
 	Secp256k1::PrivKey tweak;
 	Ln::Preimage preimage;
+	Ln::Preimage real_preimage;
 	std::string destinationAddress;
 	std::vector<std::uint8_t> redeemScript;
 	std::uint32_t timeoutBlockheight;

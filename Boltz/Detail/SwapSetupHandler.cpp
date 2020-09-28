@@ -1,6 +1,7 @@
 #include"Bitcoin/hash160.hpp"
 #include"Boltz/Connection.hpp"
 #include"Boltz/Detail/SwapSetupHandler.hpp"
+#include"Boltz/Detail/compute_preimage.hpp"
 #include"Boltz/Detail/match_lockscript.hpp"
 #include"Boltz/EnvIF.hpp"
 #include"Boltz/SwapInfo.hpp"
@@ -60,9 +61,12 @@ Ev::Io<void> SwapSetupHandler::core_run() {
 		/* Set up.  */
 		/* PubKey.  */
 		tweakPubKey = signer.get_pubkey_tweak(tweak);
-		/* Preimage.  */
+		/* The real preimage is the hash of the privkey plus
+		 * the in-database preimage*/
+		real_preimage = compute_preimage(signer, preimage);
+		/* Compute hash of the real preimage.  */
 		std::uint8_t buf[32];
-		preimage.to_buffer(buf);
+		real_preimage.to_buffer(buf);
 		Bitcoin::hash160( preimageHash160, preimageHash
 				, buf, sizeof(buf)
 				);

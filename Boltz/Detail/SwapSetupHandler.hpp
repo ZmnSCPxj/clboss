@@ -104,6 +104,7 @@ private:
 	/* Data we generate.  */
 	Secp256k1::PrivKey tweak;
 	Ln::Preimage preimage;
+	Ln::Preimage real_preimage;
 	/* Derived from above.  */
 	Secp256k1::PubKey tweakPubKey;
 	Sha256::Hash preimageHash;

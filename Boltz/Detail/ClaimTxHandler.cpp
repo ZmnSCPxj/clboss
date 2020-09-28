@@ -1,4 +1,5 @@
 #include"Boltz/Detail/ClaimTxHandler.hpp"
+#include"Boltz/Detail/compute_preimage.hpp"
 #include"Boltz/Detail/find_lockup_outnum.hpp"
 #include"Boltz/Detail/initial_claim_tx.hpp"
 #include"Boltz/EnvIF.hpp"
@@ -162,6 +163,10 @@ Ev::Io<void> ClaimTxHandler::core_run() {
 			});
 		}
 
+		/* Now compute the real preimage from the signer key
+		 * and the in-database preimage.  */
+		real_preimage = Detail::compute_preimage(signer, preimage);
+
 		return Ev::lift();
 	}).then([this]() {
 
@@ -180,7 +185,7 @@ Ev::Io<void> ClaimTxHandler::core_run() {
 
 					, signer
 					, tweak
-					, preimage
+					, real_preimage
 					, redeemScript
 
 					, destinationAddress

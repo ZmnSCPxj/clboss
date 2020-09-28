@@ -104,6 +104,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Initiator.hpp \
 	Boss/Mod/InternetConnectionMonitor.cpp \
 	Boss/Mod/InternetConnectionMonitor.hpp \
+	Boss/Mod/InvoicePayer.cpp \
+	Boss/Mod/InvoicePayer.hpp \
 	Boss/Mod/JsonOutputter.cpp \
 	Boss/Mod/JsonOutputter.hpp \
 	Boss/Mod/ListfundsAnnouncer.cpp \
@@ -154,6 +156,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/Notification.hpp \
 	Boss/Msg/OnchainFee.hpp \
 	Boss/Msg/OnchainFunds.hpp \
+	Boss/Msg/PayInvoice.hpp \
 	Boss/Msg/PreinvestigateChannelCandidates.hpp \
 	Boss/Msg/ProposeChannelCandidates.hpp \
 	Boss/Msg/ProposeConnectCandidates.hpp \

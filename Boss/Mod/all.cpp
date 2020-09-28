@@ -14,6 +14,7 @@
 #include"Boss/Mod/InitialConnect.hpp"
 #include"Boss/Mod/Initiator.hpp"
 #include"Boss/Mod/InternetConnectionMonitor.hpp"
+#include"Boss/Mod/InvoicePayer.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
 #include"Boss/Mod/ListfundsAnnouncer.hpp"
 #include"Boss/Mod/ListpeersAnalyzer.hpp"
@@ -105,6 +106,9 @@ std::shared_ptr<void> all( std::ostream& cout
 
 	/* Offchain-to-onchain swap.  */
 	all->install<BoltzSwapper::Main>(bus, threadpool);
+
+	/* Invoice wrangling.  */
+	all->install<InvoicePayer>(bus);
 
 	return all;
 }

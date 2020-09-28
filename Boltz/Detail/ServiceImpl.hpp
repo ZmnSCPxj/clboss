@@ -53,7 +53,7 @@ public:
 	Ev::Io<void> on_block(std::uint32_t) override;
 	Ev::Io<std::unique_ptr<Ln::Amount>>
 	get_quotation(Ln::Amount) override;
-	Ev::Io<std::pair<std::string, std::uint32_t>>
+	Ev::Io<SwapInfo>
 	swap( Ln::Amount
 	    , std::string onchain_address
 	    , std::uint32_t current_blockheight

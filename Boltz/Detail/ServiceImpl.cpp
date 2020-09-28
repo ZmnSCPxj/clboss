@@ -277,7 +277,7 @@ ServiceImpl::delete_swap(std::shared_ptr<std::string> swapId) {
 	});
 }
 
-Ev::Io<std::pair<std::string, std::uint32_t>>
+Ev::Io<SwapInfo>
 ServiceImpl::swap( Ln::Amount offchainAmount
 		 , std::string onchain_address
 		 , std::uint32_t current_blockheight

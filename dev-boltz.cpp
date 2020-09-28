@@ -3,6 +3,7 @@
 #include"Boltz/EnvIF.hpp"
 #include"Boltz/Service.hpp"
 #include"Boltz/ServiceFactory.hpp"
+#include"Boltz/SwapInfo.hpp"
 #include"Ev/Io.hpp"
 #include"Ev/ThreadPool.hpp"
 #include"Ev/start.hpp"
@@ -171,12 +172,12 @@ int main(int argc, char** c_argv) {
 			auto addr = argv[3];
 			auto blockheight = std::uint32_t(to_number(argv[4]));
 			return service->swap(value, addr, blockheight
-			).then([](std::pair< std::string
-					   , std::uint32_t
-					   > result) {
-				auto invoice = result.first;
-				auto timeout = result.second;
+			).then([](Boltz::SwapInfo result) {
+				auto invoice = result.invoice;
+				auto hash = result.hash;
+				auto timeout = result.timeout;
 				std::cout << invoice << std::endl;
+				std::cout << hash << std::endl;
 				std::cout << timeout << std::endl;
 				return Ev::lift(0);
 			});

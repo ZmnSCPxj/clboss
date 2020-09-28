@@ -16,6 +16,7 @@
 
 namespace Boltz { class Connection; }
 namespace Boltz { class EnvIF; }
+namespace Boltz { class SwapInfo; }
 namespace Ev { template<typename a> class Io; }
 namespace Secp256k1 { class SignerIF; }
 
@@ -92,7 +93,7 @@ public:
 
 	/* Returns the invoice and the absolute timeout of the
 	 * swap.  */
-	Ev::Io<std::pair<std::string, std::uint32_t>> run();
+	Ev::Io<SwapInfo> run();
 private:
 	Ev::Io<void> core_run();
 

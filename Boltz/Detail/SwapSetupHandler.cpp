@@ -3,6 +3,7 @@
 #include"Boltz/Detail/SwapSetupHandler.hpp"
 #include"Boltz/Detail/match_lockscript.hpp"
 #include"Boltz/EnvIF.hpp"
+#include"Boltz/SwapInfo.hpp"
 #include"Ev/Io.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
@@ -42,12 +43,15 @@ std::string SwapSetupHandler::prefixlog(std::string msg) {
 	return prefix + msg;
 }
 
-Ev::Io<std::pair<std::string, std::uint32_t>> SwapSetupHandler::run() {
+Ev::Io<SwapInfo> SwapSetupHandler::run() {
 	auto self = shared_from_this();
 	return self->core_run().then([self]() {
-		return Ev::lift(std::make_pair( std::move(self->invoice)
-					      , self->timeoutBlockheight
-					      ));
+		auto inf = SwapInfo
+			{ std::move(self->invoice)
+			, std::move(self->preimageHash)
+			, self->timeoutBlockheight
+			};
+		return Ev::lift(std::move(inf));
 	});
 }
 

@@ -1,4 +1,5 @@
 #include"Boltz/Service.hpp"
+#include"Boltz/SwapInfo.hpp"
 #include"Boss/Mod/BoltzSwapper/ServiceModule.hpp"
 #include"Boss/Msg/AcceptSwapQuotation.hpp"
 #include"Boss/Msg/Block.hpp"
@@ -60,7 +61,9 @@ private:
 			if (!blockheight) {
 				/* Should not happen.  Just fail it.  */
 				return bus.raise(Msg::SwapCreation{
-					false, "", 0, q.solicitor, this
+					false,
+					"", Sha256::Hash(), 0,
+					q.solicitor, this
 				});
 			}
 
@@ -70,14 +73,17 @@ private:
 			return Ev::lift().then([this, amt, addr]() {
 				return service->swap(amt, addr, *blockheight);
 			}).then([this, solicitor
-				](std::pair<std::string, std::uint32_t> res) {
-				auto& invoice = res.first;
-				auto timeout = res.second;
+				](Boltz::SwapInfo res) {
+				auto& invoice = res.invoice;
+				auto timeout = res.timeout;
+				auto& hash = res.hash;
 				auto success = (invoice != "");
 
 				return bus.raise(Msg::SwapCreation{
 					success,
-					std::move(invoice), timeout,
+					std::move(invoice),
+					std::move(hash),
+					timeout,
 					solicitor, this
 				});
 			});

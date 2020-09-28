@@ -1,6 +1,7 @@
 #ifndef BOSS_MSG_SWAPCREATION_HPP
 #define BOSS_MSG_SWAPCREATION_HPP
 
+#include"Sha256/Hash.hpp"
 #include<cstdint>
 #include<string>
 
@@ -20,6 +21,8 @@ struct SwapCreation {
 
 	/* The invoice to pay, ignored if `!success`.  */
 	std::string invoice;
+	/* The hash of the invoice.  */
+	Sha256::Hash hash;
 	/* An absolute timeout in blocks, at which the
 	 * swap is known to be definitely failing.  */
 	std::uint32_t timeout_blockheight;

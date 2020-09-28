@@ -5,6 +5,7 @@
 #include<memory>
 #include<string>
 
+namespace Boltz { class SwapInfo; }
 namespace Ev { template<typename a> class Io; }
 namespace Ln { class Amount; }
 
@@ -54,9 +55,10 @@ public:
 	 * @brief create a reverse submarine swap
 	 * paying out to the given address.
 	 *
-	 * @return the invoice to pay plus the absolute
-	 * timeout of the swap, or an empty string and
-	 * 0 on failure.
+	 * @return the swap information.
+	 * The invoice of the swap is an empty string
+	 * if setting up fails, otherwise the swap
+	 * succeeds.
 	 *
 	 * @desc if paying the invoice fails, the
 	 * swap should be considered as automatically
@@ -65,7 +67,7 @@ public:
 	 * must no longer be paid.
 	 */
 	virtual
-	Ev::Io<std::pair<std::string, std::uint32_t>>
+	Ev::Io<SwapInfo>
 	swap( Ln::Amount
 	    , std::string onchain_address
 	    , std::uint32_t current_blockheight

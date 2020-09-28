@@ -14,12 +14,15 @@
 #include"Secp256k1/PubKey.hpp"
 #include"Secp256k1/Signature.hpp"
 #include"Secp256k1/SignerIF.hpp"
+#include"Sha256/Hash.hpp"
+#include"Sha256/Hasher.hpp"
 #include"Sqlite3/Db.hpp"
 #include"Util/make_unique.hpp"
 #include<algorithm>
 #include<iomanip>
 #include<iostream>
 #include<iterator>
+#include<sodium/utils.h>
 #include<sstream>
 #include<string>
 #include<vector>
@@ -104,6 +107,16 @@ public:
 			( tweak * sk
 			, m
 			);
+	}
+	Sha256::Hash
+	get_privkey_salted_hash(std::uint8_t salt[32]) {
+		auto hasher = Sha256::Hasher();
+		hasher.feed(salt, 32);
+		std::uint8_t buf[32];
+		sk.to_buffer(buf);
+		hasher.feed(buf, 32);
+		sodium_memzero(buf, sizeof(buf));
+		return std::move(hasher).finalize();
 	}
 };
 

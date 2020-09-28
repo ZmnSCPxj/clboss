@@ -1,6 +1,8 @@
 #ifndef SECP256K1_SIGNERIF_HPP
 #define SECP256K1_SIGNERIF_HPP
 
+#include<cstdint>
+
 namespace Secp256k1 { class PrivKey; }
 namespace Secp256k1 { class PubKey; }
 namespace Secp256k1 { class Signature; }
@@ -41,6 +43,14 @@ public:
 	get_signature_tweak( Secp256k1::PrivKey const& tweak
 			   , Sha256::Hash const& m
 			   ) =0;
+
+	/* Combine the given salt with the signer privkey
+	 * to get a hash.
+	 */
+	virtual
+	Sha256::Hash
+	get_privkey_salted_hash( std::uint8_t salt[32]
+			       ) =0;
 };
 
 }

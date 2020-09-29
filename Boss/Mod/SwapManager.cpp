@@ -167,7 +167,7 @@ private:
 
 			return Ev::lift();
 		}).then([this]() {
-			return Ev::concurrent(on_periodic());
+			return Boss::concurrent(on_periodic());
 		});
 	}
 
@@ -177,38 +177,37 @@ private:
 	std::queue<Uuid> needs_invoice;
 
 	Ev::Io<void> on_periodic() {
-		auto act = Ev::lift();
-
-		if (needs_address.empty())
-			act = std::move(act).then([this]() {
-				return load_queue( needs_address
-						 , NeedsOnchainAddress
-						 ).then([this]() {
-					return Boss::concurrent(
-						process_needs_address()
-					);
-				});
+		return Ev::lift().then([this]() {
+			return load_queue( needs_address
+					 , NeedsOnchainAddress
+					 ).then([this]() {
+				return Boss::concurrent(
+					process_needs_address()
+				);
 			});
-		if (needs_invoice.empty())
-			act = std::move(act).then([this]() {
-				return load_queue( needs_invoice
-						 , NeedsInvoice
-						 ).then([this]() {
-					return Boss::concurrent(
-						process_needs_invoice()
-					);
-				});
+		}).then([this]() {
+			return load_queue( needs_invoice
+					 , NeedsInvoice
+					 ).then([this]() {
+				return Boss::concurrent(
+					process_needs_invoice()
+				);
 			});
-		act = std::move(act).then([this]() {
+		}).then([this]() {
 			return initiate_check_payments();
 		});
-		return act;
 	}
 	Ev::Io<void> load_queue(std::queue<Uuid>& q, State s) {
 		return db.transact().then([ this
 					  , &q
 					  , s
 					  ](Sqlite3::Tx tx) {
+			if (!q.empty()) {
+				/* Abort after all.  */
+				tx.rollback();
+				return Ev::lift();
+			}
+
 			auto res = tx.query(R"QRY(
 			SELECT uuid FROM "SwapManager"
 			 WHERE state = :state
@@ -216,10 +215,11 @@ private:
 			)QRY")
 				.bind(":state", int(s))
 				.execute();
-			for (auto& r : res)
+			for (auto& r : res) {
 				q.push(Uuid(
 					r.get<std::string>(0)
 				));
+			}
 			tx.commit();
 			return Ev::lift();
 		});
@@ -235,9 +235,18 @@ private:
 	Ev::Io<void> loop_needs_address() {
 		if (needs_address.empty()) {
 			getting_address = false;
-			return Ev::lift();
+			return Boss::log( bus, Debug
+					, "SwapManager: "
+					  "no more swaps need addresses"
+					);
 		}
-		return db.transact().then([this](Sqlite3::Tx tx) {
+		auto uuid = needs_address.front();
+		return Boss::log( bus, Debug
+				, "SwapManager: Swap %s getting address."
+				, std::string(uuid).c_str()
+				).then([this]() {
+			return db.transact();
+		}).then([this](Sqlite3::Tx tx) {
 			auto uuid = needs_address.front();
 
 			/* First, try to get an address from the addrcache.  */

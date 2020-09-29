@@ -22,6 +22,7 @@
 #include"Boss/Mod/ListpeersAnnouncer.hpp"
 #include"Boss/Mod/Manifester.hpp"
 #include"Boss/Mod/NeedsConnectSolicitor.hpp"
+#include"Boss/Mod/NeedsOnchainFundsSwapper.hpp"
 #include"Boss/Mod/NewaddrHandler.hpp"
 #include"Boss/Mod/OnchainFeeMonitor.hpp"
 #include"Boss/Mod/OnchainFundsAnnouncer.hpp"
@@ -111,6 +112,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<NewaddrHandler>(bus);
 	all->install<BoltzSwapper::Main>(bus, threadpool);
 	all->install<SwapManager>(bus);
+	all->install<NeedsOnchainFundsSwapper>(bus);
 
 	/* Invoice wrangling.  */
 	all->install<InvoicePayer>(bus);

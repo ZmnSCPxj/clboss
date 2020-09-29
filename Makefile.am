@@ -122,6 +122,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Manifester.hpp \
 	Boss/Mod/NeedsConnectSolicitor.cpp \
 	Boss/Mod/NeedsConnectSolicitor.hpp \
+	Boss/Mod/NeedsOnchainFundsSwapper.cpp \
+	Boss/Mod/NeedsOnchainFundsSwapper.hpp \
 	Boss/Mod/NewaddrHandler.cpp \
 	Boss/Mod/NewaddrHandler.hpp \
 	Boss/Mod/OnchainFeeMonitor.cpp \

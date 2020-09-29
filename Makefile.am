@@ -48,8 +48,10 @@ libclboss_la_SOURCES = \
 	Boltz/Detail/match_lockscript.cpp \
 	Boltz/Detail/match_lockscript.hpp \
 	Boltz/EnvIF.hpp \
+	Boltz/Service.hpp \
 	Boltz/ServiceFactory.cpp \
 	Boltz/ServiceFactory.hpp \
+	Boltz/SwapInfo.hpp \
 	Boss/JsonInput.cpp \
 	Boss/JsonInput.hpp \
 	Boss/Main.cpp \

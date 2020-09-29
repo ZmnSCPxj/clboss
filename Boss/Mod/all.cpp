@@ -27,6 +27,7 @@
 #include"Boss/Mod/OnchainFundsAnnouncer.hpp"
 #include"Boss/Mod/Reconnector.hpp"
 #include"Boss/Mod/StatusCommand.hpp"
+#include"Boss/Mod/SwapManager.hpp"
 #include"Boss/Mod/Timers.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Mod/all.hpp"
@@ -109,6 +110,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	/* Offchain-to-onchain swap.  */
 	all->install<NewaddrHandler>(bus);
 	all->install<BoltzSwapper::Main>(bus, threadpool);
+	all->install<SwapManager>(bus);
 
 	/* Invoice wrangling.  */
 	all->install<InvoicePayer>(bus);

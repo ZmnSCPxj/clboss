@@ -134,6 +134,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Rpc.hpp \
 	Boss/Mod/StatusCommand.cpp \
 	Boss/Mod/StatusCommand.hpp \
+	Boss/Mod/SwapManager.cpp \
+	Boss/Mod/SwapManager.hpp \
 	Boss/Mod/Timers.cpp \
 	Boss/Mod/Timers.hpp \
 	Boss/Mod/Waiter.cpp \
@@ -182,6 +184,8 @@ libclboss_la_SOURCES = \
 	Boss/Msg/SolicitSwapQuotation.hpp \
 	Boss/Msg/StatusListpays.hpp \
 	Boss/Msg/SwapCreation.hpp \
+	Boss/Msg/SwapRequest.hpp \
+	Boss/Msg/SwapResponse.hpp \
 	Boss/Msg/TaskCompletion.hpp \
 	Boss/Msg/Timer10Minutes.hpp \
 	Boss/Msg/TimerRandomDaily.hpp \

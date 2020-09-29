@@ -146,6 +146,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Waiter.hpp \
 	Boss/Mod/all.cpp \
 	Boss/Mod/all.hpp \
+	Boss/ModG/Swapper.cpp \
+	Boss/ModG/Swapper.hpp \
 	Boss/Msg/AcceptSwapQuotation.hpp \
 	Boss/Msg/Begin.hpp \
 	Boss/Msg/Block.hpp \

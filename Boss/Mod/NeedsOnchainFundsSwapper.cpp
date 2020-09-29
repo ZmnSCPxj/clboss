@@ -19,6 +19,8 @@ namespace {
 auto const min_amount = Ln::Amount::btc(0.0009);
 /* Number of blocks we ignore NedsOnchainFunds.  */
 auto const time_between = std::uint32_t(12);
+/* Number of blocks that we wait for a swap, and force-forget the swap.  */
+auto const swap_timeout = std::uint32_t(432);
 
 /* Query to initialize our tables.  */
 auto const dbinit = R"QRY(
@@ -41,6 +43,34 @@ VALUES( 0
       , ''
       , 0
       );
+
+-- ALTER TABLE does not have an "OR IGNORE" variant,
+-- so we have to switch tables...
+
+CREATE TABLE IF NOT EXISTS
+       "NeedsOnchainFundsSwapperv2"
+     ( id INTEGER PRIMARY KEY
+     -- if empty string, we are not waiting
+     -- on a swap to complete.
+     -- if non-empty string, a swap is
+     -- ongoing and we should ignore
+     -- NeedsOnchainFunds.
+     , swapUuid TEXT NOT NULL
+     -- if blockheight is below this,
+     -- ignore NeedsOnchainFunds.
+     , timeout INTEGER NOT NULL
+     -- If we reach this blockheight with
+     -- the swap not being resolved, force
+     -- ignoring the swap result.
+     , absTimeout INTEGER NOT NULL
+     );
+INSERT OR IGNORE
+  INTO "NeedsOnchainFundsSwapperv2"
+SELECT id, swapUuid, timeout, timeout+432
+  FROM "NeedsOnchainFundsSwapper"
+ WHERE id = 0
+     ;
+DROP TABLE "NeedsOnchainFundsSwapper";
 )QRY";
 
 }
@@ -76,6 +106,8 @@ private:
 				blockheight = Util::make_unique<std::uint32_t
 							       >();
 			*blockheight = block.height;
+			if (db)
+				return on_block();
 			return Ev::lift();
 		});
 		bus.subscribe<Msg::OnchainFee
@@ -110,7 +142,7 @@ private:
 			auto timeout = std::uint32_t();
 			auto fetch = tx.query(R"QRY(
 			SELECT swapUuid, timeout
-			  FROM "NeedsOnchainFundsSwapper"
+			  FROM "NeedsOnchainFundsSwapperv2"
 			 WHERE id = 0
 			     ;
 			)QRY")
@@ -130,7 +162,7 @@ private:
 				 * then log and stop.  */
 				timeout = *blockheight + time_between;
 				tx.query(R"QRY(
-				UPDATE "NeedsOnchainFundsSwapper"
+				UPDATE "NeedsOnchainFundsSwapperv2"
 				   SET timeout = :timeout
 				 WHERE id = 0
 				     ;
@@ -147,10 +179,12 @@ private:
 			/* Now we have to do a swap.  */
 			auto swapUuid = Uuid::random();
 			timeout = *blockheight + time_between;
+			auto absTimeout = *blockheight + swap_timeout;
 			tx.query(R"QRY(
-			UPDATE "NeedsOnchainFundsSwapper"
+			UPDATE "NeedsOnchainFundsSwapperv2"
 			   SET swapUuid = :swapUuid
 			     , timeout = :timeout
+			     , absTimeout = :absTimeout
 			 WHERE id = 0
 			     ;
 			)QRY")
@@ -158,6 +192,7 @@ private:
 				     , std::string(swapUuid)
 				     )
 				.bind(":timeout", timeout)
+				.bind(":absTimeout", absTimeout)
 				.execute();
 
 			/* Prepare the request message.  */
@@ -196,7 +231,7 @@ private:
 		/* See if it matches.  */
 		auto fetch = tx.query(R"QRY(
 		SELECT timeout
-		  FROM "NeedsOnchainFundsSwapper"
+		  FROM "NeedsOnchainFundsSwapperv2"
 		 WHERE id = 0
 		   AND swapUuid == :swapUuid
 		     ;
@@ -226,9 +261,10 @@ private:
 		}
 
 		tx.query(R"QRY(
-		UPDATE "NeedsOnchainFundsSwapper"
+		UPDATE "NeedsOnchainFundsSwapperv2"
 		   SET swapUuid = ''
 		     , timeout = :timeout
+		     , absTimeout = 5000000
 		 WHERE id = 0
 		     ;
 		)QRY")
@@ -239,6 +275,41 @@ private:
 		return Boss::log( bus, Info
 				, "NeedsOnchainFundsSwapper: Done."
 				);
+	}
+
+	Ev::Io<void> on_block() {
+		return db.transact().then([this](Sqlite3::Tx tx) {
+			/* Check if we reached the absolute timeout.  */
+			auto absTimeout = std::uint32_t();
+			auto fetch = tx.query(R"QRY(
+			SELECT absTimeout
+			  FROM "NeedsOnchainFundsSwapperv2"
+			 WHERE id = 0
+			     ;
+			)QRY")
+				.execute();
+			for (auto& r : fetch)
+				absTimeout = r.get<std::uint32_t>(0);
+			/* Not reached yet, ignore.  */
+			if (*blockheight < absTimeout)
+				return Ev::lift();
+
+			/* Forget the current swapUuid.  */
+			tx.query_execute(R"QRY(
+			UPDATE "NeedsOnchainFundsSwapperv2"
+			   SET swapUuid = ''
+			     , absTimeout = 5000000
+			 WHERE id = 0
+			     ;
+			)QRY");
+			tx.commit();
+
+			return Boss::log( bus, Warn
+					, "NeedsOnchainFundsSwapper: "
+					  "Forgetting current swap, it is "
+					  "too long to resolve..."
+					);
+		});
 	}
 };
 

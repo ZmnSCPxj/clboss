@@ -161,6 +161,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ManifestNotification.hpp \
 	Boss/Msg/Manifestation.hpp \
 	Boss/Msg/NeedsConnect.hpp \
+	Boss/Msg/NeedsOnchainFunds.hpp \
 	Boss/Msg/Network.hpp \
 	Boss/Msg/Notification.hpp \
 	Boss/Msg/OnchainFee.hpp \

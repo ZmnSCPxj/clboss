@@ -1,5 +1,6 @@
 #include"Boss/Mod/ChannelCreationDecider.hpp"
 #include"Boss/Msg/ChannelFunds.hpp"
+#include"Boss/Msg/NeedsOnchainFunds.hpp"
 #include"Boss/Msg/OnchainFee.hpp"
 #include"Boss/Msg/OnchainFunds.hpp"
 #include"Boss/Msg/RequestChannelCreation.hpp"
@@ -82,7 +83,13 @@ private:
 				     + "add " + Util::stringify(more_btc)
 				     + " or more"
 				     , nullptr
-				     );
+				     ).then([this, more]() {
+				/* And tell everyone about the
+				 * missingfunds.  */
+				return bus.raise(Msg::NeedsOnchainFunds{
+					more
+				});
+			});
 		}
 
 		if (*low_fee)

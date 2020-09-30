@@ -24,6 +24,7 @@
 #include"Boss/Mod/NeedsConnectSolicitor.hpp"
 #include"Boss/Mod/NeedsOnchainFundsSwapper.hpp"
 #include"Boss/Mod/NewaddrHandler.hpp"
+#include"Boss/Mod/NodeBalanceSwapper.hpp"
 #include"Boss/Mod/OnchainFeeMonitor.hpp"
 #include"Boss/Mod/OnchainFundsAnnouncer.hpp"
 #include"Boss/Mod/Reconnector.hpp"
@@ -113,6 +114,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<BoltzSwapper::Main>(bus, threadpool);
 	all->install<SwapManager>(bus);
 	all->install<NeedsOnchainFundsSwapper>(bus);
+	all->install<NodeBalanceSwapper>(bus);
 
 	/* Invoice wrangling.  */
 	all->install<InvoicePayer>(bus);

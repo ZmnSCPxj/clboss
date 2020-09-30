@@ -128,6 +128,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/NeedsOnchainFundsSwapper.hpp \
 	Boss/Mod/NewaddrHandler.cpp \
 	Boss/Mod/NewaddrHandler.hpp \
+	Boss/Mod/NodeBalanceSwapper.cpp \
+	Boss/Mod/NodeBalanceSwapper.hpp \
 	Boss/Mod/OnchainFeeMonitor.cpp \
 	Boss/Mod/OnchainFeeMonitor.hpp \
 	Boss/Mod/OnchainFundsAnnouncer.cpp \

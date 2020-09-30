@@ -223,4 +223,17 @@ Io<void> lift(void) {
 
 }
 
+inline
+Ev::Io<void>& operator+=(Ev::Io<void>& a, Ev::Io<void> b) {
+	auto container = std::make_shared<Ev::Io<void>>(std::move(b));
+	a = std::move(a).then([container]() {
+		return std::move(*container);
+	});
+	return a;
+}
+inline
+Ev::Io<void> operator+(Ev::Io<void> a, Ev::Io<void> b) {
+	return std::move(a += b);
+}
+
 #endif /* !defined(EV_IO_HPP) */

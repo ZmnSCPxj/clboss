@@ -726,28 +726,18 @@ private:
 					std::move(tx)
 				);
 				auto amount = fund.second;
-				act = std::move(act).then([ this
-							  , uuid
-							  , amount
-							  ]() {
-					return Boss::log( bus, Info
-							, "SwapManager: "
-							  "Swap %s completed "
-							  "with %s onchain."
-							, std::string(uuid)
-								.c_str()
-							, std::string(amount)
-								.c_str()
-							);
-				}).then([ this
-					, sh_tx
-					, uuid
-					, amount
-					]() {
-					return bus.raise(Msg::SwapResponse{
-						sh_tx,
-						uuid, true, amount
-					});
+				act += Boss::log( bus, Info
+						, "SwapManager: "
+						  "Swap %s completed "
+						  "with %s onchain."
+						, std::string(uuid)
+							.c_str()
+						, std::string(amount)
+							.c_str()
+						);
+				act += bus.raise(Msg::SwapResponse{
+					sh_tx,
+					uuid, true, amount
 				}).then([sh_tx]() {
 					if (*sh_tx)
 						sh_tx->commit();

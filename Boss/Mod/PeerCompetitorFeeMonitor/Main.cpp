@@ -108,11 +108,11 @@ private:
 				   << ")"
 				    ;
 			}
-			auto act1 = Boss::log( bus, Debug
-					     , "PeerCompetitorFeeMonitor: "
-					       "Weighted median fees: %s"
-					     , os.str().c_str()
-					     );
+			auto act = Boss::log( bus, Debug
+					    , "PeerCompetitorFeeMonitor: "
+					      "Weighted median fees: %s"
+					    , os.str().c_str()
+					    );
 
 			auto f = [this](std::unique_ptr<Surveyor::Result> r) {
 				if (!r)
@@ -123,13 +123,7 @@ private:
 					r->median_proportional
 				});
 			};
-			auto act2 = Ev::foreach(f, std::move(results));
-			auto p_act2 = std::make_shared<Ev::Io<void>>(
-				std::move(act2)
-			);
-			auto act = std::move(act1).then([p_act2]() {
-				return std::move(*p_act2);
-			});
+			act += Ev::foreach(f, std::move(results));
 
 			return act;
 		});

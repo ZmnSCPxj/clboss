@@ -1,4 +1,5 @@
 #undef NDEBUG
+#include"Ln/Amount.hpp"
 #include"Stats/WeightedMedian.hpp"
 #include<assert.h>
 
@@ -45,6 +46,17 @@ int main() {
 		md.add(1.0, 1.0);
 		md.add(2.0, 1.0);
 		md.add(3.0, 3.0);
+		auto result = std::move(md).finalize();
+		assert(result == 3.0);
+	}
+
+	/* Check different types.  */
+	{
+		auto md = Stats::WeightedMedian<double, Ln::Amount>();
+		md.add(4.0, Ln::Amount::sat(1));
+		md.add(3.0, Ln::Amount::sat(3000));
+		md.add(5.0, Ln::Amount::sat(1));
+		md.add(1.0, Ln::Amount::sat(1));
 		auto result = std::move(md).finalize();
 		assert(result == 3.0);
 	}

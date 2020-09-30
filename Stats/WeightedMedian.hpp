@@ -67,7 +67,7 @@ public:
 		auto my_samples = std::move(samples);
 		std::sort( my_samples.begin(), my_samples.end()
 			 , [this](Entry const& a, Entry const& b) {
-			return cmp_w(a.s, b.s);
+			return cmp_s(a.s, b.s);
 		});
 		auto first = true;
 		auto running_weight = total_weight;
@@ -77,7 +77,10 @@ public:
 				first = false;
 			} else
 				running_weight = add_w(std::move(running_weight), e.w);
-			/* Add again so we do not have to do division.  */
+			/* Add again (i.e. x2) so we do not have to do
+			 * division, and implement x2 by repeated
+			 * addition.
+			 */
 			running_weight = add_w(std::move(running_weight), e.w);
 			if (cmp_w(total_weight, running_weight))
 				/* Got the median.  */

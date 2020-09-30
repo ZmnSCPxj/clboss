@@ -92,6 +92,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelCreator/Manager.hpp \
 	Boss/Mod/ChannelCreator/Planner.cpp \
 	Boss/Mod/ChannelCreator/Planner.hpp \
+	Boss/Mod/ChannelFeeSetter.cpp \
+	Boss/Mod/ChannelFeeSetter.hpp \
 	Boss/Mod/ChannelFinderByPopularity.cpp \
 	Boss/Mod/ChannelFinderByPopularity.hpp \
 	Boss/Mod/ChannelFundsComputer.cpp \
@@ -192,6 +194,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ResponseConnect.hpp \
 	Boss/Msg/ResponseListpays.hpp \
 	Boss/Msg/ResponseNewaddr.hpp \
+	Boss/Msg/SetChannelFee.hpp \
 	Boss/Msg/SolicitChannelCandidates.hpp \
 	Boss/Msg/SolicitConnectCandidates.hpp \
 	Boss/Msg/SolicitStatus.hpp \

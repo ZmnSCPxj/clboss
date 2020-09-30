@@ -5,6 +5,7 @@
 #include"Boss/Mod/ChannelCandidateInvestigator/Main.hpp"
 #include"Boss/Mod/ChannelCreationDecider.hpp"
 #include"Boss/Mod/ChannelCreator/Main.hpp"
+#include"Boss/Mod/ChannelFeeManager.hpp"
 #include"Boss/Mod/ChannelFeeSetter.hpp"
 #include"Boss/Mod/ChannelFinderByPopularity.hpp"
 #include"Boss/Mod/ChannelFundsComputer.hpp"
@@ -125,6 +126,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	/* Channel fees.  */
 	all->install<PeerCompetitorFeeMonitor::Main>(bus);
 	all->install<ChannelFeeSetter>(bus);
+	all->install<ChannelFeeManager>(bus);
 
 	return all;
 }

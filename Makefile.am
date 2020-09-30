@@ -68,6 +68,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/BoltzSwapper/ServiceCreator.hpp \
 	Boss/Mod/BoltzSwapper/ServiceModule.cpp \
 	Boss/Mod/BoltzSwapper/ServiceModule.hpp \
+	Boss/Mod/ChannelFeeManager.cpp \
+	Boss/Mod/ChannelFeeManager.hpp \
 	Boss/Mod/CommandReceiver.cpp \
 	Boss/Mod/CommandReceiver.hpp \
 	Boss/Mod/ChannelCandidateInvestigator/Gumshoe.cpp \
@@ -185,6 +187,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/PreinvestigateChannelCandidates.hpp \
 	Boss/Msg/ProposeChannelCandidates.hpp \
 	Boss/Msg/ProposeConnectCandidates.hpp \
+	Boss/Msg/ProvideChannelFeeModifier.hpp \
 	Boss/Msg/ProvideStatus.hpp \
 	Boss/Msg/ProvideSwapQuotation.hpp \
 	Boss/Msg/RequestChannelCreation.hpp \
@@ -196,6 +199,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ResponseNewaddr.hpp \
 	Boss/Msg/SetChannelFee.hpp \
 	Boss/Msg/SolicitChannelCandidates.hpp \
+	Boss/Msg/SolicitChannelFeeModifier.hpp \
 	Boss/Msg/SolicitConnectCandidates.hpp \
 	Boss/Msg/SolicitStatus.hpp \
 	Boss/Msg/SolicitSwapQuotation.hpp \

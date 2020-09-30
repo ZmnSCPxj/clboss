@@ -134,6 +134,10 @@ libclboss_la_SOURCES = \
 	Boss/Mod/OnchainFeeMonitor.hpp \
 	Boss/Mod/OnchainFundsAnnouncer.cpp \
 	Boss/Mod/OnchainFundsAnnouncer.hpp \
+	Boss/Mod/PeerCompetitorFeeMonitor/Main.cpp \
+	Boss/Mod/PeerCompetitorFeeMonitor/Main.hpp \
+	Boss/Mod/PeerCompetitorFeeMonitor/Surveyor.cpp \
+	Boss/Mod/PeerCompetitorFeeMonitor/Surveyor.hpp \
 	Boss/Mod/Reconnector.cpp \
 	Boss/Mod/Reconnector.hpp \
 	Boss/Mod/Rpc.cpp \
@@ -175,6 +179,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/OnchainFee.hpp \
 	Boss/Msg/OnchainFunds.hpp \
 	Boss/Msg/PayInvoice.hpp \
+	Boss/Msg/PeerMedianChannelFee.hpp \
 	Boss/Msg/PreinvestigateChannelCandidates.hpp \
 	Boss/Msg/ProposeChannelCandidates.hpp \
 	Boss/Msg/ProposeConnectCandidates.hpp \

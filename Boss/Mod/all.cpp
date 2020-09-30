@@ -27,6 +27,7 @@
 #include"Boss/Mod/NodeBalanceSwapper.hpp"
 #include"Boss/Mod/OnchainFeeMonitor.hpp"
 #include"Boss/Mod/OnchainFundsAnnouncer.hpp"
+#include"Boss/Mod/PeerCompetitorFeeMonitor/Main.hpp"
 #include"Boss/Mod/Reconnector.hpp"
 #include"Boss/Mod/StatusCommand.hpp"
 #include"Boss/Mod/SwapManager.hpp"
@@ -119,6 +120,9 @@ std::shared_ptr<void> all( std::ostream& cout
 	/* Invoice wrangling.  */
 	all->install<InvoicePayer>(bus);
 	all->install<ListpaysHandler>(bus);
+
+	/* Channel fees.  */
+	all->install<PeerCompetitorFeeMonitor::Main>(bus);
 
 	return all;
 }

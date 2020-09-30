@@ -307,6 +307,7 @@ libclboss_la_SOURCES = \
 	Sqlite3/Tx.hpp \
 	Stats/RunningMean.cpp \
 	Stats/RunningMean.hpp \
+	Stats/WeightedMedian.hpp \
 	Util/Bech32.cpp \
 	Util/Bech32.hpp \
 	Util/Rw.cpp \
@@ -376,5 +377,6 @@ TESTS = \
 	tests/sha256/test_hasher \
 	tests/sqlite3/test_sqlite3 \
 	tests/stats/test_running_mean \
+	tests/stats/test_weighted_median \
 	tests/test_uuid
 check_PROGRAMS = $(TESTS)

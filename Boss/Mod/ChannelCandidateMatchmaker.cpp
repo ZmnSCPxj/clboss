@@ -2,6 +2,7 @@
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/PatronizeChannelCandidate.hpp"
+#include"Boss/Msg/PreinvestigateChannelCandidates.hpp"
 #include"Boss/Msg/ProposeChannelCandidates.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
@@ -125,9 +126,14 @@ private:
 					, std::string(proposal).c_str()
 					, std::string(patron).c_str()
 					);
-			act += bus.raise(Msg::ProposeChannelCandidates{
+			auto propose = Msg::ProposeChannelCandidates{
 				std::move(proposal), std::move(patron)
-			});
+			};
+			auto preinv = Msg::PreinvestigateChannelCandidates{
+				{std::move(propose)},
+				1
+			};
+			act += bus.raise(std::move(preinv));
 			return act;
 		}).catching<RpcError>([this](RpcError const&) {
 			/* Try next.  */

@@ -80,6 +80,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelCandidateInvestigator/Manager.hpp \
 	Boss/Mod/ChannelCandidateInvestigator/Secretary.cpp \
 	Boss/Mod/ChannelCandidateInvestigator/Secretary.hpp \
+	Boss/Mod/ChannelCandidateMatchmaker.cpp \
+	Boss/Mod/ChannelCandidateMatchmaker.hpp \
 	Boss/Mod/ChannelCandidatePreinvestigator.cpp \
 	Boss/Mod/ChannelCandidatePreinvestigator.hpp \
 	Boss/Mod/ChannelCreationDecider.cpp \

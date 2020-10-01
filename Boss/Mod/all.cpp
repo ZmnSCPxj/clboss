@@ -1,8 +1,9 @@
 #include"Boss/Mod/AutoDisconnector.hpp"
 #include"Boss/Mod/BlockTracker.hpp"
 #include"Boss/Mod/BoltzSwapper/Main.hpp"
-#include"Boss/Mod/ChannelCandidatePreinvestigator.hpp"
 #include"Boss/Mod/ChannelCandidateInvestigator/Main.hpp"
+#include"Boss/Mod/ChannelCandidateMatchmaker.hpp"
+#include"Boss/Mod/ChannelCandidatePreinvestigator.hpp"
 #include"Boss/Mod/ChannelCreationDecider.hpp"
 #include"Boss/Mod/ChannelCreator/Main.hpp"
 #include"Boss/Mod/ChannelFeeManager.hpp"
@@ -108,6 +109,7 @@ std::shared_ptr<void> all( std::ostream& cout
 					>(bus, *imon);
 	all->install<ChannelCreationDecider>(bus);
 	all->install<ChannelCreator::Main>(bus, *waiter, *investigator);
+	all->install<ChannelCandidateMatchmaker>(bus);
 
 	/* Status.  */
 	all->install<StatusCommand>(bus);

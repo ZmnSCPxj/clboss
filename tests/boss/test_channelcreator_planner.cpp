@@ -90,22 +90,23 @@ int main() {
 		dowser_map[A] = Ln::Amount::btc(0.002);
 		dowser_map[B] = Ln::Amount::btc(0.002);
 		dowser_map[C] = Ln::Amount::btc(0.002);
-		return planner( Ln::Amount::btc(0.0105)
+		return planner( Ln::Amount::btc(0.011)
 			      , {A, B, C}
 			      , 0
 			      );
 	}).then([&](std::map<Ln::NodeId, Ln::Amount> result) {
-		/* At least two should have been planned, since we
-		 * have no existing channels.  */
-		assert(result.size() >= 2);
-		/* A and B should have been planned since they come
-		 * first, and they should have at least minimum size.
-		 */
+		/* All of them should have been rejected, with 0 assigned
+		 * capacity.  */
 		assert(result.find(A) != result.end());
 		assert(result.find(B) != result.end());
-		assert(result[A] >= min_amount);
-		assert(result[B] >= min_amount);
-		validate_remaining(Ln::Amount::btc(0.0105), result);
+		assert(result.find(C) != result.end());
+		assert(result[A] == Ln::Amount::sat(0));
+		assert(result[B] == Ln::Amount::sat(0));
+		assert(result[C] == Ln::Amount::sat(0));
+		auto remaining = validate_remaining( Ln::Amount::btc(0.011)
+						   , result
+						   );
+		assert(remaining == Ln::Amount::btc(0.011));
 
 		/* Not a lot of proposals but we have lots of funds.  */
 		dowser_map.clear();

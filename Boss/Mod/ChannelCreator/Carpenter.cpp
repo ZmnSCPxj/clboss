@@ -28,6 +28,9 @@ Ln::Amount rounddown_to_sat(Ln::Amount in) {
 	return Ln::Amount::msat(out_msat);
 }
 
+/* Thrown to skip the construction.  */
+struct SkipConstruction { };
+
 }
 
 namespace Boss { namespace Mod { namespace ChannelCreator {
@@ -59,8 +62,34 @@ Carpenter::construct(std::map<Ln::NodeId, Ln::Amount> plan) {
 	/* Nodes that successfully created.  */
 	auto ppasses = std::make_shared<std::queue<Ln::NodeId>>();
 
-	return Ev::yield().then([this, pplan]() {
-		/* First, try to connect to all of them in parallel,
+	return Ev::yield().then([this, pplan, pfails]() {
+		/* The planner can mark some nodes with value 0, indicating
+		 * they have too little capacity to be worth channeling with
+		 * after all.
+		 * Move them to `pfails` here.
+		 */
+		auto tmp_fails = std::queue<Ln::NodeId>();
+		for (auto const& e : *pplan)
+			if (e.second == Ln::Amount::sat(0))
+				tmp_fails.push(e.first);
+		/* Go through it again and erase the appropriate entry.  */
+		while (!tmp_fails.empty()) {
+			auto n = std::move(tmp_fails.front());
+			tmp_fails.pop();
+			/* Remove it.  */
+			auto it = pplan->find(n);
+			pplan->erase(it);
+			/* And move to failures.  */
+			pfails->push(std::move(n));
+		}
+
+		/* The plan can now be empty, if so, skip construction.  */
+		if (pplan->empty())
+			throw SkipConstruction();
+
+		return Ev::lift();
+	}).then([this, pplan]() {
+		/* Try to connect to all of them in parallel,
 		 * as recommended in the manpage of multifundchannel.  */
 		auto nodes = std::vector<Ln::NodeId>();
 		std::transform( pplan->begin(), pplan->end()
@@ -153,6 +182,10 @@ Carpenter::construct(std::map<Ln::NodeId, Ln::Amount> plan) {
 				, "ChannelCreator: all channels failed to "
 				  "construct."
 				);
+	}).catching<SkipConstruction>([this](SkipConstruction const&) {
+		return Boss::log( bus, Info
+				, "ChannelCreator: No channels to construct."
+				);
 	}).then([this, pfails]() {
 		return Boss::concurrent(report_channelings(
 			std::move(*pfails), false
@@ -207,6 +240,12 @@ Carpenter::report_channelings(std::queue<Ln::NodeId> nodes, bool ok) {
 			return Ev::lift();
 		return bus.raise(Msg::ChannelCreateResult{
 			std::move(pq->front()), ok
+		}).then([this, pq, ok](){
+			return Boss::log( bus, Debug
+					, "ChannelCreator: %s %s."
+					, std::string(pq->front()).c_str()
+					, ok ? "created" : "rejected"
+					);
 		}).then([this, pq, ok](){
 			pq->pop();
 			return report_channelings(std::move(*pq), ok);

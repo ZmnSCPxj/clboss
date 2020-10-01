@@ -7,6 +7,7 @@
 #include<assert.h>
 #include<queue>
 #include<random>
+#include<set>
 
 namespace Boss { namespace Mod { namespace ChannelCreator {
 
@@ -32,6 +33,7 @@ private:
 
 	/* Result we are building.  */
 	std::map<Ln::NodeId, Ln::Amount> result;
+	std::set<Ln::NodeId> rejected;
 
 public:
 	Impl( DowserFunc dowser_
@@ -75,8 +77,13 @@ private:
 			return dowser( proposals.front().first
 				     , proposals.front().second
 				     ).then([this](Ln::Amount amt) {
-				if (amt < min_amount)
-					amt = min_amount;
+				auto& node = proposals.front().first;
+				if (amt < min_amount) {
+					/* Reject.  */
+					rejected.insert(node);
+					proposals.pop();
+					return core_run();
+				}
 				if (amt > max_amount)
 					amt = max_amount;
 				if (amt > remaining)
@@ -90,7 +97,7 @@ private:
 					amt = remaining / 2;
 
 				/* Update.  */
-				result[proposals.front().first] = amt;
+				result[node] = amt;
 				remaining -= amt;
 				proposals.pop();
 
@@ -100,6 +107,14 @@ private:
 	}
 
 	Ev::Io<void> on_complete() {
+		return Ev::lift().then([this]() {
+			return check_results();
+		}).then([this]() {
+			return add_rejected();
+		});
+	}
+
+	Ev::Io<void> check_results() {
 		if (at_least_2 && result.size() < 2) {
 			/* Not enough proposals.  */
 			result.clear();
@@ -186,6 +201,11 @@ private:
 		return Ev::lift();
 	}
 
+	Ev::Io<void> add_rejected() {
+		for (auto& n : rejected)
+			result[n] = Ln::Amount::sat(0);
+		return Ev::lift();
+	}
 };
 
 Planner::Planner( DowserFunc dowser

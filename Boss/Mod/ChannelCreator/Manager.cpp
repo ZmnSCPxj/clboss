@@ -15,6 +15,7 @@
 #include"Json/Out.hpp"
 #include"Ln/Amount.hpp"
 #include"S/Bus.hpp"
+#include<algorithm>
 #include<sstream>
 
 namespace {
@@ -27,6 +28,14 @@ auto const max_amount = Ln::Amount::btc(0.160);
  * next time?
  */
 auto const min_remaining = Ln::Amount::btc(0.0105);
+
+/* If all the entries in the plan are 0, the plan is empty.  */
+bool plan_is_empty(std::map<Ln::NodeId, Ln::Amount> const& plan) {
+	return std::all_of( plan.begin(), plan.end()
+			  , [](std::pair<Ln::NodeId, Ln::Amount> const& e) {
+		return e.second == Ln::Amount::sat(0);
+	});
+}
 
 }
 
@@ -105,7 +114,7 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 		return Ev::yield();
 	}).then([this, plan]() {
 
-		if (plan->empty()) {
+		if (plan_is_empty(*plan)) {
 			return Boss::log( bus, Info
 					, "ChannelCreator: Insufficient "
 					  "channel candidates, will solicit "
@@ -120,6 +129,8 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 		auto report = std::ostringstream();
 		auto first = true;
 		for (auto const& p : *plan) {
+			if (p.second == Ln::Amount::sat(0))
+				continue;
 			if (first)
 				first = false;
 			else
@@ -132,9 +143,11 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 				, report.str().c_str()
 				);
 	}).then([this, plan]() {
-		if (plan->empty())
-			return Ev::lift();
-
+		/* Carpenter is responsible for disseminating 0-amount
+		 * candidates as failures to create channels.
+		 * So `plan_is_empty` will still cause this to be called,
+		 * in case the plan has any 0-amount entries.
+		 */
 		return carpenter.construct(std::move(*plan));
 	});
 }

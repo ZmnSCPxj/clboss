@@ -19,6 +19,11 @@ namespace Boss { namespace Mod { namespace ChannelCreator {
  * @brief creates a plan for how to distribute an
  * amount of bitcoins to channels to proposal
  * nodes.
+ *
+ * @desc the plan can contain nodes with 0 amount,
+ * meaning that node is too badly-connected to
+ * make channels with, and we should instead drop
+ * the node from channel proposals.
  */
 class Planner {
 private:

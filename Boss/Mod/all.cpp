@@ -8,6 +8,7 @@
 #include"Boss/Mod/ChannelCreator/Main.hpp"
 #include"Boss/Mod/ChannelFeeManager.hpp"
 #include"Boss/Mod/ChannelFeeSetter.hpp"
+#include"Boss/Mod/ChannelFinderByListpays.hpp"
 #include"Boss/Mod/ChannelFinderByPopularity.hpp"
 #include"Boss/Mod/ChannelFundsComputer.hpp"
 #include"Boss/Mod/ConnectFinderByDns.hpp"
@@ -104,6 +105,7 @@ std::shared_ptr<void> all( std::ostream& cout
 
 	/* Channel creation wrangling.  */
 	all->install<ChannelFinderByPopularity>(bus, *waiter);
+	all->install<ChannelFinderByListpays>(bus);
 	all->install<ChannelCandidatePreinvestigator>(bus);
 	auto investigator = all->install< ChannelCandidateInvestigator::Main
 					>(bus, *imon);

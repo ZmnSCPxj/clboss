@@ -106,6 +106,13 @@ public:
 	 */
 	std::vector<std::pair<Ln::NodeId, std::int64_t>>
 	get_all(Sqlite3::Tx& tx);
+
+	/** Secretary::is_candidate
+	 *
+	 * @brief determine if the given node is already a
+	 * candidate under investigation.
+	 */
+	bool is_candidate(Sqlite3::Tx& tx, Ln::NodeId const& node);
 };
 
 }}}

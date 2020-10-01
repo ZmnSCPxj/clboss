@@ -182,11 +182,13 @@ libclboss_la_SOURCES = \
 	Boss/Msg/Notification.hpp \
 	Boss/Msg/OnchainFee.hpp \
 	Boss/Msg/OnchainFunds.hpp \
+	Boss/Msg/PatronizeChannelCandidate.hpp \
 	Boss/Msg/PayInvoice.hpp \
 	Boss/Msg/PeerMedianChannelFee.hpp \
 	Boss/Msg/PreinvestigateChannelCandidates.hpp \
 	Boss/Msg/ProposeChannelCandidates.hpp \
 	Boss/Msg/ProposeConnectCandidates.hpp \
+	Boss/Msg/ProposePatronlessChannelCandidate.hpp \
 	Boss/Msg/ProvideChannelFeeModifier.hpp \
 	Boss/Msg/ProvideStatus.hpp \
 	Boss/Msg/ProvideSwapQuotation.hpp \

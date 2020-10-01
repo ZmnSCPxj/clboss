@@ -5,7 +5,9 @@
 #include"Boss/Msg/ChannelCreateResult.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ListpeersAnalyzedResult.hpp"
+#include"Boss/Msg/PatronizeChannelCandidate.hpp"
 #include"Boss/Msg/ProposeChannelCandidates.hpp"
+#include"Boss/Msg/ProposePatronlessChannelCandidate.hpp"
 #include"Boss/Msg/ProvideStatus.hpp"
 #include"Boss/Msg/SolicitChannelCandidates.hpp"
 #include"Boss/Msg/SolicitStatus.hpp"
@@ -83,6 +85,36 @@ void Manager::start() {
 			tx.commit();
 
 			return Ev::lift();
+		});
+	});
+	/* When a new candidate without a patron is proposed,
+	 * use existing candidates as guide for another module
+	 * to figure out a good patron.
+	 */
+	bus.subscribe< Msg::ProposePatronlessChannelCandidate
+		     >([ this
+		       ](Msg::ProposePatronlessChannelCandidate const& m) {
+		auto node = m.proposal;
+		return db.transact().then([this, node](Sqlite3::Tx tx) {
+			if (secretary.is_candidate(tx, node))
+				return Ev::lift();
+
+			/* Otherwise use channeling candidates as guide.  */
+			auto cands = secretary.get_for_channeling(tx);
+			auto guide = std::vector<Ln::NodeId>(cands.size());
+			std::transform( cands.begin(), cands.end()
+				      , guide.begin()
+				      , [](Msg::ProposeChannelCandidates
+						const& c) {
+				return c.proposal;
+			});
+
+			tx.commit();
+
+			/* Re-emit.  */
+			return bus.raise(Msg::PatronizeChannelCandidate{
+				node, std::move(guide)
+			});
 		});
 	});
 

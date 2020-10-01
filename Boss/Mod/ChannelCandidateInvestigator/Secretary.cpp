@@ -200,5 +200,23 @@ Secretary::get_all(Sqlite3::Tx& tx) {
 
 	return rv;
 }
+bool
+Secretary::is_candidate( Sqlite3::Tx& tx
+		       , Ln::NodeId const& node
+		       ) {
+	auto res = tx.query(R"QRY(
+		SELECT COUNT(proposal)
+		  FROM "ChannelCandidateInvestigator"
+		 WHERE proposal = :node
+		     ;
+	)QRY")
+		.bind(":node", std::string(node))
+		.execute();
+	auto found = false;
+	for (auto& r : res)
+		found = (r.get<std::uint64_t>(0) != 0);
+
+	return found;
+}
 
 }}}

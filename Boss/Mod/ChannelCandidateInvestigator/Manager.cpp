@@ -24,7 +24,10 @@ namespace {
 
 /* If we are below this number of non-negative candidates,
  * solicit more.  */
-auto const min_good_candidates = std::size_t(3);
+auto const min_good_candidates = std::size_t(4);
+/* If we have more than this number of total candidates,
+ * drop by random.  */
+auto const max_candidates = std::size_t(30);
 
 /* Nodes below this score should just be dropped.  */
 auto const min_score = std::int64_t(-3);
@@ -94,6 +97,27 @@ void Manager::start() {
 		auto report = std::make_shared<std::string>();
 
 		return db.transact().then([=](Sqlite3::Tx tx) {
+			auto act = Ev::lift();
+			/* First, if there are too many candidates,
+			 * delete one by random.
+			 */
+			auto all = secretary.get_all(tx);
+			if (all.size() > max_candidates) {
+				auto dist = std::uniform_int_distribution<std::size_t>(
+					0, all.size() - 1
+				);
+				auto n = all[dist(Boss::random_engine)].first;
+				secretary.remove_candidate(tx, n);
+				act += Boss::log( bus, Info
+						, "ChannelCandidateInvestigator: "
+						  "Randomly dropping %s from "
+						  "investigation, "
+						  "we have too many "
+						  "candidates."
+						, std::string(n).c_str()
+						);
+			}
+
 			/* Determine number of good candidates.  */
 			*good_candidates =
 				secretary.get_nonnegative_candidates_count(tx);
@@ -107,10 +131,12 @@ void Manager::start() {
 			tx.commit();
 
 			/* Print the report.  */
-			return Boss::log( bus, Info
+			act += Boss::log( bus, Info
 					, "ChannelCandidateInvestigator: %s"
 					, report->c_str()
 					);
+
+			return act;
 		}).then([=]() {
 			/* If we are online, continue.  */
 			if (imon.is_online())
@@ -130,7 +156,7 @@ void Manager::start() {
 			 * get more.
 			 */
 			auto dist = std::uniform_int_distribution<std::size_t>(
-				0, 2 * (*good_candidates)
+				0, (*good_candidates) + (*good_candidates) / 2
 			);
 			if (dist(Boss::random_engine) == 0)
 				return solicit_candidates(*good_candidates);

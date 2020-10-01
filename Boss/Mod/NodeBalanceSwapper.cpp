@@ -148,7 +148,7 @@ public:
 	explicit
 	Impl(S::Bus& bus_) : ModG::Swapper( bus_
 					  , "NodeBalanceSwapper"
-					  , "node_balancer"
+					  , "incoming_capacity_swapper"
 					  ) { start(); }
 };
 

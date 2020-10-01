@@ -321,6 +321,7 @@ libclboss_la_SOURCES = \
 	Sqlite3/Result.hpp \
 	Sqlite3/Tx.cpp \
 	Sqlite3/Tx.hpp \
+	Stats/ReservoirSampler.hpp \
 	Stats/RunningMean.cpp \
 	Stats/RunningMean.hpp \
 	Stats/WeightedMedian.hpp \
@@ -393,6 +394,7 @@ TESTS = \
 	tests/sha256/test_hash \
 	tests/sha256/test_hasher \
 	tests/sqlite3/test_sqlite3 \
+	tests/stats/test_reservoir_sampler \
 	tests/stats/test_running_mean \
 	tests/stats/test_weighted_median \
 	tests/test_uuid

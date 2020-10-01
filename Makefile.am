@@ -348,6 +348,9 @@ libclboss_la_CPPFLAGS = \
 	-I$(top_srcdir)/external/secp256k1/include/ \
 	-I$(top_srcdir)/external/jsmn
 
+dev_boltz_CPPFLAGS = \
+	-I$(top_srcdir)/external/libsodium/src/libsodium/include/
+
 # Externals
 SUBDIRS = \
 	external/bitcoin-ripemd160 \

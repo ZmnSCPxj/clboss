@@ -26,10 +26,10 @@ namespace {
 
 /* If we are below this number of non-negative candidates,
  * solicit more.  */
-auto const min_good_candidates = std::size_t(4);
+auto const min_good_candidates = std::size_t(8);
 /* If we have more than this number of total candidates,
  * drop by random.  */
-auto const max_candidates = std::size_t(30);
+auto const max_candidates = std::size_t(32);
 
 /* Nodes below this score should just be dropped.  */
 auto const min_score = std::int64_t(-3);

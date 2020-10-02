@@ -247,6 +247,8 @@ libclboss_la_SOURCES = \
 	Ev/start.hpp \
 	Ev/yield.cpp \
 	Ev/yield.hpp \
+	Graph/Dijkstra.hpp \
+	Graph/TreeNode.hpp \
 	Jsmn/Detail/EndAdvancer.cpp \
 	Jsmn/Detail/EndAdvancer.hpp \
 	Jsmn/Detail/ParseResult.hpp \
@@ -390,6 +392,7 @@ TESTS = \
 	tests/ev/test_plus \
 	tests/ev/test_runcmd \
 	tests/ev/test_throw_in_then \
+	tests/graph/test_dijkstra \
 	tests/json/test_out_simple \
 	tests/ln/test_amount \
 	tests/ln/test_nodeid \

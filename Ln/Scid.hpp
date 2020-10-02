@@ -16,9 +16,17 @@ private:
 	std::uint64_t val;
 
 public:
-	Scid() : val(0) { }
+	Scid(std::nullptr_t _ = nullptr) : val(0) { }
 	Scid(Scid const&) =default;
 	~Scid() =default;
+
+	explicit
+	operator bool() const {
+		return val != 0;
+	}
+	bool operator!() const {
+		return !bool(*this);
+	}
 
 	bool operator==(Scid const& i) const {
 		return val == i.val;

@@ -268,6 +268,8 @@ libclboss_la_SOURCES = \
 	Json/Out.hpp \
 	Ln/Amount.cpp \
 	Ln/Amount.hpp \
+	Ln/HtlcAccepted.cpp \
+	Ln/HtlcAccepted.hpp \
 	Ln/NodeId.cpp \
 	Ln/NodeId.hpp \
 	Ln/Preimage.cpp \
@@ -397,6 +399,7 @@ TESTS = \
 	tests/graph/test_dijkstra \
 	tests/json/test_out_simple \
 	tests/ln/test_amount \
+	tests/ln/test_htlcaccepted \
 	tests/ln/test_nodeid \
 	tests/ln/test_scid \
 	tests/ripemd160/test_ripemd160 \

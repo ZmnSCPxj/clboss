@@ -105,7 +105,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<OnchainFundsAnnouncer>(bus);
 
 	/* Channel creation wrangling.  */
-	all->install<ChannelFinderByDistance>(bus);
+	all->install<ChannelFinderByDistance>(bus, *waiter);
 	all->install<ChannelFinderByListpays>(bus);
 	all->install<ChannelFinderByPopularity>(bus, *waiter);
 	all->install<ChannelCandidatePreinvestigator>(bus);

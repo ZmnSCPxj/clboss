@@ -1,5 +1,6 @@
 #include"Boss/Mod/ChannelFinderByDistance.hpp"
 #include"Boss/Mod/Rpc.hpp"
+#include"Boss/Mod/Waiter.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/PreinvestigateChannelCandidates.hpp"
 #include"Boss/Msg/SolicitChannelCandidates.hpp"
@@ -35,6 +36,13 @@ auto const max_preinvestigate = std::size_t(40);
 /* Maximum number to tell preinvestigation to pass.  */
 auto const max_candidates = std::size_t(3);
 
+/* At initial startup, we can have channels, but all of them
+ * are inactive because not connected yet.
+ * If we have any channels and all are inactive, defer by
+ * these number of seconds.
+ */
+auto const initial_startup_delay = double(30.0);
+
 }
 
 namespace Boss { namespace Mod {
@@ -43,6 +51,7 @@ class ChannelFinderByDistance::Run : public std::enable_shared_from_this<Run> {
 private:
 	S::Bus& bus;
 	Boss::Mod::Rpc& rpc;
+	Boss::Mod::Waiter& waiter;
 	Ln::NodeId self_id;
 
 	typedef 
@@ -63,9 +72,11 @@ private:
 
 	Run( S::Bus& bus_
 	   , Boss::Mod::Rpc& rpc_
+	   , Boss::Mod::Waiter& waiter_
 	   , Ln::NodeId const& self_id_
 	   ) : bus(bus_)
 	     , rpc(rpc_)
+	     , waiter(waiter_)
 	     , self_id(self_id_)
 	     , djk(self_id_, Ln::Amount::sat(0))
 	     { }
@@ -79,10 +90,11 @@ public:
 	std::shared_ptr<Run>
 	create( S::Bus& bus
 	      , Boss::Mod::Rpc& rpc
+	      , Boss::Mod::Waiter& waiter
 	      , Ln::NodeId const& self_id
 	      ) {
 		return std::shared_ptr<Run>(
-			new Run(bus, rpc, self_id)
+			new Run(bus, rpc, waiter, self_id)
 		);
 	}
 
@@ -95,6 +107,66 @@ public:
 
 private:
 	Ev::Io<void> core_run() {
+		return Ev::lift().then([this]() {
+			/* Check first if local channels exist and are
+			 * inactive.
+			 */
+			auto parms = Json::Out()
+				.start_object()
+					.field("source", std::string(self_id))
+				.end_object()
+				;
+			return rpc.command("listchannels", std::move(parms)
+					  );
+		}).then([this](Jsmn::Object res) {
+			auto empty = true;
+			auto any_active = false;
+			try {
+				auto cs = res["channels"];
+				empty = cs.size() == 0;
+				for ( auto i = std::size_t(0)
+				    ; i < cs.size()
+				    ; ++i
+				    ) {
+					auto c = cs[i];
+					if (c["active"]) {
+						any_active = true;
+						break;
+					}
+				}
+			} catch (Jsmn::TypeError const&) {
+				return Boss::log( bus, Error
+						, "ChannelFinderByDistance: "
+						  "Starting listchannels "
+						  "gave unexpected result: "
+						  "%s"
+						, Util::stringify(res)
+							.c_str()
+						);
+			}
+			if (empty)
+				return Boss::log( bus, Info
+						, "ChannelFinderByDistance: "
+						  "We are not on network."
+						);
+
+			auto act = Ev::lift();
+			if (!any_active) {
+				act += Boss::log( bus, Info
+						, "ChannelFinderByDistance: "
+						  "Local channels not yet "
+						  "active, will wait %.0f "
+						  "seconds."
+						, initial_startup_delay
+						);
+				act += waiter.wait(initial_startup_delay);
+			}
+			act += start_processing();
+			return act;
+		});
+	}
+
+	Ev::Io<void> start_processing() {
 		return Ev::lift().then([this]() {
 			return Boss::log( bus, Debug
 					, "ChannelFinderByDistance: "
@@ -307,7 +379,7 @@ void ChannelFinderByDistance::start() {
 		     >([this](Msg::SolicitChannelCandidates const& _) {
 		if (!rpc)
 			return Ev::lift();
-		auto run = Run::create(bus, *rpc, self_id);
+		auto run = Run::create(bus, *rpc, waiter, self_id);
 		return Boss::concurrent(run->run());
 	});
 }

@@ -4,6 +4,7 @@
 #include"Ln/NodeId.hpp"
 
 namespace Boss { namespace Mod { class Rpc; }}
+namespace Boss { namespace Mod { class Waiter; }}
 namespace S { class Bus; }
 
 namespace Boss { namespace Mod {
@@ -18,6 +19,7 @@ class ChannelFinderByDistance {
 private:
 	S::Bus& bus;
 	Boss::Mod::Rpc* rpc;
+	Boss::Mod::Waiter& waiter;
 	Ln::NodeId self_id;
 
 	class Run;
@@ -31,8 +33,10 @@ public:
 
 	explicit
 	ChannelFinderByDistance( S::Bus& bus_
+			       , Boss::Mod::Waiter& waiter_
 			       ) : bus(bus_)
 				 , rpc(nullptr)
+				 , waiter(waiter_)
 				 { start(); }
 };
 

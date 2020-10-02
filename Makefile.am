@@ -98,6 +98,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelCreator/Planner.hpp \
 	Boss/Mod/ChannelFeeSetter.cpp \
 	Boss/Mod/ChannelFeeSetter.hpp \
+	Boss/Mod/ChannelFinderByDistance.cpp \
+	Boss/Mod/ChannelFinderByDistance.hpp \
 	Boss/Mod/ChannelFinderByListpays.cpp \
 	Boss/Mod/ChannelFinderByListpays.hpp \
 	Boss/Mod/ChannelFinderByPopularity.cpp \

@@ -30,6 +30,9 @@ auto const reference_amount = Ln::Amount::sat(10000);
 /* Conversion rate of delay to millisatoshi.
  */
 auto const msat_per_block = double(1.0);
+/* Maximum fee per hop.
+ */
+auto const max_fee = Ln::Amount::sat(50); /* 0.5% of reference_amount */
 
 /* Maximum number to give to preinvestigation.  */
 auto const max_preinvestigate = std::size_t(40);
@@ -230,6 +233,8 @@ private:
 							msat_per_block * d
 						    )
 						  ;
+					if (cost > max_fee)
+						continue;
 					djk.neighbor(n, cost);
 				}
 			} catch (Jsmn::TypeError const&) {

@@ -45,7 +45,12 @@ struct Request {
 	std::vector<std::uint8_t> next_onion;
 
 	/* Information.  */
+	/* Payment hash to claim with.  */
 	Sha256::Hash payment_hash;
+	/* Verification that previous hop is not trying to probe.
+	 * 0x00000.. if not present.
+	 */
+	Ln::Preimage payment_secret;
 };
 
 /** class Ln::HtlcAccepted::Response

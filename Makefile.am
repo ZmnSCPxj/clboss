@@ -112,6 +112,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ConnectFinderByHardcode.hpp \
 	Boss/Mod/Connector.cpp \
 	Boss/Mod/Connector.hpp \
+	Boss/Mod/HtlcAcceptor.cpp \
+	Boss/Mod/HtlcAcceptor.hpp \
 	Boss/Mod/InitialConnect.cpp \
 	Boss/Mod/InitialConnect.hpp \
 	Boss/Mod/Initiator.cpp \
@@ -196,8 +198,10 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ProposeConnectCandidates.hpp \
 	Boss/Msg/ProposePatronlessChannelCandidate.hpp \
 	Boss/Msg/ProvideChannelFeeModifier.hpp \
+	Boss/Msg/ProvideHtlcAcceptedDeferrer.hpp \
 	Boss/Msg/ProvideStatus.hpp \
 	Boss/Msg/ProvideSwapQuotation.hpp \
+	Boss/Msg/ReleaseHtlcAccepted.hpp \
 	Boss/Msg/RequestChannelCreation.hpp \
 	Boss/Msg/RequestConnect.hpp \
 	Boss/Msg/RequestListpays.hpp \
@@ -209,6 +213,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/SolicitChannelCandidates.hpp \
 	Boss/Msg/SolicitChannelFeeModifier.hpp \
 	Boss/Msg/SolicitConnectCandidates.hpp \
+	Boss/Msg/SolicitHtlcAcceptedDeferrer.hpp \
 	Boss/Msg/SolicitStatus.hpp \
 	Boss/Msg/SolicitSwapQuotation.hpp \
 	Boss/Msg/StatusListpays.hpp \

@@ -16,6 +16,7 @@
 #include"Boss/Mod/ConnectFinderByHardcode.hpp"
 #include"Boss/Mod/Connector.hpp"
 #include"Boss/Mod/CommandReceiver.hpp"
+#include"Boss/Mod/HtlcAcceptor.hpp"
 #include"Boss/Mod/InitialConnect.hpp"
 #include"Boss/Mod/Initiator.hpp"
 #include"Boss/Mod/InternetConnectionMonitor.hpp"
@@ -133,6 +134,9 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<PeerCompetitorFeeMonitor::Main>(bus);
 	all->install<ChannelFeeSetter>(bus);
 	all->install<ChannelFeeManager>(bus);
+
+	/* HTLC manipulation.  */
+	all->install<HtlcAcceptor>(bus, *waiter);
 
 	return all;
 }

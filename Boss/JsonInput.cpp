@@ -1,6 +1,7 @@
 #include<assert.h>
 #include"Boss/JsonInput.hpp"
 #include"Boss/Msg/JsonCin.hpp"
+#include"Boss/concurrent.hpp"
 #include"Ev/ThreadPool.hpp"
 #include"Jsmn/Object.hpp"
 #include"S/Bus.hpp"
@@ -37,9 +38,12 @@ public:
 			if (!pobj)
 				/* Exit loop.  */
 				return Ev::lift();
-			return bus.raise(Boss::Msg::JsonCin{std::move(*pobj)}).then([this]() {
-				return run();
-			});
+
+			return Boss::concurrent(bus.raise(Boss::Msg::JsonCin{
+					std::move(*pobj)
+			       }))
+			     + run()
+			     ;
 		});
 	}
 };

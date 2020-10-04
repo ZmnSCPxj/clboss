@@ -316,7 +316,7 @@ private:
 					  , success
 					  ](Sqlite3::Tx tx) {
 			auto fetch = tx.query(R"QRY(
-			SELECT first_hop, creation_time
+			SELECT first_hop, creation
 			  FROM "SendpayResultMonitor"
 			 WHERE payment_hash = :payment_hash
 			   AND partid = :partid
@@ -329,13 +329,13 @@ private:
 				.execute();
 
 			auto first_hop = Ln::NodeId();
-			auto creation_time = double();
+			auto creation = double();
 			auto found = false;
 			for (auto& r : fetch) {
 				first_hop = Ln::NodeId(
 					r.get<std::string>(0)
 				);
-				creation_time = r.get<double>(1);
+				creation = r.get<double>(1);
 				found = true;
 			}
 
@@ -367,7 +367,7 @@ private:
 					, success ? "success" : "failure"
 					)
 			     + bus.raise(Msg::SendpayResult{
-					creation_time,
+					creation,
 					Ev::now(),
 					std::move(first_hop),
 					std::move(payment_hash),
@@ -380,14 +380,14 @@ private:
 
 	Ev::Io<void> on_periodic() {
 		return db.transact().then([this](Sqlite3::Tx tx) {
-			/* Just drop rows whose creation_time is more
+			/* Just drop rows whose creation is more
 			 * than a month ago.
 			 * TODO: maybe a better solution would be to
 			 * get `delay` from first hop and add some margin.
 			 */
 			tx.query(R"QRY(
 			DELETE FROM "SendpayResultMonitor"
-			 WHERE creation_time + (30 * 24 * 3600) < :current_time
+			 WHERE creation + (30 * 24 * 3600) < :current_time
 			     ;
 			)QRY")
 				.bind(":current_time", Ev::now())

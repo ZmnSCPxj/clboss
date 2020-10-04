@@ -164,6 +164,9 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Waiter.hpp \
 	Boss/Mod/all.cpp \
 	Boss/Mod/all.hpp \
+	Boss/ModG/Detail/ReqRespBase.cpp \
+	Boss/ModG/Detail/ReqRespBase.hpp \
+	Boss/ModG/ReqResp.hpp \
 	Boss/ModG/Swapper.cpp \
 	Boss/ModG/Swapper.hpp \
 	Boss/Msg/AcceptSwapQuotation.hpp \
@@ -388,6 +391,7 @@ TESTS = \
 	tests/boss/test_channelcreationdecider \
 	tests/boss/test_channelcreator_planner \
 	tests/boss/test_needsconnectsolicitor \
+	tests/boss/test_reqresp \
 	tests/boss/test_rpc \
 	tests/boss/test_swapmanager \
 	tests/boss/test_version \

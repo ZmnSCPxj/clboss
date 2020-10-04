@@ -35,6 +35,7 @@
 #include"Boss/Mod/OnchainFundsAnnouncer.hpp"
 #include"Boss/Mod/PeerCompetitorFeeMonitor/Main.hpp"
 #include"Boss/Mod/Reconnector.hpp"
+#include"Boss/Mod/SendpayResultMonitor.hpp"
 #include"Boss/Mod/StatusCommand.hpp"
 #include"Boss/Mod/SwapManager.hpp"
 #include"Boss/Mod/Timers.hpp"
@@ -137,6 +138,9 @@ std::shared_ptr<void> all( std::ostream& cout
 
 	/* HTLC manipulation.  */
 	all->install<HtlcAcceptor>(bus, *waiter);
+
+	/* Bad peer monitoring.  */
+	all->install<SendpayResultMonitor>(bus);
 
 	return all;
 }

@@ -154,6 +154,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Reconnector.hpp \
 	Boss/Mod/Rpc.cpp \
 	Boss/Mod/Rpc.hpp \
+	Boss/Mod/SendpayResultMonitor.cpp \
+	Boss/Mod/SendpayResultMonitor.hpp \
 	Boss/Mod/StatusCommand.cpp \
 	Boss/Mod/StatusCommand.hpp \
 	Boss/Mod/SwapManager.cpp \
@@ -212,6 +214,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ResponseConnect.hpp \
 	Boss/Msg/ResponseListpays.hpp \
 	Boss/Msg/ResponseNewaddr.hpp \
+	Boss/Msg/SendpayResult.hpp \
 	Boss/Msg/SetChannelFee.hpp \
 	Boss/Msg/SolicitChannelCandidates.hpp \
 	Boss/Msg/SolicitChannelFeeModifier.hpp \

@@ -178,9 +178,9 @@ private:
 			if (params.has("partid"))
 				partid_j = params["partid"];
 		}
-		return record_pending_sendpay_j( first_hop_j
-					       , payment_hash_j
+		return record_pending_sendpay_j( payment_hash_j
 					       , partid_j
+					       , first_hop_j
 					       );
 	}
 	Ev::Io<void>
@@ -207,9 +207,9 @@ private:
 			return Ev::lift();
 		auto first_hop_j = route_j[0];
 
-		return record_pending_sendpay_j( first_hop_j
-					       , payment_hash_j
+		return record_pending_sendpay_j( payment_hash_j
 					       , partid_j
+					       , first_hop_j
 					       );
 	}
 	Ev::Io<void>
@@ -307,7 +307,7 @@ private:
 		auto payment_hash = Sha256::Hash(payment_hash_s);
 
 		auto partid = std::uint64_t(0);
-		if (data.has("partd") && data["partid"].is_number())
+		if (data.has("partid") && data["partid"].is_number())
 			partid = std::uint64_t(double(data["partid"]));
 
 		return db.transact().then([ this

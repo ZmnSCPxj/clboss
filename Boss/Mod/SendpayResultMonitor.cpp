@@ -363,7 +363,8 @@ private:
 				.execute();
 			tx.commit();
 			/* Report and broadcast.  */
-			return Boss::log( bus, Debug
+			auto act = Ev::lift();
+			act += Boss::log( bus, Debug
 					, "SendpayResultMonitor: "
 					  "Resolved %s part %" PRIu64
 					  " peer %s: %s"
@@ -371,16 +372,16 @@ private:
 					, partid
 					, std::string(first_hop).c_str()
 					, success ? "success" : "failure"
-					)
-			     + bus.raise(Msg::SendpayResult{
+					);
+			act += bus.raise(Msg::SendpayResult{
 					creation,
 					Ev::now(),
 					std::move(first_hop),
 					std::move(payment_hash),
 					partid,
 					success
-			       })
-			     ;
+			       });
+			return act;
 		});
 	}
 

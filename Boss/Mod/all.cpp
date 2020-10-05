@@ -16,6 +16,7 @@
 #include"Boss/Mod/ConnectFinderByHardcode.hpp"
 #include"Boss/Mod/Connector.hpp"
 #include"Boss/Mod/CommandReceiver.hpp"
+#include"Boss/Mod/ForwardFeeMonitor.hpp"
 #include"Boss/Mod/HtlcAcceptor.hpp"
 #include"Boss/Mod/InitialConnect.hpp"
 #include"Boss/Mod/Initiator.hpp"
@@ -141,6 +142,7 @@ std::shared_ptr<void> all( std::ostream& cout
 
 	/* Bad peer monitoring.  */
 	all->install<SendpayResultMonitor>(bus);
+	all->install<ForwardFeeMonitor>(bus);
 
 	return all;
 }

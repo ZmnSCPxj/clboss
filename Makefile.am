@@ -112,6 +112,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ConnectFinderByHardcode.hpp \
 	Boss/Mod/Connector.cpp \
 	Boss/Mod/Connector.hpp \
+	Boss/Mod/ForwardFeeMonitor.cpp \
+	Boss/Mod/ForwardFeeMonitor.hpp \
 	Boss/Mod/HtlcAcceptor.cpp \
 	Boss/Mod/HtlcAcceptor.hpp \
 	Boss/Mod/InitialConnect.cpp \
@@ -179,6 +181,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/CommandRequest.hpp \
 	Boss/Msg/CommandResponse.hpp \
 	Boss/Msg/DbResource.hpp \
+	Boss/Msg/ForwardFee.hpp \
 	Boss/Msg/Init.hpp \
 	Boss/Msg/InternetOnline.hpp \
 	Boss/Msg/JsonCin.hpp \

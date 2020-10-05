@@ -291,19 +291,39 @@ private:
 		auto payload = params["sendpay_failure"];
 		/* For `sendpay_failure` the data we need is wrapped in
 		 * a `data` object.
+		 * We also have to extract the `code` integer.
 		 */
-		if (payload.is_object() && payload.has("data"))
-			return on_sendpay_resolve(payload["data"], false);
-		return Ev::lift();
+		if (!payload.is_object() || !payload.has("data"))
+			return Ev::lift();
+		auto data = payload["data"];
+		if (!data.is_object())
+			return Ev::lift();
+
+		if (!payload.has("code"))
+			return Ev::lift();
+		auto code = payload["code"];
+		if (!code.is_number())
+			return Ev::lift();
+		/* Error code 203 is `PAY_DESTINATION_PERM_FAIL`,
+		 * meaning it reached the destination, but the
+		 * destination failed it.
+		 */
+		auto reached_destination = ((double) code) == 203;
+
+		return on_sendpay_resolve( data
+					 , false
+					 , reached_destination
+					 );
 	}
 	Ev::Io<void> on_sendpay_success(Jsmn::Object const& params) {
 		if (!params.is_object() || !params.has("sendpay_success"))
 			return Ev::lift();
 		auto payload = params["sendpay_success"];
-		return on_sendpay_resolve(payload, true);
+		return on_sendpay_resolve(payload, true, true);
 	}
 	Ev::Io<void> on_sendpay_resolve( Jsmn::Object const& data
 				       , bool success
+				       , bool reached_destination
 				       ) {
 		if (!data.has("payment_hash"))
 			return Ev::lift();
@@ -320,6 +340,7 @@ private:
 					  , payment_hash
 					  , partid
 					  , success
+					  , reached_destination
 					  ](Sqlite3::Tx tx) {
 			auto fetch = tx.query(R"QRY(
 			SELECT first_hop, creation
@@ -367,11 +388,14 @@ private:
 			act += Boss::log( bus, Debug
 					, "SendpayResultMonitor: "
 					  "Resolved %s part %" PRIu64
-					  " peer %s: %s"
+					  " peer %s: %s, %s"
 					, std::string(payment_hash).c_str()
 					, partid
 					, std::string(first_hop).c_str()
 					, success ? "success" : "failure"
+					, reached_destination ?
+						"reached destination" :
+						"destination not reached"
 					);
 			act += bus.raise(Msg::SendpayResult{
 					creation,
@@ -379,7 +403,8 @@ private:
 					std::move(first_hop),
 					std::move(payment_hash),
 					partid,
-					success
+					success,
+					reached_destination
 			       });
 			return act;
 		});

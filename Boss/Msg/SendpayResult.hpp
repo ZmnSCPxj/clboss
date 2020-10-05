@@ -28,6 +28,8 @@ struct SendpayResult {
 	std::uint64_t partid;
 	/* Whether it succeeded or failed.  */
 	bool success;
+	/* Whether it reached destination or not.  */
+	bool reached_destination;
 };
 
 }}

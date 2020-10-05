@@ -286,15 +286,21 @@ private:
 	}
 
 	Ev::Io<void> on_sendpay_failure(Jsmn::Object const& params) {
+		if (!params.is_object() || !params.has("sendpay_failure"))
+			return Ev::lift();
+		auto payload = params["sendpay_failure"];
 		/* For `sendpay_failure` the data we need is wrapped in
 		 * a `data` object.
 		 */
-		if (params.is_object() && params.has("data"))
-			return on_sendpay_resolve(params["data"], false);
+		if (payload.is_object() && payload.has("data"))
+			return on_sendpay_resolve(payload["data"], false);
 		return Ev::lift();
 	}
 	Ev::Io<void> on_sendpay_success(Jsmn::Object const& params) {
-		return on_sendpay_resolve(params, true);
+		if (!params.is_object() || !params.has("sendpay_success"))
+			return Ev::lift();
+		auto payload = params["sendpay_success"];
+		return on_sendpay_resolve(payload, true);
 	}
 	Ev::Io<void> on_sendpay_resolve( Jsmn::Object const& data
 				       , bool success

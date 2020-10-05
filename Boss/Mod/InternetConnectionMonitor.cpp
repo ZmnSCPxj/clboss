@@ -2,6 +2,7 @@
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Msg/Init.hpp"
+#include"Boss/Msg/InternetOnline.hpp"
 #include"Boss/Msg/ListpeersAnalyzedResult.hpp"
 #include"Boss/Msg/NeedsConnect.hpp"
 #include"Boss/Msg/ProvideStatus.hpp"
@@ -190,22 +191,25 @@ private:
 	Ev::Io<void> set_online(bool n_online) {
 		auto was_online = online;
 		online = n_online;
-		return Boss::log( bus, Info
+
+		auto act = Ev::lift();
+		act += Boss::log( bus, Info
 				, "InternetConnectionMonitor: %s."
 				, online ? "online" : "offline"
-				).then([this, was_online]() {
-			if (online) {
-				checking_connectivity = false;
-				/* If we moved from offline->online,
-				 * raise NeedsConnect to get us back
-				 * to gossiping.
-				 */
-				if (!was_online)
-					return bus.raise(Msg::NeedsConnect());
-				return Ev::lift();
-			}
-			return offline_quick_loop();
-		});
+				);
+		if (was_online != online)
+			act += bus.raise(Msg::InternetOnline{online});
+		if (online) {
+			checking_connectivity = false;
+			/* If we moved from offline->online,
+			 * raise NeedsConnect to get us back
+			 * to gossiping.
+			 */
+			if (!was_online)
+				act += bus.raise(Msg::NeedsConnect());
+		} else
+			act += offline_quick_loop();
+		return act;
 	}
 
 	/* If we are offline, we should keep trying to connect in a

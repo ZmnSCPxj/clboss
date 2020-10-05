@@ -180,6 +180,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/CommandResponse.hpp \
 	Boss/Msg/DbResource.hpp \
 	Boss/Msg/Init.hpp \
+	Boss/Msg/InternetOnline.hpp \
 	Boss/Msg/JsonCin.hpp \
 	Boss/Msg/JsonCout.hpp \
 	Boss/Msg/ListfundsResult.hpp \

@@ -35,6 +35,7 @@
 #include"Boss/Mod/OnchainFeeMonitor.hpp"
 #include"Boss/Mod/OnchainFundsAnnouncer.hpp"
 #include"Boss/Mod/PeerCompetitorFeeMonitor/Main.hpp"
+#include"Boss/Mod/PeerStatistician.hpp"
 #include"Boss/Mod/Reconnector.hpp"
 #include"Boss/Mod/SendpayResultMonitor.hpp"
 #include"Boss/Mod/StatusCommand.hpp"
@@ -143,6 +144,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	/* Bad peer monitoring.  */
 	all->install<SendpayResultMonitor>(bus);
 	all->install<ForwardFeeMonitor>(bus);
+	all->install<PeerStatistician>(bus);
 
 	return all;
 }

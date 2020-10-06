@@ -152,6 +152,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/PeerCompetitorFeeMonitor/Main.hpp \
 	Boss/Mod/PeerCompetitorFeeMonitor/Surveyor.cpp \
 	Boss/Mod/PeerCompetitorFeeMonitor/Surveyor.hpp \
+	Boss/Mod/PeerStatistician.cpp \
+	Boss/Mod/PeerStatistician.hpp \
 	Boss/Mod/Reconnector.cpp \
 	Boss/Mod/Reconnector.hpp \
 	Boss/Mod/Rpc.cpp \
@@ -202,6 +204,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/PatronizeChannelCandidate.hpp \
 	Boss/Msg/PayInvoice.hpp \
 	Boss/Msg/PeerMedianChannelFee.hpp \
+	Boss/Msg/PeerStatistics.hpp \
 	Boss/Msg/PreinvestigateChannelCandidates.hpp \
 	Boss/Msg/ProposeChannelCandidates.hpp \
 	Boss/Msg/ProposeConnectCandidates.hpp \
@@ -215,9 +218,11 @@ libclboss_la_SOURCES = \
 	Boss/Msg/RequestConnect.hpp \
 	Boss/Msg/RequestListpays.hpp \
 	Boss/Msg/RequestNewaddr.hpp \
+	Boss/Msg/RequestPeerStatistics.hpp \
 	Boss/Msg/ResponseConnect.hpp \
 	Boss/Msg/ResponseListpays.hpp \
 	Boss/Msg/ResponseNewaddr.hpp \
+	Boss/Msg/ResponsePeerStatistics.hpp \
 	Boss/Msg/SendpayResult.hpp \
 	Boss/Msg/SetChannelFee.hpp \
 	Boss/Msg/SolicitChannelCandidates.hpp \

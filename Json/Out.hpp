@@ -3,6 +3,7 @@
 
 #include"Jsmn/Detail/Str.hpp"
 #include"Jsmn/Object.hpp"
+#include<cstddef>
 #include<cstdint>
 #include<iomanip>
 #include<memory>
@@ -119,6 +120,12 @@ template<std::size_t n>
 struct Serializer<char [n]> {
 	static std::string serialize(char const v[n]) {
 		return "\"" + Jsmn::Detail::Str::to_escaped(v) + "\"";
+	}
+};
+template<>
+struct Serializer<std::nullptr_t> {
+	static std::string serialize(std::nullptr_t _) {
+		return "null";
 	}
 };
 

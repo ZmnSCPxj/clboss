@@ -128,6 +128,24 @@ struct Serializer<std::nullptr_t> {
 		return "null";
 	}
 };
+template<typename a>
+struct Serializer<std::unique_ptr<a>> {
+	static std::string serialize(std::unique_ptr<a> const& p) {
+		if (!p)
+			return "null";
+		else
+			return Serializer<a>::serialize(*p);
+	}
+};
+template<typename a>
+struct Serializer<std::shared_ptr<a>> {
+	static std::string serialize(std::shared_ptr<a> const& p) {
+		if (!p)
+			return "null";
+		else
+			return Serializer<a>::serialize(*p);
+	}
+};
 
 template<typename Up>
 class Object {

@@ -1,6 +1,7 @@
 #include"Boss/Mod/PeerStatistician.hpp"
 #include"Boss/Msg/DbResource.hpp"
 #include"Boss/Msg/ForwardFee.hpp"
+#include"Boss/Msg/InternetOnline.hpp"
 #include"Boss/Msg/ListpeersAnalyzedResult.hpp"
 #include"Boss/Msg/RequestPeerStatistics.hpp"
 #include"Boss/Msg/ResponsePeerStatistics.hpp"
@@ -129,7 +130,15 @@ private:
 
 	Sqlite3::Db db;
 
+	bool online;
+
 	void start() {
+		online = false;
+		bus.subscribe<Msg::InternetOnline
+			     >([this](Msg::InternetOnline const& m) {
+			online = m.online;
+			return Ev::lift();
+		});
 		bus.subscribe<Msg::DbResource
 			     >([this](Msg::DbResource const& m) {
 			db = m.db;
@@ -157,6 +166,10 @@ private:
 			 * should not blame (lower the score of) the peers.
 			 */
 			if (r.initial)
+				return Ev::lift();
+			/* Similarly, if *we* are offline, do not demerit
+			 * our peers!  */
+			if (!online)
 				return Ev::lift();
 
 			return db.transact().then([this, r](Sqlite3::Tx tx) {

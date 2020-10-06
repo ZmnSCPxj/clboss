@@ -88,14 +88,16 @@ private:
 		auto mets = Msg::PeerMetrics();
 		auto time = stats.end_time - stats.start_time;
 		mets.age = stats.age;
-		mets.seconds_per_attempt = stats.lockrealtime
-					 / double(stats.attempts)
-					 ;
 		if (stats.attempts > 0) {
+			mets.seconds_per_attempt = stats.lockrealtime
+						 / double(stats.attempts)
+						 ;
 			mets.success_per_attempt = Util::make_unique<double>();
 			*mets.success_per_attempt = double(stats.successes)
 						  / double(stats.attempts)
 						  ;
+		} else {
+			mets.seconds_per_attempt = 0;
 		}
 		mets.success_per_day = (double(stats.successes) * 86400)
 				     / time

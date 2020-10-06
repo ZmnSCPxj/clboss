@@ -523,7 +523,7 @@ private:
 			     ;
 			)QRY")
 				.bind(":start_time", start_time)
-				.bind(":end_time", start_time)
+				.bind(":end_time", end_time)
 				.execute()
 				;
 			for (auto& r : sendpays) {
@@ -544,7 +544,7 @@ private:
 			     ;
 			)QRY")
 				.bind(":start_time", start_time)
-				.bind(":end_time", start_time)
+				.bind(":end_time", end_time)
 				.execute()
 				;
 			for (auto& r : connects) {
@@ -564,7 +564,7 @@ private:
 			     ;
 			)QRY")
 				.bind(":start_time", start_time)
-				.bind(":end_time", start_time)
+				.bind(":end_time", end_time)
 				.execute()
 				;
 			for (auto& r : fees) {

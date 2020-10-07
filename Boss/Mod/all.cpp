@@ -39,6 +39,7 @@
 #include"Boss/Mod/PeerMetrician.hpp"
 #include"Boss/Mod/PeerStatistician.hpp"
 #include"Boss/Mod/Reconnector.hpp"
+#include"Boss/Mod/RegularActiveProbe.hpp"
 #include"Boss/Mod/SendpayResultMonitor.hpp"
 #include"Boss/Mod/StatusCommand.hpp"
 #include"Boss/Mod/SwapManager.hpp"
@@ -149,6 +150,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<PeerStatistician>(bus);
 	all->install<PeerMetrician>(bus);
 	all->install<ActiveProber>(bus, *investigator);
+	all->install<RegularActiveProbe>(bus);
 
 	return all;
 }

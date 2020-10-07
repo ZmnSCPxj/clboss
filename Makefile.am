@@ -160,6 +160,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/PeerStatistician.hpp \
 	Boss/Mod/Reconnector.cpp \
 	Boss/Mod/Reconnector.hpp \
+	Boss/Mod/RegularActiveProbe.cpp \
+	Boss/Mod/RegularActiveProbe.hpp \
 	Boss/Mod/Rpc.cpp \
 	Boss/Mod/Rpc.hpp \
 	Boss/Mod/SendpayResultMonitor.cpp \

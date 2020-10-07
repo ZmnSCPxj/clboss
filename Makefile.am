@@ -56,6 +56,8 @@ libclboss_la_SOURCES = \
 	Boss/JsonInput.hpp \
 	Boss/Main.cpp \
 	Boss/Main.hpp \
+	Boss/Mod/ActiveProber.cpp \
+	Boss/Mod/ActiveProber.hpp \
 	Boss/Mod/AutoDisconnector.cpp \
 	Boss/Mod/AutoDisconnector.hpp \
 	Boss/Mod/BlockTracker.cpp \
@@ -209,6 +211,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/PeerMetrics.hpp \
 	Boss/Msg/PeerStatistics.hpp \
 	Boss/Msg/PreinvestigateChannelCandidates.hpp \
+	Boss/Msg/ProbeActively.hpp \
 	Boss/Msg/ProposeChannelCandidates.hpp \
 	Boss/Msg/ProposeConnectCandidates.hpp \
 	Boss/Msg/ProposePatronlessChannelCandidate.hpp \

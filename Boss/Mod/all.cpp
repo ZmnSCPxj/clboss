@@ -1,3 +1,4 @@
+#include"Boss/Mod/ActiveProber.hpp"
 #include"Boss/Mod/AutoDisconnector.hpp"
 #include"Boss/Mod/BlockTracker.hpp"
 #include"Boss/Mod/BoltzSwapper/Main.hpp"
@@ -147,6 +148,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ForwardFeeMonitor>(bus);
 	all->install<PeerStatistician>(bus);
 	all->install<PeerMetrician>(bus);
+	all->install<ActiveProber>(bus, *investigator);
 
 	return all;
 }

@@ -53,7 +53,7 @@ auto const min_channels_to_disable = size_t(4);
  * is less than this, go to sleep and try again
  * later.
  */
-auto const min_nodes_to_process = size_t(200);
+auto const min_nodes_to_process = size_t(800);
 
 /** seconds_after_connect
  *

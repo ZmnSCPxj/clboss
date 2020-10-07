@@ -70,6 +70,9 @@ public:
 
 	/* Formal factory.  */
 	friend class Parser;
+
+	/* Access text directly, not recommended.  */
+	std::string direct_text() const;
 };
 
 std::ostream& operator<<(std::ostream&, Jsmn::Object const&);

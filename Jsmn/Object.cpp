@@ -78,6 +78,11 @@ public:
 		return Detail::Str::to_double(at(tok.start, tok.end));
 	}
 
+	std::string direct_text() const {
+		auto& tok = token();
+		return at(tok.start, tok.end);
+	}
+
 	/* Object/Array.  */
 	std::size_t size() const {
 		auto& tok = token();
@@ -250,6 +255,12 @@ Object Object::operator[](std::size_t i) const {
 	return ret;
 }
 
+std::string Object::direct_text() const {
+	if (!pimpl)
+		throw TypeError();
+	return pimpl->direct_text();
+}
+
 /* Implements indented printing.  */
 namespace {
 
@@ -307,7 +318,7 @@ void print( std::ostream& os
 			os << ']';
 		}
 	} else if (o.is_number()) {
-		os << Detail::Str::from_double((double) o);
+		os << o.direct_text();
 	} else {
 		/* Impossible. */
 		assert(0 == 1);

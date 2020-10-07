@@ -378,7 +378,7 @@ private:
 			auto os = std::ostringstream();
 			os << chan0;
 			for (auto i = std::size_t(0); i < route.size(); ++i)
-				os << " " << route[i]["channel"];
+				os << " " << std::string(route[i]["channel"]);
 			return Boss::log( bus, Debug
 					, "ActiveProber: Probe %s by route %s."
 					, std::string(peer).c_str()

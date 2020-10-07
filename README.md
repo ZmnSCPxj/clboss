@@ -33,6 +33,9 @@ Debian-derived systems:
 * `libcurl4-gnutls-dev`
 * `libsqlite3-dev`
 
+Equivalent packages have a good probability of existing in
+non-Debian-derived distributions as well.
+
 The following dependency is technically optional, but is strongly
 recommended (CLBOSS will check it at runtime so you do not need
 it while building):
@@ -54,7 +57,8 @@ Installing
 
 From an official source release, just:
 
-    ./configure && make && make install
+    ./configure && make
+    sudo make install # or su first, then make install
 
 This will install `clboss` as a standard executable, usually in
 `/usr/local/bin/` by default.
@@ -66,4 +70,4 @@ From a git clone, you first need to execute:
 
     autoreconf -i
 
-Then run the `./configure && make && make install`.
+Then run the `./configure && make && sudo make install`.

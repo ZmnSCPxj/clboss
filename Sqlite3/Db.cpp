@@ -32,6 +32,20 @@ public:
 				msg
 			);
 		}
+		res = sqlite3_exec( connection, "PRAGMA foreign_keys = ON;"
+				  , NULL, NULL, NULL
+				  );
+		if (res != SQLITE_OK) {
+			auto msg = std::string(sqlite3_errmsg(connection));
+			sqlite3_close_v2(connection);
+			connection = nullptr;
+			throw std::runtime_error(
+				std::string("Sqlite3::Db: "
+					    "PRAGMA foreign_keys = ON: "
+					   ) +
+				msg
+			);
+		}
 	}
 	~Impl() {
 		if (connection)

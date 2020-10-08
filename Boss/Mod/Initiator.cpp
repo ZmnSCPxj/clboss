@@ -208,7 +208,6 @@ public:
 			}).then([this](Sqlite3::Tx tx) {
 				tx.query_execute("PRAGMA application_id = 0x424F5353;");
 				tx.query_execute("PRAGMA user_version = 0x2020434C;");
-				tx.query_execute("PRAGMA foreign_keys = ON;");
 				tx.commit();
 				return Boss::log( bus, Debug
 						, "Database file opened."

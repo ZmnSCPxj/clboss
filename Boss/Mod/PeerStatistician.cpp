@@ -251,6 +251,10 @@ private:
 			       "PeerStatistician_sendpayresults_timeidx"
 			    ON "PeerStatistician_sendpayresults"
 			       (creation);
+			CREATE INDEX IF NOT EXISTS
+			       "PeerStatistician_sendpayresults_ididx"
+			    ON "PeerStatistician_sendpayresults"
+			       (id);
 
 			CREATE TABLE IF NOT EXISTS
 			       "PeerStatistician_connection"
@@ -267,6 +271,10 @@ private:
 			       "PeerStatistician_connection_timeidx"
 			    ON "PeerStatistician_connection"
 			       (creation);
+			CREATE INDEX IF NOT EXISTS
+			       "PeerStatistician_connection_ididx"
+			    ON "PeerStatistician_connection"
+			       (id);
 
 			CREATE TABLE IF NOT EXISTS
 			       "PeerStatistician_forwardfees"
@@ -293,6 +301,14 @@ private:
 			       "PeerStatistician_forwardfees_timeidx"
 			    ON "PeerStatistician_forwardfees"
 			       (creation);
+			CREATE INDEX IF NOT EXISTS
+			       "PeerStatistician_forwardfees_inididx"
+			    ON "PeerStatistician_forwardfees"
+			       (in_id);
+			CREATE INDEX IF NOT EXISTS
+			       "PeerStatistician_forwardfees_outididx"
+			    ON "PeerStatistician_forwardfees"
+			       (out_id);
 			)QRY");
 			/* Here are the things we want to derive from
 			the above data:

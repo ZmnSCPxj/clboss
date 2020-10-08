@@ -1,4 +1,5 @@
 #include"Boss/Mod/CommandReceiver.hpp"
+#include"Boss/Msg/CommandFail.hpp"
 #include"Boss/Msg/CommandRequest.hpp"
 #include"Boss/Msg/CommandResponse.hpp"
 #include"Boss/Msg/JsonCin.hpp"
@@ -55,6 +56,26 @@ CommandReceiver::CommandReceiver(S::Bus& bus_) : bus(bus_) {
 				.field("jsonrpc", std::string("2.0"))
 				.field("id", double(resp.id))
 				.field("result", resp.response)
+			.end_object()
+			;
+		return bus.raise(Boss::Msg::JsonCout{std::move(js)});
+	});
+	bus.subscribe<Boss::Msg::CommandFail>([this](Boss::Msg::CommandFail const& fail) {
+		/* If not a pending command, ignore.  */
+		auto it = pendings.find(fail.id);
+		if (it == pendings.end())
+			return Ev::lift();
+		pendings.erase(it);
+		/* Construct the JSON result.  */
+		auto js = Json::Out()
+			.start_object()
+				.field("jsonrpc", std::string("2.0"))
+				.field("id", double(fail.id))
+				.start_object("error")
+					.field("code", fail.code)
+					.field("message", fail.message)
+					.field("data", fail.data)
+				.end_object()
 			.end_object()
 			;
 		return bus.raise(Boss::Msg::JsonCout{std::move(js)});

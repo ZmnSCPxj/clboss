@@ -186,6 +186,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/Block.hpp \
 	Boss/Msg/ChannelCreateResult.hpp \
 	Boss/Msg/ChannelFunds.hpp \
+	Boss/Msg/CommandFail.hpp \
 	Boss/Msg/CommandRequest.hpp \
 	Boss/Msg/CommandResponse.hpp \
 	Boss/Msg/DbResource.hpp \

@@ -1,19 +1,26 @@
 #include"Boss/Mod/PeerStatistician.hpp"
+#include"Boss/Msg/CommandFail.hpp"
+#include"Boss/Msg/CommandRequest.hpp"
+#include"Boss/Msg/CommandResponse.hpp"
 #include"Boss/Msg/DbResource.hpp"
 #include"Boss/Msg/ForwardFee.hpp"
 #include"Boss/Msg/InternetOnline.hpp"
 #include"Boss/Msg/ListpeersAnalyzedResult.hpp"
+#include"Boss/Msg/ManifestCommand.hpp"
+#include"Boss/Msg/Manifestation.hpp"
 #include"Boss/Msg/RequestPeerStatistics.hpp"
 #include"Boss/Msg/ResponsePeerStatistics.hpp"
 #include"Boss/Msg/SendpayResult.hpp"
 #include"Boss/Msg/TimerRandomDaily.hpp"
 #include"Boss/concurrent.hpp"
+#include"Boss/log.hpp"
 #include"Ev/Io.hpp"
 #include"Ev/now.hpp"
 #include"Ln/NodeId.hpp"
 #include"S/Bus.hpp"
-#include"Util/make_unique.hpp"
+#include"Sha256/Hash.hpp"
 #include"Sqlite3.hpp"
+#include"Util/make_unique.hpp"
 #include<vector>
 
 /*
@@ -61,15 +68,16 @@ Thus, we can only use:
     The peer would have to fail those invoices,
     and that would artificially reduce reasonable
     metrics of that peer.
-  * So we support a `clboss-ignorepay` command,
+  * So we support a `clboss-externpay` command,
     which you have to issue *before* performing a
     `pay` from an invoice provided by one of your
     victims.
     This tells CLBOSS that a `pay` command with
     specific hash (which you can extract by
     `decodepay`) was not performed by your own
-    volition (i.e. third-party gameable) and should
-    be ignored by the peer statistician.
+    volition (i.e. third-party gameable, i.e.
+    "external") and should be ignored by the peer
+    statistician.
 * Fees earned from successful forwards.
   * Number of successful forwards is gameable, by
     paying tiny inconsequential amounts.
@@ -207,6 +215,47 @@ private:
 					       + get_stats(r)
 					       );
 		});
+
+		bus.subscribe<Msg::Manifestation
+			     >([this](Msg::Manifestation const& _) {
+			return bus.raise(Msg::ManifestCommand{
+				"clboss-externpay", "payment_hash",
+				"Inform CLBOSS that a future `pay` command "
+				"with the given `payment_hash` is ontrolled "
+				"by a third party that might have incentive "
+				"to damage the metrics of our peers. "
+				"Relevant only to custodial services.",
+				false
+			});
+		});
+		bus.subscribe<Msg::CommandRequest
+			     >([this](Msg::CommandRequest const& c) {
+			if (c.command != "clboss-externpay")
+				return Ev::lift();
+			auto hash_j = Jsmn::Object();
+			if (c.params.is_array() && c.params.size() == 1)
+				hash_j = c.params[0];
+			else if ( c.params.is_object()
+			       && c.params.has("payment_hash")
+				)
+				hash_j = c.params["payment_hash"];
+			if ( !hash_j.is_string()
+			  || !Sha256::Hash::valid_string(std::string(hash_j))
+			   )
+				return bus.raise(Msg::CommandFail{
+					c.id, -32602,
+					"Need valid `payment_hash` parameter",
+					Json::Out::empty_object()
+				});
+			auto hash = Sha256::Hash(std::string(hash_j));
+			auto act = wait_db_available()
+				 + externpay(hash)
+				 + bus.raise(Msg::CommandResponse{
+					c.id, Json::Out::empty_object()
+				   })
+				 ;
+			return Boss::concurrent(act);
+		});
 	}
 
 	Ev::Io<void>
@@ -309,6 +358,16 @@ private:
 			       "PeerStatistician_forwardfees_outididx"
 			    ON "PeerStatistician_forwardfees"
 			       (out_id);
+
+			CREATE TABLE IF NOT EXISTS
+			       "PeerStatistician_externpays"
+			     ( hash TEXT PRIMARY KEY
+			     , creation REAL NOT NULL
+			     );
+			CREATE INDEX IF NOT EXISTS
+			       "PeerStatistician_externpays_timeidx"
+			    ON "PeerStatistician_externpays"
+			       (creation);
 			)QRY");
 			/* Here are the things we want to derive from
 			the above data:
@@ -390,6 +449,14 @@ private:
 				.bind(":max_age", max_entry_age)
 				.bind(":now", Ev::now())
 				.execute();
+			tx.query(R"QRY(
+			DELETE FROM "PeerStatistician_externpays"
+			 WHERE creation + :max_age < :now
+			     ;
+			)QRY")
+				.bind(":max_age", max_entry_age)
+				.bind(":now", Ev::now())
+				.execute();
 
 			tx.commit();
 			return Ev::lift();
@@ -415,13 +482,37 @@ private:
 		auto id = r.first_hop;
 		auto creation = Ev::now();
 		auto lockrealtime = r.completion_time - r.creation_time;
+		auto payment_hash = r.payment_hash;
 		auto destination_reached = r.reached_destination;
 		return db.transact().then([ this
 					  , id
 					  , creation
 					  , lockrealtime
+					  , payment_hash
 					  , destination_reached
 					  ](Sqlite3::Tx tx) {
+			auto check = tx.query(R"QRY(
+			SELECT 1 FROM "PeerStatistician_externpays"
+			WHERE hash = :hash
+			    ;
+			)QRY")
+				.bind(":hash", std::string(payment_hash))
+				.execute()
+				;
+			auto in_externpays = false;
+			for (auto& r : check) {
+				(void) r;
+				in_externpays = true;
+			}
+			if (in_externpays)
+				return Boss::log( bus, Debug
+						, "PeerStatistician: Ignore "
+						  "result of external "
+						  "payment hash %s."
+						, std::string(payment_hash)
+							.c_str()
+						);
+
 			make_entry(tx, id);
 			tx.query(R"QRY(
 			INSERT INTO "PeerStatistician_sendpayresults"
@@ -650,6 +741,25 @@ private:
 		entry.out_fee = Ln::Amount::sat(0);
 
 		return entry;
+	}
+
+	/* Called by `clboss-externpay` command.  */
+	Ev::Io<void> externpay(Sha256::Hash const& hash) {
+		return db.transact().then([this, hash](Sqlite3::Tx tx) {
+			tx.query(R"QRY(
+			INSERT OR REPLACE
+			  INTO "PeerStatistician_externpays"
+			VALUES( :hash
+			      , :creation
+			      );
+			)QRY")
+				.bind(":hash", std::string(hash))
+				.bind(":creation", Ev::now())
+				.execute()
+				;
+			tx.commit();
+			return Ev::lift();
+		});
 	}
 
 public:

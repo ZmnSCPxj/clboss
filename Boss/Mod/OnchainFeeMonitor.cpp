@@ -226,6 +226,7 @@ private:
 				return report_fee("Periodic: fee unknown, retaining");
 
 			*saved_feerate = *feerate;
+			last_feerate = std::move(feerate);
 
 			return db.transact().then([ this
 						  , saved_feerate

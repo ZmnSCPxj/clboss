@@ -79,6 +79,21 @@ private:
 				       IF NOT EXISTS "SendpayResultMonitor_idx"
 				    ON "SendpayResultMonitor"
 				       (payment_hash, partid);
+
+				CREATE TABLE IF NOT EXISTS
+				       "SendpayResultMonitor_rl"
+				      ( payment_hash TEXT NOT NULL
+				      , partid INTEGER NOT NULL
+				      , route_len INTEGER NOT NULL
+				      , FOREIGN KEY(payment_hash, partid)
+					REFERENCES "SendpayResultMonitor"
+					(payment_hash, partid)
+					ON DELETE CASCADE
+				      );
+				CREATE UNIQUE INDEX IF NOT EXISTS
+				       "SendpayResultMonitor_rlidx"
+				    ON "SendpayResultMonitor_rl"
+				       (payment_hash, partid);
 				)QRY");
 				tx.commit();
 				return Ev::lift();
@@ -165,11 +180,14 @@ private:
 		auto first_hop_j = Jsmn::Object();
 		auto payment_hash_j = Jsmn::Object();
 		auto partid_j = Jsmn::Object();
+		auto shared_secrets_j = Jsmn::Object();
 		if (params.is_array() && params.size() >= 3) {
 			first_hop_j = params[1];
 			payment_hash_j = params[2];
 			if (params.size() >= 6)
 				partid_j = params[5];
+			if (params.size() >= 5)
+				shared_secrets_j = params[4];
 		} else if (params.is_object()) {
 			if (params.has("first_hop"))
 				first_hop_j = params["first_hop"];
@@ -177,10 +195,18 @@ private:
 				payment_hash_j = params["payment_hash"];
 			if (params.has("partid"))
 				partid_j = params["partid"];
+			if (params.has("shared_secrets"))
+				shared_secrets_j = params["shared_secrets"];
 		}
+		auto len = std::unique_ptr<std::size_t>();
+		if (shared_secrets_j.is_array())
+			len = Util::make_unique<std::size_t>(
+				shared_secrets_j.size()
+			);
 		return record_pending_sendpay_j( payment_hash_j
 					       , partid_j
 					       , first_hop_j
+					       , std::move(len)
 					       );
 	}
 	Ev::Io<void>
@@ -206,16 +232,19 @@ private:
 		   )
 			return Ev::lift();
 		auto first_hop_j = route_j[0];
+		auto len = Util::make_unique<std::size_t>(route_j.size());
 
 		return record_pending_sendpay_j( payment_hash_j
 					       , partid_j
 					       , first_hop_j
+					       , std::move(len)
 					       );
 	}
 	Ev::Io<void>
 	record_pending_sendpay_j( Jsmn::Object const& payment_hash_j
 				, Jsmn::Object const& partid_j
 				, Jsmn::Object const& first_hop_j
+				, std::unique_ptr<std::size_t> route_len
 				) {
 		/* Params come from external, so do not get fooled.  */
 		if ( first_hop_j.is_object()
@@ -240,6 +269,7 @@ private:
 			return record_pending_sendpay( std::move(payment_hash)
 						     , partid
 						     , std::move(first_hop)
+						     , std::move(route_len)
 						     );
 		}
 		return Ev::lift();
@@ -248,11 +278,17 @@ private:
 	record_pending_sendpay( Sha256::Hash payment_hash
 			      , std::uint32_t partid
 			      , Ln::NodeId first_hop
+			      , std::unique_ptr<std::size_t> n_route_len
 			      ) {
+		/* Promote unique pointer to shared for easier copying.  */
+		auto route_len = std::shared_ptr<std::size_t>(
+			std::move(n_route_len)
+		);
 		return db.transact().then([ this
 					  , payment_hash
 					  , partid
 					  , first_hop
+					  , route_len
 					  ](Sqlite3::Tx tx) {
 			tx.query(R"QRY(
 			INSERT OR REPLACE
@@ -273,14 +309,35 @@ private:
 				.bind(":creation", Ev::now())
 				.execute()
 				;
+			if (route_len) {
+				tx.query(R"QRY(
+				INSERT OR REPLACE
+				  INTO "SendpayResultMonitor_rl"
+				VALUES( :payment_hash
+				      , :partid
+				      , :route_len
+				      );
+				)QRY")
+					.bind( ":payment_hash"
+					     , std::string(payment_hash)
+					     )
+					.bind(":partid" , partid)
+					.bind(":route_len", *route_len)
+					.execute()
+					;
+			}
 			tx.commit();
 			return Boss::log( bus, Debug
 					, "SendpayResultMonitor: "
 					  "Monitoring %s part %" PRIu64
-					  " peer %s."
+					  " peer %s route_len %s."
 					, std::string(payment_hash).c_str()
 					, partid
 					, std::string(first_hop).c_str()
+					, route_len ?
+						Util::stringify(*route_len)
+							.c_str() :
+						"unknown"
 					);
 		});
 	}
@@ -310,20 +367,41 @@ private:
 		 */
 		auto reached_destination = ((double) code) == 203;
 
+		/* Shortcut the below.  */
+		if (reached_destination)
+			return on_sendpay_resolve( data
+						 , false
+						 , reached_destination
+						 , 0
+						 );
+
+		/* Some errors at the destination, such as
+		 * `mpp_timeout`, are not permanent, and would
+		 * not trigger `PAY_DESTINATION_PERM_FAIL`.
+		 * We can detect them by checking for route length.
+		 */
+		if (!data.has("erring_index"))
+			return Ev::lift();
+		auto erring_index_j = data["erring_index"];
+		if (!erring_index_j.is_number())
+			return Ev::lift();
+		auto erring_index = std::size_t(double(erring_index_j));
 		return on_sendpay_resolve( data
 					 , false
 					 , reached_destination
+					 , erring_index
 					 );
 	}
 	Ev::Io<void> on_sendpay_success(Jsmn::Object const& params) {
 		if (!params.is_object() || !params.has("sendpay_success"))
 			return Ev::lift();
 		auto payload = params["sendpay_success"];
-		return on_sendpay_resolve(payload, true, true);
+		return on_sendpay_resolve(payload, true, true, 0);
 	}
 	Ev::Io<void> on_sendpay_resolve( Jsmn::Object const& data
 				       , bool success
 				       , bool reached_destination
+				       , std::size_t erring_index
 				       ) {
 		if (!data.has("payment_hash"))
 			return Ev::lift();
@@ -341,34 +419,38 @@ private:
 					  , partid
 					  , success
 					  , reached_destination
+					  , erring_index
 					  ](Sqlite3::Tx tx) {
-			auto fetch = tx.query(R"QRY(
-			SELECT first_hop, creation
-			  FROM "SendpayResultMonitor"
-			 WHERE payment_hash = :payment_hash
-			   AND partid = :partid
-			     ;
-			)QRY")
-				.bind( ":payment_hash"
-				     , std::string(payment_hash)
-				     )
-				.bind(":partid", partid)
-				.execute();
-
 			auto first_hop = Ln::NodeId();
 			auto creation = double();
-			auto found = false;
-			for (auto& r : fetch) {
-				first_hop = Ln::NodeId(
-					r.get<std::string>(0)
-				);
-				creation = r.get<double>(1);
-				found = true;
-			}
+			auto route_len = std::unique_ptr<std::size_t>();
+			auto found = get_sendpay_data( tx
+						     , payment_hash
+						     , partid
+
+						     , first_hop
+						     , creation
+						     , route_len
+						     );
 
 			if (!found)
 				/* Do nothing.  */
 				return Ev::lift();
+
+			auto real_reached_destination = reached_destination;
+			if (!reached_destination && route_len)
+				/* If the erring index is at the destination,
+				 * we actually did in fact reach the
+				 * destination.
+				 * Use <= in case in the future rendezvous
+				 * routing somehow gets implemented.
+				 * That would mean we would not know the
+				 * shared secrets within the postfix, and
+				 * as far as we know the route length is
+				 * only up to the rendezvous point.
+				 */
+				if (*route_len <= erring_index)
+					real_reached_destination = true;
 
 			/* Remove it.  */
 			tx.query(R"QRY(
@@ -388,14 +470,19 @@ private:
 			act += Boss::log( bus, Debug
 					, "SendpayResultMonitor: "
 					  "Resolved %s part %" PRIu64
-					  " peer %s: %s, %s"
+					  " peer %s: %s, %s%s"
 					, std::string(payment_hash).c_str()
 					, partid
 					, std::string(first_hop).c_str()
 					, success ? "success" : "failure"
-					, reached_destination ?
+					, real_reached_destination ?
 						"reached destination" :
 						"destination not reached"
+					, reached_destination ? "" :
+						( std::string(", ")
+						+ "erring_index: "
+						+ Util::stringify(erring_index)
+						).c_str()
 					);
 			act += bus.raise(Msg::SendpayResult{
 					creation,
@@ -404,10 +491,64 @@ private:
 					std::move(payment_hash),
 					partid,
 					success,
-					reached_destination
+					real_reached_destination
 			       });
 			return act;
 		});
+	}
+
+	bool get_sendpay_data( Sqlite3::Tx& tx
+			     , Sha256::Hash const& payment_hash
+			     , std::uint64_t partid
+			     /* Data to extract.  */
+			     , Ln::NodeId& first_hop
+			     , double& creation
+			     , std::unique_ptr<std::size_t>& route_len
+			     ) {
+		auto fetch = tx.query(R"QRY(
+		SELECT first_hop, creation
+		  FROM "SendpayResultMonitor"
+		 WHERE payment_hash = :payment_hash
+		   AND partid = :partid
+		     ;
+		)QRY")
+			.bind( ":payment_hash"
+			     , std::string(payment_hash)
+			     )
+			.bind(":partid", partid)
+			.execute();
+
+		auto found = false;
+		for (auto& r : fetch) {
+			first_hop = Ln::NodeId(
+				r.get<std::string>(0)
+			);
+			creation = r.get<double>(1);
+			found = true;
+		}
+
+		if (!found)
+			return false;
+
+		auto fetch2 = tx.query(R"QRY(
+		SELECT route_len
+		  FROM "SendpayResultMonitor_rl"
+		 WHERE payment_hash = :payment_hash
+		   AND partid = :partid
+		     ;
+		)QRY")
+			.bind( ":payment_hash"
+			     , std::string(payment_hash)
+			     )
+			.bind(":partid", partid)
+			.execute();
+		/* This could return empty, i.e. from old database.  */
+		for (auto& r : fetch2)
+			route_len = Util::make_unique<std::size_t>(
+				r.get<std::size_t>(0)
+			);
+
+		return found;
 	}
 
 	Ev::Io<void> on_periodic() {

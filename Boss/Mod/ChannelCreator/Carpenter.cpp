@@ -239,7 +239,7 @@ Carpenter::report_channelings(std::queue<Ln::NodeId> nodes, bool ok) {
 		if (pq->empty())
 			return Ev::lift();
 		return bus.raise(Msg::ChannelCreateResult{
-			std::move(pq->front()), ok
+			pq->front(), ok
 		}).then([this, pq, ok](){
 			return Boss::log( bus, Debug
 					, "ChannelCreator: %s %s."

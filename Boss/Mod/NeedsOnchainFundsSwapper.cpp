@@ -7,6 +7,15 @@
 #include"Util/make_unique.hpp"
 #include<sstream>
 
+namespace {
+
+/* Simple way to avoid waffling when the onchain funds left varies
+ * due to low fees.
+ */
+auto const max_needed = Ln::Amount::sat(0.01);
+
+}
+
 namespace Boss { namespace Mod {
 
 class NeedsOnchainFundsSwapper::Impl : ModG::Swapper {
@@ -38,6 +47,14 @@ private:
 				  ) {
 				if (!*fees_low) {
 					message = "Onchain fees high";
+					return false;
+				}
+				if (needed > max_needed) {
+					message = std::string("Needed amount ")
+						+ std::string(needed)
+						+ "exceeds maximum "
+						+ std::string(max_needed)
+						;
 					return false;
 				}
 

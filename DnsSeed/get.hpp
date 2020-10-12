@@ -26,6 +26,7 @@ Ev::Io<std::string> can_get();
  * Requires the `dig` command.
  */
 Ev::Io<std::vector<std::string>> get( std::string const& seed
+				    , std::string const& resolver = "1.0.0.1"
 				    );
 
 }

@@ -12,14 +12,17 @@
 #include"Util/make_unique.hpp"
 #include<map>
 #include<string>
+#include<utility>
 #include<vector>
 
 namespace {
 
 auto const all_dnsseeds =
-	std::map<Boss::Msg::Network, std::vector<std::string>>
-{ {Boss::Msg::Network_Bitcoin, { "lseed.bitcoinstats.com"
-			       /*, "lseed.darosior.ninja" */
+	std::map<Boss::Msg::Network, std::vector<std::pair< std::string
+							  , std::string
+							  >>>
+{ {Boss::Msg::Network_Bitcoin, { {"1.0.0.1", "lseed.bitcoinstats.com"}
+			       , {"8.8.8.8", "lseed.darosior.ninja"}
 			       }}
 };
 /*
@@ -85,7 +88,7 @@ class ConnectFinderByDns::Impl {
 private:
 	S::Bus& bus;
 
-	std::vector<std::string> const* dnsseeds;
+	std::vector<std::pair<std::string, std::string>> const* dnsseeds;
 
 	void start() {
 		bus.subscribe<Msg::Begin>([this](Msg::Begin const& _) {
@@ -135,7 +138,7 @@ private:
 		auto& seed = deck[i];
 
 		return DnsSeed::get(
-			seed
+			seed.second, seed.first
 		).then([this](std::vector<std::string> ns) {
 			return bus.raise(Msg::ProposeConnectCandidates{
 				std::move(ns)

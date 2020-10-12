@@ -17,6 +17,9 @@ int main() {
 			/* Nothing to check, mostly just a
 			 * "does not crash" test.  */
 
+			return DnsSeed::get("lseed.darosior.ninja", "8.8.8.8");
+		}).then([](std::vector<std::string> results) {
+
 			return Ev::lift(0);
 		});
 	});

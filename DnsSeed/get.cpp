@@ -34,15 +34,16 @@ Ev::Io<std::string> can_get() {
 }
 
 Ev::Io<std::vector<std::string>> get( std::string const& seed
+				    , std::string const& resolver
 				    ) {
-	/* The @1.0.0.1 means we use the CloudFlare resolver to
-	 * get DNS SRV queries.
-	 * Some ISPs have default resolvers which do not properly
+	/* Some ISPs have default resolvers which do not properly
 	 * handle SRV queries.
-	 * It seems in practice using @1.0.0.1 helps in most such
-	 * cases.
+	 * We thus require a resolver of some kind.
+	 * Generally this should be "1.0.0.1", but some DNS seeds
+	 * (darosior.ninja) need "8.8.8.8"
 	 */
-	return Ev::runcmd( "dig", {"@1.0.0.1", seed, "SRV"}
+	auto at_resolver = std::string("@") + resolver;
+	return Ev::runcmd( "dig", {std::move(at_resolver), seed, "SRV"}
 			 ).then([](std::string res) {
 		auto records = Detail::parse_dig_srv(std::move(res));
 

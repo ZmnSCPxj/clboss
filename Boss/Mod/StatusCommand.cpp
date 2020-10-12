@@ -28,7 +28,7 @@ void StatusCommand::start() {
 }
 Ev::Io<void> StatusCommand::on_manifest(Boss::Msg::Manifestation const&) {
 	return bus.raise(Msg::ManifestCommand{
-		"clboss-status", "Get CLBOSS status.", "Get CLBOSS status.",
+		"clboss-status", "", "Get CLBOSS status.",
 		false
 	});
 }

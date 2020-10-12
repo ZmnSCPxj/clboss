@@ -90,8 +90,6 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelCreationDecider.hpp \
 	Boss/Mod/ChannelCreator/Carpenter.cpp \
 	Boss/Mod/ChannelCreator/Carpenter.hpp \
-	Boss/Mod/ChannelCreator/Dowser.cpp \
-	Boss/Mod/ChannelCreator/Dowser.hpp \
 	Boss/Mod/ChannelCreator/Main.cpp \
 	Boss/Mod/ChannelCreator/Main.hpp \
 	Boss/Mod/ChannelCreator/Manager.cpp \

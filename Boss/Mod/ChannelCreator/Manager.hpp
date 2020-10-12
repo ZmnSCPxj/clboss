@@ -1,6 +1,9 @@
 #ifndef BOSS_MOD_CHANNELCREATOR_MANAGER_HPP
 #define BOSS_MOD_CHANNELCREATOR_MANAGER_HPP
 
+#include"Boss/ModG/ReqResp.hpp"
+#include"Boss/Msg/RequestDowser.hpp"
+#include"Boss/Msg/ResponseDowser.hpp"
 #include"Ln/NodeId.hpp"
 
 namespace Boss { namespace Mod { namespace ChannelCandidateInvestigator {
@@ -30,6 +33,8 @@ private:
 	Boss::Mod::ChannelCreator::Carpenter& carpenter;
 	Ln::NodeId self;
 
+	ModG::ReqResp<Msg::RequestDowser, Msg::ResponseDowser> dowser;
+
 	void start();
 	Ev::Io<void> on_request_channel_creation(Ln::Amount);
 
@@ -47,6 +52,14 @@ public:
 		 , investigator(investigator_)
 		 , carpenter(carpenter_)
 		 , self()
+		 , dowser( bus
+			 , [](Msg::RequestDowser& r, void* p) {
+				r.requester = p;
+			   }
+			 , [](Msg::ResponseDowser& r) {
+				return r.requester;
+			   }
+			 )
 		 {
 		start();
 	}

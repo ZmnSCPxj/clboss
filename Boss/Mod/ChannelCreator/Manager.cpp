@@ -1,6 +1,5 @@
 #include"Boss/Mod/ChannelCandidateInvestigator/Main.hpp"
 #include"Boss/Mod/ChannelCreator/Carpenter.hpp"
-#include"Boss/Mod/ChannelCreator/Dowser.hpp"
 #include"Boss/Mod/ChannelCreator/Manager.hpp"
 #include"Boss/Mod/ChannelCreator/Planner.hpp"
 #include"Boss/Mod/Rpc.hpp"
@@ -82,11 +81,16 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 					 ) {
 			auto amount = std::make_shared<Ln::Amount>();
 
-			auto dowser = Dowser(*rpc, self, proposal, patron);
-			return dowser.run().then([ this, proposal, patron
-						 , amount
-						 ](Ln::Amount n_amount){
-				*amount = n_amount;
+			return Ev::lift().then([this, proposal, patron]() {
+				return dowser.execute(Msg::RequestDowser{
+					nullptr, proposal, patron
+				});
+			}).then([this
+				, amount
+				, proposal
+				, patron
+				](Msg::ResponseDowser resp) {
+				*amount = resp.amount;
 				return Boss::log( bus, Debug
 						, "ChannelCreator: "
 						  "Propose %s to %s "

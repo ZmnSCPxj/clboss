@@ -52,7 +52,7 @@ private:
 				if (needed > max_needed) {
 					message = std::string("Needed amount ")
 						+ std::string(needed)
-						+ "exceeds maximum "
+						+ " exceeds maximum "
 						+ std::string(max_needed)
 						;
 					return false;

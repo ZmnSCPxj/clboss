@@ -12,7 +12,7 @@ namespace {
 /* Simple way to avoid waffling when the onchain funds left varies
  * due to low fees.
  */
-auto const max_needed = Ln::Amount::sat(0.01);
+auto const max_needed = Ln::Amount::btc(0.01);
 
 }
 

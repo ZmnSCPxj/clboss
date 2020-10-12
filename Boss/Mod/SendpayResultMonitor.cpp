@@ -361,24 +361,13 @@ private:
 		auto code = payload["code"];
 		if (!code.is_number())
 			return Ev::lift();
-		/* Error code 203 is `PAY_DESTINATION_PERM_FAIL`,
-		 * meaning it reached the destination, but the
-		 * destination failed it.
-		 */
-		auto reached_destination = ((double) code) == 203;
 
-		/* Shortcut the below.  */
-		if (reached_destination)
-			return on_sendpay_resolve( data
-						 , false
-						 , reached_destination
-						 , 0
-						 );
-
-		/* Some errors at the destination, such as
+		/* We determine if we reached the destination
+		 * by checking the erring_index and seeing
+		 * if it is the correct path length.
+		 * Some errors at the destination, such as
 		 * `mpp_timeout`, are not permanent, and would
 		 * not trigger `PAY_DESTINATION_PERM_FAIL`.
-		 * We can detect them by checking for route length.
 		 */
 		if (!data.has("erring_index"))
 			return Ev::lift();
@@ -388,7 +377,6 @@ private:
 		auto erring_index = std::size_t(double(erring_index_j));
 		return on_sendpay_resolve( data
 					 , false
-					 , reached_destination
 					 , erring_index
 					 );
 	}
@@ -396,11 +384,10 @@ private:
 		if (!params.is_object() || !params.has("sendpay_success"))
 			return Ev::lift();
 		auto payload = params["sendpay_success"];
-		return on_sendpay_resolve(payload, true, true, 0);
+		return on_sendpay_resolve(payload, true, 0);
 	}
 	Ev::Io<void> on_sendpay_resolve( Jsmn::Object const& data
 				       , bool success
-				       , bool reached_destination
 				       , std::size_t erring_index
 				       ) {
 		if (!data.has("payment_hash"))
@@ -418,7 +405,6 @@ private:
 					  , payment_hash
 					  , partid
 					  , success
-					  , reached_destination
 					  , erring_index
 					  ](Sqlite3::Tx tx) {
 			auto first_hop = Ln::NodeId();
@@ -437,8 +423,8 @@ private:
 				/* Do nothing.  */
 				return Ev::lift();
 
-			auto real_reached_destination = reached_destination;
-			if (!reached_destination && route_len)
+			auto reached_destination = success;
+			if (!success && route_len)
 				/* If the erring index is at the destination,
 				 * we actually did in fact reach the
 				 * destination.
@@ -450,7 +436,7 @@ private:
 				 * only up to the rendezvous point.
 				 */
 				if (*route_len <= erring_index)
-					real_reached_destination = true;
+					reached_destination = true;
 
 			/* Remove it.  */
 			tx.query(R"QRY(
@@ -475,10 +461,10 @@ private:
 					, partid
 					, std::string(first_hop).c_str()
 					, success ? "success" : "failure"
-					, real_reached_destination ?
+					, reached_destination ?
 						"reached destination" :
 						"destination not reached"
-					, reached_destination ? "" :
+					, success ? "" :
 						( std::string(", ")
 						+ "erring_index: "
 						+ Util::stringify(erring_index)
@@ -491,7 +477,7 @@ private:
 					std::move(payment_hash),
 					partid,
 					success,
-					real_reached_destination
+					reached_destination
 			       });
 			return act;
 		});

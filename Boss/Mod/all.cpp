@@ -17,6 +17,7 @@
 #include"Boss/Mod/ConnectFinderByHardcode.hpp"
 #include"Boss/Mod/Connector.hpp"
 #include"Boss/Mod/CommandReceiver.hpp"
+#include"Boss/Mod/Dowser.hpp"
 #include"Boss/Mod/ForwardFeeMonitor.hpp"
 #include"Boss/Mod/HtlcAcceptor.hpp"
 #include"Boss/Mod/InitialConnect.hpp"
@@ -121,6 +122,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ChannelCreationDecider>(bus);
 	all->install<ChannelCreator::Main>(bus, *waiter, *investigator);
 	all->install<ChannelCandidateMatchmaker>(bus);
+	all->install<Dowser>(bus);
 
 	/* Status.  */
 	all->install<StatusCommand>(bus);

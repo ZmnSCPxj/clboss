@@ -114,6 +114,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ConnectFinderByHardcode.hpp \
 	Boss/Mod/Connector.cpp \
 	Boss/Mod/Connector.hpp \
+	Boss/Mod/Dowser.cpp \
+	Boss/Mod/Dowser.hpp \
 	Boss/Mod/ForwardFeeMonitor.cpp \
 	Boss/Mod/ForwardFeeMonitor.hpp \
 	Boss/Mod/HtlcAcceptor.cpp \
@@ -225,11 +227,13 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ReleaseHtlcAccepted.hpp \
 	Boss/Msg/RequestChannelCreation.hpp \
 	Boss/Msg/RequestConnect.hpp \
+	Boss/Msg/RequestDowser.hpp \
 	Boss/Msg/RequestListpays.hpp \
 	Boss/Msg/RequestNewaddr.hpp \
 	Boss/Msg/RequestPeerMetrics.hpp \
 	Boss/Msg/RequestPeerStatistics.hpp \
 	Boss/Msg/ResponseConnect.hpp \
+	Boss/Msg/ResponseDowser.hpp \
 	Boss/Msg/ResponseListpays.hpp \
 	Boss/Msg/ResponseNewaddr.hpp \
 	Boss/Msg/ResponsePeerMetrics.hpp \

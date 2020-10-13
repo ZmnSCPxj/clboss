@@ -5,6 +5,7 @@
 #include"Boss/Mod/ChannelCandidateInvestigator/Main.hpp"
 #include"Boss/Mod/ChannelCandidateMatchmaker.hpp"
 #include"Boss/Mod/ChannelCandidatePreinvestigator.hpp"
+#include"Boss/Mod/ChannelCreateDestroyMonitor.hpp"
 #include"Boss/Mod/ChannelCreationDecider.hpp"
 #include"Boss/Mod/ChannelCreator/Main.hpp"
 #include"Boss/Mod/ChannelFeeManager.hpp"
@@ -111,6 +112,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<OnchainFeeMonitor>(bus, *waiter);
 	all->install<ListfundsAnnouncer>(bus);
 	all->install<OnchainFundsAnnouncer>(bus);
+	all->install<ChannelCreateDestroyMonitor>(bus);
 
 	/* Channel creation wrangling.  */
 	all->install<ChannelFinderByDistance>(bus, *waiter);

@@ -86,6 +86,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelCandidateMatchmaker.hpp \
 	Boss/Mod/ChannelCandidatePreinvestigator.cpp \
 	Boss/Mod/ChannelCandidatePreinvestigator.hpp \
+	Boss/Mod/ChannelCreateDestroyMonitor.cpp \
+	Boss/Mod/ChannelCreateDestroyMonitor.hpp \
 	Boss/Mod/ChannelCreationDecider.cpp \
 	Boss/Mod/ChannelCreationDecider.hpp \
 	Boss/Mod/ChannelCreator/Carpenter.cpp \
@@ -185,6 +187,8 @@ libclboss_la_SOURCES = \
 	Boss/Msg/Begin.hpp \
 	Boss/Msg/Block.hpp \
 	Boss/Msg/ChannelCreateResult.hpp \
+	Boss/Msg/ChannelCreation.hpp \
+	Boss/Msg/ChannelDestruction.hpp \
 	Boss/Msg/ChannelFunds.hpp \
 	Boss/Msg/CommandFail.hpp \
 	Boss/Msg/CommandRequest.hpp \

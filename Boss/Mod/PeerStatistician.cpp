@@ -676,16 +676,16 @@ private:
 				;
 			for (auto& r : fees) {
 				auto in = Ln::NodeId(r.get<std::string>(0));
-				auto in_e = get_entry( tx, data, in
-						     , start_time, end_time
-						     );
+				auto& in_e = get_entry( tx, data, in
+						      , start_time, end_time
+						      );
 				in_e.in_fee += Ln::Amount::msat(
 					r.get<std::uint64_t>(2)
 				);
 				auto out = Ln::NodeId(r.get<std::string>(1));
-				auto out_e = get_entry( tx, data, out
-						      , start_time, end_time
-						      );
+				auto& out_e = get_entry( tx, data, out
+						       , start_time, end_time
+						       );
 				out_e.out_fee += Ln::Amount::msat(
 					r.get<std::uint64_t>(2)
 				);

@@ -116,6 +116,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Connector.hpp \
 	Boss/Mod/Dowser.cpp \
 	Boss/Mod/Dowser.hpp \
+	Boss/Mod/FeeModderBySize.cpp \
+	Boss/Mod/FeeModderBySize.hpp \
 	Boss/Mod/ForwardFeeMonitor.cpp \
 	Boss/Mod/ForwardFeeMonitor.hpp \
 	Boss/Mod/HtlcAcceptor.cpp \

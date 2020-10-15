@@ -221,7 +221,7 @@ private:
 			return bus.raise(Msg::ManifestCommand{
 				"clboss-externpay", "payment_hash",
 				"Inform CLBOSS that a future `pay` command "
-				"with the given `payment_hash` is ontrolled "
+				"with the given `payment_hash` is controlled "
 				"by a third party that might have incentive "
 				"to damage the metrics of our peers. "
 				"Relevant only to custodial services.",

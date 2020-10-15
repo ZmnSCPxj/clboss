@@ -245,7 +245,7 @@ private:
 		auto it = multipliers.find(peer);
 		if (it != multipliers.end())
 			return Ev::lift(it->second);
-		return compute_multiplier(std::move(peer)
+		return compute_multiplier(peer
 					 ).then([ this
 						, peer
 						](double mult) {

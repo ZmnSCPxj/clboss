@@ -19,6 +19,7 @@
 #include"Boss/Mod/Connector.hpp"
 #include"Boss/Mod/CommandReceiver.hpp"
 #include"Boss/Mod/Dowser.hpp"
+#include"Boss/Mod/FeeModderByBalance.hpp"
 #include"Boss/Mod/FeeModderBySize.hpp"
 #include"Boss/Mod/ForwardFeeMonitor.hpp"
 #include"Boss/Mod/HtlcAcceptor.hpp"
@@ -146,6 +147,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ChannelFeeSetter>(bus);
 	all->install<ChannelFeeManager>(bus);
 	all->install<FeeModderBySize>(bus);
+	all->install<FeeModderByBalance>(bus);
 
 	/* HTLC manipulation.  */
 	all->install<HtlcAcceptor>(bus, *waiter);

@@ -33,8 +33,30 @@ Ev::Io<std::string> can_get() {
 	});
 }
 
+Ev::Io<bool> can_torify( std::string const& seed
+		       , std::string const& resolver
+		       ) {
+	auto at_resolver = std::string("@") + resolver;
+	return Ev::runcmd("torify", { "dig", "+tcp"
+				    , std::move(at_resolver)
+				    , seed, "SRV"
+				    }).then([](std::string res) {
+		/* If we get 0 results via this path, consider it as
+		 * not-torifyable.  */
+		auto recs = Detail::parse_dig_srv(std::move(res));
+		if (recs.size() == 0)
+			return Ev::lift(false);
+
+		return Ev::lift(true);
+	}).catching<std::runtime_error>([](std::runtime_error const& _) {
+		/* If it errored, consider it not-torifyable.  */
+		return Ev::lift(false);
+	});
+}
+
 Ev::Io<std::vector<std::string>> get( std::string const& seed
 				    , std::string const& resolver
+				    , bool torify
 				    ) {
 	/* Some ISPs have default resolvers which do not properly
 	 * handle SRV queries.
@@ -43,7 +65,19 @@ Ev::Io<std::vector<std::string>> get( std::string const& seed
 	 * (darosior.ninja) need "8.8.8.8"
 	 */
 	auto at_resolver = std::string("@") + resolver;
-	return Ev::runcmd( "dig", {std::move(at_resolver), seed, "SRV"}
+
+	auto command = "dig";
+	auto args = std::vector<std::string>{ std::move(at_resolver)
+					    , seed
+					    , "SRV"
+					    };
+	if (torify) {
+		command = "torify";
+		args.insert(args.begin(), "+tcp");
+		args.insert(args.begin(), "dig");
+	}
+
+	return Ev::runcmd( command, std::move(args) 
 			 ).then([](std::string res) {
 		auto records = Detail::parse_dig_srv(std::move(res));
 

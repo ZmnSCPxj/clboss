@@ -19,6 +19,18 @@ namespace DnsSeed {
  */
 Ev::Io<std::string> can_get();
 
+/** DnsSeed::can_torify
+ *
+ * @brief check if we can use `torify` and add `+tcp` flag
+ * to use a `tor` TCP connection to get seed via DNS.
+ *
+ * @return true if we can use `torify` with the given
+ * seed and resolver.
+ */
+Ev::Io<bool> can_torify( std::string const& seed
+		       , std::string const& resolver = "1.0.0.1"
+		       );
+
 /** DnsSeed::get
  *
  * @brief Get some number of connect proposals from
@@ -27,6 +39,7 @@ Ev::Io<std::string> can_get();
  */
 Ev::Io<std::vector<std::string>> get( std::string const& seed
 				    , std::string const& resolver = "1.0.0.1"
+				    , bool torify = false
 				    );
 
 }

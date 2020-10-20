@@ -54,6 +54,7 @@ private:
 	std::unique_ptr<Boss::Mod::Rpc> rpc;
 
 	std::string proxy;
+	bool always_use_proxy;
 	std::unique_ptr<Net::Connector> connector;
 
 	Secp256k1::Random random;
@@ -118,6 +119,7 @@ public:
 	      , db()
 	      , initted(false)
 	      , proxy("")
+	      , always_use_proxy(false)
 	      {
 		assert(open_rpc_socket);
 
@@ -277,11 +279,20 @@ public:
 					);
 					setup_proxy(std::move(proxy));
 				}
+				if (cfg.has("always-use-proxy")) {
+					auto flag = cfg["always-use-proxy"];
+					if (flag.is_boolean())
+						always_use_proxy = !!flag;
+					else if (flag.is_null())
+						always_use_proxy = false;
+					else
+						always_use_proxy = true;
+				}
 
 				return bus.raise(Boss::Msg::Init{
 					network, *rpc, self_id, db,
 					*connector, *signer,
-					proxy
+					proxy, always_use_proxy
 				});
 			}).then([this]() {
 				return Boss::log( bus, Debug

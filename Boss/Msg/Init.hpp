@@ -25,6 +25,7 @@ struct Init {
 	Secp256k1::SignerIF& signer;
 	/* Empty string if no proxy.  */
 	std::string proxy;
+	bool always_use_proxy;
 };
 
 }}

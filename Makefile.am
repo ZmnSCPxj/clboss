@@ -122,6 +122,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/FeeModderBySize.hpp \
 	Boss/Mod/ForwardFeeMonitor.cpp \
 	Boss/Mod/ForwardFeeMonitor.hpp \
+	Boss/Mod/FundsMover/Attempter.cpp \
+	Boss/Mod/FundsMover/Attempter.hpp \
 	Boss/Mod/HtlcAcceptor.cpp \
 	Boss/Mod/HtlcAcceptor.hpp \
 	Boss/Mod/InitialConnect.cpp \
@@ -235,12 +237,14 @@ libclboss_la_SOURCES = \
 	Boss/Msg/RequestConnect.hpp \
 	Boss/Msg/RequestDowser.hpp \
 	Boss/Msg/RequestListpays.hpp \
+	Boss/Msg/RequestMoveFunds.hpp \
 	Boss/Msg/RequestNewaddr.hpp \
 	Boss/Msg/RequestPeerMetrics.hpp \
 	Boss/Msg/RequestPeerStatistics.hpp \
 	Boss/Msg/ResponseConnect.hpp \
 	Boss/Msg/ResponseDowser.hpp \
 	Boss/Msg/ResponseListpays.hpp \
+	Boss/Msg/ResponseMoveFunds.hpp \
 	Boss/Msg/ResponseNewaddr.hpp \
 	Boss/Msg/ResponsePeerMetrics.hpp \
 	Boss/Msg/ResponsePeerStatistics.hpp \

@@ -8,8 +8,10 @@
 #include"Boss/random_engine.hpp"
 #include"DnsSeed/get.hpp"
 #include"Ev/Io.hpp"
+#include"Ev/map.hpp"
 #include"S/Bus.hpp"
 #include"Util/make_unique.hpp"
+#include<algorithm>
 #include<map>
 #include<string>
 #include<utility>
@@ -88,7 +90,17 @@ class ConnectFinderByDns::Impl {
 private:
 	S::Bus& bus;
 
-	std::vector<std::pair<std::string, std::string>> const* dnsseeds;
+	struct DnsSeedT {
+		std::string seed;
+		std::string resolver;
+		bool torify;
+	};
+	typedef
+	std::vector<DnsSeedT> DnsSeeds;
+
+	std::unique_ptr<DnsSeeds> dnsseeds;
+
+	bool always_use_proxy;
 
 	void start() {
 		bus.subscribe<Msg::Begin>([this](Msg::Begin const& _) {
@@ -109,12 +121,32 @@ private:
 
 	Ev::Io<void> enable() {
 		bus.subscribe<Msg::Init>([this](Msg::Init const& init) {
+			always_use_proxy = init.always_use_proxy;
+
 			auto it = all_dnsseeds.find(init.network);
 			if ( it != all_dnsseeds.end()
 			  && it->second.size() != 0
 			   ) {
-				dnsseeds = &it->second;
-				return Ev::lift();
+				auto f = [](std::pair< std::string
+						     , std::string
+						     > e) {
+					auto resolver = e.first;
+					auto seed = e.second;
+					return DnsSeed::can_torify(
+						seed, resolver
+					).then([seed, resolver](bool torify) {
+						return Ev::lift(DnsSeedT{
+							seed, resolver, torify
+						});
+					});
+				};
+				return Ev::map(std::move(f), it->second
+					      ).then([this](DnsSeeds n_seeds) {
+					dnsseeds = Util::make_unique<DnsSeeds>(
+						std::move(n_seeds)
+					);
+					return check_dnsseeds();
+				});
 			}
 			return Boss::log( bus, Warn
 					, "DnsSeed: Cannot seed by DNS: %s"
@@ -138,12 +170,51 @@ private:
 		auto& seed = deck[i];
 
 		return DnsSeed::get(
-			seed.second, seed.first
+			seed.seed, seed.resolver, seed.torify
 		).then([this](std::vector<std::string> ns) {
 			return bus.raise(Msg::ProposeConnectCandidates{
 				std::move(ns)
 			});
 		});
+	}
+
+	/* FIXME: we should use dns-over-tcp directly (implement it
+	 * directly somewhere in CLBOSS) and if there is a `proxy`
+	 * setting just always assume always-use-proxy and connect
+	 * over TCP-proxy.
+	 */
+	Ev::Io<void> check_dnsseeds() {
+		if (!always_use_proxy)
+			/* Opportunistically use torify if we could access
+			 * over torify.  */
+			return have_seeds();
+
+		/* If always-use-proxy, only use seeds we could
+		 * get by torify.  */
+		auto it = std::remove_if( dnsseeds->begin(), dnsseeds->end()
+					, [](DnsSeedT const& e) {
+			return !e.torify;
+		});
+		dnsseeds->erase(it, dnsseeds->end());
+
+		/* Is it empty now?  */
+		if (dnsseeds->size() == 0) {
+			dnsseeds = nullptr;
+			return Boss::log( bus, Warn
+					, "DnsSeed: always-use-proxy set, "
+					  "but none of our known seeds "
+					  "could be accessed over `torify`. "
+					  "Is `torify` installed?"
+					);
+		}
+
+		return have_seeds();
+	}
+	Ev::Io<void> have_seeds() {
+		return Boss::log( bus, Info
+				, "DnsSeed: Have %zu seeds."
+				, dnsseeds->size()
+				);
 	}
 
 public:

@@ -290,6 +290,7 @@ private:
 
 			/* Figure out the error.  */
 			auto code = int();
+			auto eidx = std::size_t();
 			auto echan = Ln::Scid();
 			auto edir = int();
 			auto enode = Ln::NodeId();
@@ -302,6 +303,9 @@ private:
 				/* Failure along route.  */
 				if (code == 204) {
 					auto data = error["data"];
+					eidx = std::size_t(double(
+						data["erring_index"]
+					));
 					echan = Ln::Scid(std::string(
 						data["erring_channel"]
 					));
@@ -327,7 +331,7 @@ private:
 			}
 
 			if (code != 202 && code != 204)
-				return Boss::log( bus, Error
+				return Boss::log( bus, Info
 						, "FundsMover: Attempt: "
 						  "Unexpected error code "
 						  "%d from %s, error: %s"
@@ -340,13 +344,30 @@ private:
 			 * source or destination node has massive issues,
 			 * so cannot advance.  */
 			if (code == 202 && route.size() <= 1)
-				return Boss::log( bus, Error
+				return Boss::log( bus, Info
 						, "FundsMover: Attempt: "
 						  "Unparsable onion, cannot "
 						  "advance further."
 						);
 
 			if (code == 204) {
+				if ( eidx == 0
+				  || (eidx == 1 && (fail & 0x2000))
+				   )
+					return Boss::log( bus, Info
+							, "FundsMover: "
+							  "Failed at source, "
+							  "cannot advance "
+							  "further."
+							);
+				if (eidx == route.size() + 1)
+					return Boss::log( bus, Info
+							, "FundsMover: "
+							  "Failed at "
+							  "destination, "
+							  "cannot advance "
+							  "further."
+							);
 				/* 0x2000 == NODE level error.  */
 				if ((fail & 0x2000))
 					excludes.push_back(std::string(

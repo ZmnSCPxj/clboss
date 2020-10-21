@@ -126,6 +126,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/FundsMover/Attempter.hpp \
 	Boss/Mod/FundsMover/Claimer.cpp \
 	Boss/Mod/FundsMover/Claimer.hpp \
+	Boss/Mod/FundsMover/Runner.cpp \
+	Boss/Mod/FundsMover/Runner.hpp \
 	Boss/Mod/HtlcAcceptor.cpp \
 	Boss/Mod/HtlcAcceptor.hpp \
 	Boss/Mod/InitialConnect.cpp \

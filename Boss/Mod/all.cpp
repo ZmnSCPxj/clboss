@@ -22,6 +22,7 @@
 #include"Boss/Mod/FeeModderByBalance.hpp"
 #include"Boss/Mod/FeeModderBySize.hpp"
 #include"Boss/Mod/ForwardFeeMonitor.hpp"
+#include"Boss/Mod/FundsMover/Main.hpp"
 #include"Boss/Mod/HtlcAcceptor.hpp"
 #include"Boss/Mod/InitialConnect.hpp"
 #include"Boss/Mod/Initiator.hpp"
@@ -159,6 +160,9 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<PeerMetrician>(bus);
 	all->install<ActiveProber>(bus, *investigator);
 	all->install<RegularActiveProbe>(bus);
+
+	/* Channel balancing.  */
+	all->install<FundsMover::Main>(bus);
 
 	return all;
 }

@@ -18,7 +18,7 @@
 
 namespace Boss { namespace Mod { namespace FundsMover {
 
-class Attempter::Impl : std::enable_shared_from_this<Impl> {
+class Attempter::Impl : public std::enable_shared_from_this<Impl> {
 private:
 	S::Bus& bus;
 

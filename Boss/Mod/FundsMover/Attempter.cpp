@@ -481,4 +481,39 @@ private:
 	}
 };
 
+Ev::Io<bool>
+Attempter::run( S::Bus& bus
+	      , Boss::Mod::Rpc& rpc
+	      , Ln::NodeId self
+	      /* The preimage should have been pre-arranged to be claimed.  */
+	      , Ln::Preimage preimage
+	      , Ln::NodeId source
+	      , Ln::NodeId destination
+	      , Ln::Amount amount
+	      , std::shared_ptr<Ln::Amount> fee_budget
+	      /* Details of the channel from destination to us.  */
+	      , Ln::Scid last_scid
+	      , Ln::Amount base_fee
+	      , std::uint32_t proportional_fee
+	      , std::uint32_t cltv_delta
+	      /* The channel from us to source.  */
+	      , Ln::Scid first_scid
+	      ) {
+	auto impl = std::make_shared<Impl>( bus
+					  , rpc
+					  , std::move(self)
+					  , std::move(preimage)
+					  , std::move(source)
+					  , std::move(destination)
+					  , amount
+					  , std::move(fee_budget)
+					  , last_scid
+					  , base_fee
+					  , proportional_fee
+					  , cltv_delta
+					  , first_scid
+					  );
+	return impl->run();
+}
+
 }}}

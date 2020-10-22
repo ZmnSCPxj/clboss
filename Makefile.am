@@ -152,6 +152,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ListpeersAnnouncer.hpp \
 	Boss/Mod/Manifester.cpp \
 	Boss/Mod/Manifester.hpp \
+	Boss/Mod/MoveFundsCommand.cpp \
+	Boss/Mod/MoveFundsCommand.hpp \
 	Boss/Mod/NeedsConnectSolicitor.cpp \
 	Boss/Mod/NeedsConnectSolicitor.hpp \
 	Boss/Mod/NeedsOnchainFundsSwapper.cpp \

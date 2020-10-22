@@ -34,6 +34,7 @@
 #include"Boss/Mod/ListpeersAnalyzer.hpp"
 #include"Boss/Mod/ListpeersAnnouncer.hpp"
 #include"Boss/Mod/Manifester.hpp"
+#include"Boss/Mod/MoveFundsCommand.hpp"
 #include"Boss/Mod/NeedsConnectSolicitor.hpp"
 #include"Boss/Mod/NeedsOnchainFundsSwapper.hpp"
 #include"Boss/Mod/NewaddrHandler.hpp"
@@ -163,6 +164,7 @@ std::shared_ptr<void> all( std::ostream& cout
 
 	/* Channel balancing.  */
 	all->install<FundsMover::Main>(bus);
+	all->install<MoveFundsCommand>(bus);
 
 	return all;
 }

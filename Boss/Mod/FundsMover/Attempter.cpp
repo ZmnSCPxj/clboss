@@ -310,7 +310,7 @@ private:
 						data["erring_channel"]
 					));
 					edir = int(double(
-						data["erring_dir"]
+						data["erring_direction"]
 					));
 					enode = Ln::NodeId(std::string(
 						data["erring_node"]
@@ -324,7 +324,7 @@ private:
 						, "FundsMover: Attempt: "
 						  "Unexpected error from "
 						  "%s: %s"
-						, e.command
+						, e.command.c_str()
 						, Util::stringify(e.error)
 							.c_str()
 						);

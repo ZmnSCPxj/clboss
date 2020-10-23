@@ -19,6 +19,7 @@
 #include"Boss/Mod/Connector.hpp"
 #include"Boss/Mod/CommandReceiver.hpp"
 #include"Boss/Mod/Dowser.hpp"
+#include"Boss/Mod/EarningsTracker.hpp"
 #include"Boss/Mod/FeeModderByBalance.hpp"
 #include"Boss/Mod/FeeModderBySize.hpp"
 #include"Boss/Mod/ForwardFeeMonitor.hpp"
@@ -165,6 +166,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	/* Channel balancing.  */
 	all->install<FundsMover::Main>(bus);
 	all->install<MoveFundsCommand>(bus);
+	all->install<EarningsTracker>(bus);
 
 	return all;
 }

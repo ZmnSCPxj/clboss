@@ -116,6 +116,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Connector.hpp \
 	Boss/Mod/Dowser.cpp \
 	Boss/Mod/Dowser.hpp \
+	Boss/Mod/EarningsTracker.cpp \
+	Boss/Mod/EarningsTracker.hpp \
 	Boss/Mod/FeeModderByBalance.cpp \
 	Boss/Mod/FeeModderByBalance.hpp \
 	Boss/Mod/FeeModderBySize.cpp \
@@ -244,6 +246,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/RequestChannelCreation.hpp \
 	Boss/Msg/RequestConnect.hpp \
 	Boss/Msg/RequestDowser.hpp \
+	Boss/Msg/RequestEarningsInfo.hpp \
 	Boss/Msg/RequestListpays.hpp \
 	Boss/Msg/RequestMoveFunds.hpp \
 	Boss/Msg/RequestNewaddr.hpp \
@@ -251,6 +254,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/RequestPeerStatistics.hpp \
 	Boss/Msg/ResponseConnect.hpp \
 	Boss/Msg/ResponseDowser.hpp \
+	Boss/Msg/ResponseEarningsInfo.hpp \
 	Boss/Msg/ResponseListpays.hpp \
 	Boss/Msg/ResponseMoveFunds.hpp \
 	Boss/Msg/ResponseNewaddr.hpp \

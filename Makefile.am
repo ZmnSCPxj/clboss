@@ -142,6 +142,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/InternetConnectionMonitor.hpp \
 	Boss/Mod/InvoicePayer.cpp \
 	Boss/Mod/InvoicePayer.hpp \
+	Boss/Mod/JitRebalancer.cpp \
+	Boss/Mod/JitRebalancer.hpp \
 	Boss/Mod/JsonOutputter.cpp \
 	Boss/Mod/JsonOutputter.hpp \
 	Boss/Mod/ListfundsAnnouncer.cpp \

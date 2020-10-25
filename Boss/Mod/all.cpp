@@ -29,6 +29,7 @@
 #include"Boss/Mod/Initiator.hpp"
 #include"Boss/Mod/InternetConnectionMonitor.hpp"
 #include"Boss/Mod/InvoicePayer.hpp"
+#include"Boss/Mod/JitRebalancer.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
 #include"Boss/Mod/ListfundsAnnouncer.hpp"
 #include"Boss/Mod/ListpaysHandler.hpp"
@@ -167,6 +168,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<FundsMover::Main>(bus);
 	all->install<MoveFundsCommand>(bus);
 	all->install<EarningsTracker>(bus);
+	all->install<JitRebalancer>(bus);
 
 	return all;
 }

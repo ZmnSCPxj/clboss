@@ -136,6 +136,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/HtlcAcceptor.hpp \
 	Boss/Mod/InitialConnect.cpp \
 	Boss/Mod/InitialConnect.hpp \
+	Boss/Mod/InitialRebalancer.cpp \
+	Boss/Mod/InitialRebalancer.hpp \
 	Boss/Mod/Initiator.cpp \
 	Boss/Mod/Initiator.hpp \
 	Boss/Mod/InternetConnectionMonitor.cpp \

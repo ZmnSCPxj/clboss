@@ -26,7 +26,7 @@ namespace {
  */
 auto constexpr spendable_percent = double(80.0);
 /* Limit on rebalance fee.  */
-auto const rebalance_fee = Ln::Amount::sat(5);
+auto const rebalance_fee = Ln::Amount::sat(15);
 
 }
 

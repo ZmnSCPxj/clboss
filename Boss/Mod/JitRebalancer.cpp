@@ -60,10 +60,10 @@ auto constexpr max_fee_percent = double(25.0);
  * rebalancing, while this small amount should be sufficient for at least
  * one or two rebalances to "seed" our node with actual successful forwards.
  */
-auto const free_fee = Ln::Amount::sat(4);
+auto const free_fee = Ln::Amount::sat(10);
 
 /* Maximum limit for costs of a *single* rebalance.  */
-auto const max_rebalance_fee = Ln::Amount::sat(10);
+auto const max_rebalance_fee = Ln::Amount::sat(30);
 
 }
 

@@ -207,8 +207,8 @@ Ev::Io<void> Runner::attempt(Ln::Amount amount) {
 
 			auto act = Ev::lift();
 			act += Boss::log( bus, Debug
-					, "FundsMover: Splitting %s into"
-					  "%s + %s while moving from %s to"
+					, "FundsMover: Splitting %s into "
+					  "%s + %s while moving from %s to "
 					  "%s."
 					, std::string(amount).c_str()
 					, std::string(a1).c_str()

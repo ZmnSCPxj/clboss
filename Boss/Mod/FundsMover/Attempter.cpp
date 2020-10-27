@@ -466,7 +466,7 @@ private:
 
 	Ev::Io<void> fee_failed() {
 		if (fuzzpercent > 0) {
-			fuzzpercent -= 11;
+			fuzzpercent -= 22;
 			if (fuzzpercent < 0)
 				fuzzpercent = 0;
 			return getroute();

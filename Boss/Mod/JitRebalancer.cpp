@@ -77,6 +77,17 @@ private:
 	/* Maps channels to nodes, as we need node information.  */
 	std::map<Ln::Scid, Ln::NodeId> nodemap;
 
+	typedef
+	Boss::ModG::ReqResp< Msg::RequestEarningsInfo
+			   , Msg::ResponseEarningsInfo
+			   > EarningsInfoRR;
+	typedef
+	Boss::ModG::ReqResp< Msg::RequestMoveFunds
+			   , Msg::ResponseMoveFunds
+			   > MoveFundsRR;
+	EarningsInfoRR earnings_info_rr;
+	MoveFundsRR move_funds_rr;
+
 	void start() {
 		bus.subscribe<Msg::Init
 			     >([this](Msg::Init const& init) {
@@ -175,6 +186,8 @@ private:
 		   , Ln::NodeId const& node
 		   , Ln::Amount amount
 		   , std::uint64_t id
+		   , EarningsInfoRR& earnings_info_rr
+		   , MoveFundsRR& move_funds_rr
 		   );
 		Run(Run&&) =default;
 		Run(Run const&) =default;
@@ -189,13 +202,33 @@ private:
 		      , std::uint64_t id
 		      ) {
 		return wait_for_rpc().then([this, node, amount, id]() {
-			auto r = Run(bus, *rpc, node, amount, id);
+			auto r = Run( bus, *rpc, node, amount, id
+				    , earnings_info_rr, move_funds_rr
+				    );
 			return r.execute();
 		});
 	}
 
 public:
-	Impl(S::Bus& bus_) : bus(bus_) { start(); }
+	Impl( S::Bus& bus_
+	    ) : bus(bus_)
+	      , earnings_info_rr( bus
+				, [](Msg::RequestEarningsInfo& msg, void* p) {
+					msg.requester = p;
+				  }
+				, [](Msg::ResponseEarningsInfo& msg) {
+					return msg.requester;
+				  }
+				)
+	      , move_funds_rr( bus
+			     , [](Msg::RequestMoveFunds& msg, void* p) {
+					msg.requester = p;
+			       }
+			     , [](Msg::ResponseMoveFunds& msg) {
+					return msg.requester;
+			       }
+			     )
+	      { start(); }
 };
 
 /* Yes, what a messy name... */
@@ -221,13 +254,9 @@ private:
 	Ln::Amount this_rebalance_fee;
 
 	/* ReqResp to `Boss::Mod::EarningsTracker`.  */
-	Boss::ModG::ReqResp< Msg::RequestEarningsInfo
-			   , Msg::ResponseEarningsInfo
-			   > earnings_info_rr;
+	EarningsInfoRR& earnings_info_rr;
 	/* ReqResp to `Boss::Mod::FundsMover`.  */
-	Boss::ModG::ReqResp< Msg::RequestMoveFunds
-			   , Msg::ResponseMoveFunds
-			   > move_funds_rr;
+	MoveFundsRR& move_funds_rr;
 
 	/* Thrown to signal that we should release the HTLC.  */
 	struct Continue {};
@@ -483,24 +512,12 @@ public:
 	    , Ln::NodeId const& out_node_
 	    , Ln::Amount amount_
 	    , std::uint64_t id_
+	    , EarningsInfoRR& earnings_info_rr_
+	    , MoveFundsRR& move_funds_rr_
 	    ) : bus(bus_), rpc(rpc_)
 	      , out_node(out_node_), amount(amount_), id(id_)
-	      , earnings_info_rr( bus
-				, [](Msg::RequestEarningsInfo& msg, void* p) {
-					msg.requester = p;
-				  }
-				, [](Msg::ResponseEarningsInfo& msg) {
-					return msg.requester;
-				  }
-				)
-	      , move_funds_rr( bus
-			     , [](Msg::RequestMoveFunds& msg, void* p) {
-					msg.requester = p;
-			       }
-			     , [](Msg::ResponseMoveFunds& msg) {
-					return msg.requester;
-			       }
-			     )
+	      , earnings_info_rr(earnings_info_rr_)
+	      , move_funds_rr(move_funds_rr_)
 	      { }
 
 	static
@@ -526,8 +543,12 @@ JitRebalancer::Impl::Run::Run( S::Bus& bus
 			     , Ln::NodeId const& node
 			     , Ln::Amount amount
 			     , std::uint64_t id
+			     , EarningsInfoRR& earnings_info_rr
+			     , MoveFundsRR& move_funds_rr
 			     )
-	: pimpl(std::make_shared<Impl>(bus, rpc, node, amount, id)) { }
+	: pimpl(std::make_shared<Impl>( bus, rpc, node, amount, id
+				      , earnings_info_rr, move_funds_rr
+				      )) { }
 Ev::Io<void> JitRebalancer::Impl::Run::execute() {
 	return Impl::execute(pimpl);
 }

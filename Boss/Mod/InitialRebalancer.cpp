@@ -35,6 +35,12 @@ namespace Boss { namespace Mod {
 class InitialRebalancer::Impl {
 private:
 	S::Bus& bus;
+	/* Interface to funds mover.  */
+	typedef 
+	ModG::ReqResp< Msg::RequestMoveFunds
+		     , Msg::ResponseMoveFunds
+		     > MoveRR;
+	MoveRR move_rr;
 
 	void start() {
 		bus.subscribe<Msg::ListpeersResult
@@ -55,13 +61,13 @@ private:
 		~Run() =default;
 
 		explicit
-		Run(S::Bus& bus, Jsmn::Object const& peers);
+		Run(S::Bus& bus, Jsmn::Object const& peers, MoveRR& move_rr);
 		Ev::Io<void> run();
 	};
 
 	Ev::Io<void>
 	run(Jsmn::Object const& peers) {
-		return Boss::concurrent(Run(bus, peers).run());
+		return Boss::concurrent(Run(bus, peers, move_rr).run());
 	}
 
 public:
@@ -70,7 +76,17 @@ public:
 	Impl(Impl const&) =delete;
 
 	explicit
-	Impl(S::Bus& bus_) : bus(bus_) { start(); }
+	Impl( S::Bus& bus_
+	    ) : bus(bus_)
+	      , move_rr( bus_
+		       , [](Msg::RequestMoveFunds& msg, void* p) {
+				msg.requester = p;
+			 }
+		       , [](Msg::ResponseMoveFunds& msg) {
+				return msg.requester;
+			 }
+		       )
+	      { start(); }
 };
 
 class InitialRebalancer::Impl::Run::Impl {
@@ -91,7 +107,7 @@ private:
 	/* Interface to funds mover.  */
 	ModG::ReqResp< Msg::RequestMoveFunds
 		     , Msg::ResponseMoveFunds
-		     > move_rr;
+		     >& move_rr;
 
 	Ev::Io<void> core_run() {
 		return Ev::lift().then([this]() {
@@ -247,15 +263,9 @@ private:
 public:
 	Impl( S::Bus& bus_
 	    , Jsmn::Object const& peers_
+	    , MoveRR& move_rr_
 	    ) : bus(bus_), peers(peers_)
-	      , move_rr( bus_
-		       , [](Msg::RequestMoveFunds& msg, void* p) {
-				msg.requester = p;
-			 }
-		       , [](Msg::ResponseMoveFunds& msg) {
-				return msg.requester;
-			 }
-		       )
+	      , move_rr(move_rr_)
 	      { }
 	static
 	Ev::Io<void> run(std::shared_ptr<Impl> self) {
@@ -267,7 +277,8 @@ public:
 
 InitialRebalancer::Impl::Run::Run( S::Bus& bus
 				 , Jsmn::Object const& peers
-				 ) : pimpl(std::make_shared<Impl>(bus, peers))
+				 , MoveRR& move_rr
+				 ) : pimpl(std::make_shared<Impl>(bus, peers, move_rr))
 				   { }
 Ev::Io<void> InitialRebalancer::Impl::Run::run() {
 	return Impl::run(pimpl);

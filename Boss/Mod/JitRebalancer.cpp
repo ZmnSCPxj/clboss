@@ -63,7 +63,8 @@ auto constexpr max_fee_percent = double(25.0);
 auto const free_fee = Ln::Amount::sat(10);
 
 /* Maximum limit for costs of a *single* rebalance.  */
-auto const max_rebalance_fee = Ln::Amount::sat(30);
+auto constexpr max_rebalance_fee_percent = double(0.5);
+auto const min_rebalance_fee = Ln::Amount::sat(5);
 
 }
 
@@ -431,6 +432,14 @@ private:
 					throw Continue();
 					return Ev::lift();
 				});
+
+			auto max_rebalance_fee = to_move
+					       * ( max_rebalance_fee_percent
+						 / 100.0
+						 );
+			if (max_rebalance_fee < min_rebalance_fee)
+				max_rebalance_fee = min_rebalance_fee;
+
 			this_rebalance_fee = limit - e.expenditures;
 			if (this_rebalance_fee > max_rebalance_fee)
 				this_rebalance_fee = max_rebalance_fee;

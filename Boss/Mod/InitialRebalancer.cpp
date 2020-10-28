@@ -26,7 +26,8 @@ namespace {
  */
 auto constexpr spendable_percent = double(80.0);
 /* Limit on rebalance fee.  */
-auto const rebalance_fee = Ln::Amount::sat(15);
+auto const min_rebalance_fee = Ln::Amount::sat(5);
+auto constexpr rebalance_fee_percent = double(0.5);
 
 }
 
@@ -253,8 +254,14 @@ private:
 			       , Ln::NodeId const& destination
 			       , Ln::Amount amount
 			       ) {
+		auto this_rebalance_fee = amount
+					* (rebalance_fee_percent / 100.0)
+					;
+		if (this_rebalance_fee < min_rebalance_fee)
+			this_rebalance_fee = min_rebalance_fee;
 		return move_rr.execute(Msg::RequestMoveFunds{
-			nullptr, source, destination, amount, rebalance_fee
+			nullptr, source, destination, amount,
+			this_rebalance_fee
 		}).then([](Msg::ResponseMoveFunds _) {
 			return Ev::lift();
 		});

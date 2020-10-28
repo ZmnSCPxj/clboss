@@ -117,6 +117,7 @@ private:
 					.field("cltv", cltv_delta + 14)
 					.field("fromid", std::string(source))
 					.field("fuzzpercent", fuzzpercent)
+					.field("excludes", make_excludes())
 				.end_object()
 				;
 			return rpc.command("getroute", std::move(parms));
@@ -134,6 +135,14 @@ private:
 				return fee_failed();
 			return compute_source_amount();
 		});
+	}
+	Json::Out make_excludes() {
+		auto rv = Json::Out();
+		auto arr = rv.start_array();
+		for (auto const& s : excludes)
+			arr.entry(s);
+		arr.end_array();
+		return rv;
 	}
 	Ev::Io<void> compute_source_amount() {
 		struct Fail { };
@@ -350,24 +359,42 @@ private:
 						  "advance further."
 						);
 
+			auto act = Ev::lift();
 			if (code == 204) {
+				act += Boss::log( bus, Debug
+						, "FundsMover: code 204, "
+						  "erring_index: %zu, "
+						  "erring_channel: %s/%d, "
+						  "erring_node: %s, "
+						  "failcode: 0x%04x"
+						, eidx
+						, std::string(echan).c_str()
+						, edir
+						, std::string(enode).c_str()
+						, int(fail)
+						);
+
 				if ( eidx == 0
 				  || (eidx == 1 && (fail & 0x2000))
 				   )
-					return Boss::log( bus, Info
+					return act
+					     + Boss::log( bus, Info
 							, "FundsMover: "
 							  "Failed at source, "
 							  "cannot advance "
 							  "further."
-							);
+							)
+					     ;
 				if (eidx == route.size() + 1)
-					return Boss::log( bus, Info
+					return act
+					     + Boss::log( bus, Info
 							, "FundsMover: "
 							  "Failed at "
 							  "destination, "
 							  "cannot advance "
 							  "further."
-							);
+							)
+					     ;
 				/* 0x2000 == NODE level error.  */
 				if ((fail & 0x2000))
 					excludes.push_back(std::string(
@@ -389,7 +416,7 @@ private:
 				));
 			}
 
-			return getroute();
+			return act + getroute();
 		});
 	}
 	/* Splice the us->source and destination->us hops.  */

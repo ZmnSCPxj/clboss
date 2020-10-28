@@ -117,7 +117,7 @@ private:
 					.field("cltv", cltv_delta + 14)
 					.field("fromid", std::string(source))
 					.field("fuzzpercent", fuzzpercent)
-					.field("excludes", make_excludes())
+					.field("exclude", make_excludes())
 				.end_object()
 				;
 			return rpc.command("getroute", std::move(parms));

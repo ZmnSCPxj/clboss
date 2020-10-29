@@ -7,6 +7,9 @@ data.dev-boltz
 *.lo
 *~
 *.in
+!libsodium.pc.in
+!libsodium-uninstalled.pc.in
+!libsecp256k1.pc.in
 *.trs
 *.scan
 config.status

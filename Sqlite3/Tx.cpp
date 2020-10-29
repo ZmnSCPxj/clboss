@@ -2,6 +2,7 @@
 #include"Sqlite3/Query.hpp"
 #include"Sqlite3/Tx.hpp"
 #include"Util/make_unique.hpp"
+#include<stdexcept>
 #include<sqlite3.h>
 
 namespace Sqlite3 {

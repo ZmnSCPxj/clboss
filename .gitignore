@@ -6,10 +6,8 @@ data.dev-boltz
 *.la
 *.lo
 *~
-*.in
-!libsodium.pc.in
-!libsodium-uninstalled.pc.in
-!libsecp256k1.pc.in
+Makefile.in
+config.h.in
 *.trs
 *.scan
 config.status
@@ -17,12 +15,14 @@ config.h
 configure
 *.log
 *.m4
+!external/libsodium/m4/*.m4
 libtool
 INSTALL
 Makefile
 TAGS
 autom4te*
 m4
+!external/libsodium/m4
 stamp-*
 auxdir
 .deps

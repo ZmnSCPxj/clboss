@@ -2,6 +2,7 @@
 #include"Ev/yield.hpp"
 #include"Sqlite3/Db.hpp"
 #include"Sqlite3/Tx.hpp"
+#include<stdexcept>
 #include<queue>
 #include<sqlite3.h>
 

@@ -8,6 +8,7 @@
 #include<memory>
 #include<poll.h>
 #include<stdio.h>
+#include<stdexcept>
 #include<string.h>
 #include<sys/stat.h>
 #include<sys/types.h>

@@ -46,7 +46,7 @@ However, we copy the exponential function `get_ratio` below from the
  * 1.0 = 100% owned by us.
  */
 double get_ratio(double our_percentage) {
-	auto static constexpr log50 = log(50.0);
+	auto static const log50 = log(50.0);
 	return exp(log50 * (0.5 - our_percentage));
 }
 /* Given the bin number and max bins, compute `our_percentage` and return
@@ -304,7 +304,7 @@ private:
 					, std::string(info.to_us).c_str()
 					, std::string(info.total).c_str()
 					, mult
-					).then([this, mult]() {
+					).then([mult]() {
 				return Ev::lift(mult);
 			});
 		});
@@ -340,7 +340,7 @@ private:
 				, std::string(info.to_us).c_str()
 				, std::string(info.total).c_str()
 				, mult
-				).then([this, mult]() {
+				).then([mult]() {
 			return Ev::lift(mult);
 		});
 	}

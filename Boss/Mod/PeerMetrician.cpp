@@ -62,7 +62,7 @@ private:
 	get_stats(double start, double end) {
 		return statistician.execute(Msg::RequestPeerStatistics{
 			nullptr, start, end
-		}).then([this](Msg::ResponsePeerStatistics resp) {
+		}).then([](Msg::ResponsePeerStatistics resp) {
 			return Ev::lift(std::move(resp.statistics));
 		});
 	}
@@ -134,10 +134,9 @@ private:
 				86400 * 30,
 			};
 			return Ev::map(std::move(f), times);
-		}).then([ this
-			](std::vector<std::map< Ln::NodeId
-					      , Msg::PeerStatistics
-					      >> stats) {
+		}).then([](std::vector<std::map< Ln::NodeId
+					       , Msg::PeerStatistics
+					       >> stats) {
 			auto mets = std::vector<std::map< Ln::NodeId
 							, Msg::PeerMetrics
 							>>(stats.size());

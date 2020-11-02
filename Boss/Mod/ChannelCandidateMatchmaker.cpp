@@ -112,7 +112,7 @@ private:
 						  " Unexpected result from "
 						  "getroute: %s"
 						, os.str().c_str()
-						).then([this]()
+						).then([]()
 							-> Ev::Io<void>{
 					throw RpcError( "getroute"
 						      , Jsmn::Object()

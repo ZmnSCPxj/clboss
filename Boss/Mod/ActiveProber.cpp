@@ -259,7 +259,7 @@ private:
 						, "ActiveProber: Unexpected "
 						  "result from getroute: %s"
 						, Util::stringify(res).c_str()
-						).then([this]() {
+						).then([]() {
 					return Ev::lift(false);
 				});
 			}
@@ -439,13 +439,13 @@ private:
 				.end_object()
 				;
 			return rpc.command("waitsendpay", std::move(parms));
-		}).then([this](Jsmn::Object _) {
+		}).then([](Jsmn::Object _) {
 
 			/* Oh look, we succeeded.
 			 * Should not happen though.
 			 */
 			return Ev::lift(true);
-		}).catching<RpcError>([this](RpcError const& _) {
+		}).catching<RpcError>([](RpcError const& _) {
 			/* Oh no, we failed, as expected.  */
 			return Ev::lift(false);
 		}).then([this](bool success) {

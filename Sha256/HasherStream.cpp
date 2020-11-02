@@ -5,7 +5,8 @@
 
 namespace Sha256 { namespace Detail {
 
-struct HasherStreamBuf::Impl {
+class HasherStreamBuf::Impl {
+public:
 	Sha256::Hasher hasher;
 	char buf[64];
 };

@@ -50,7 +50,7 @@ void ListpeersAnnouncer::start() {
 		return Boss::concurrent(do_listpeers(true));
 	});
 	bus.subscribe<Msg::Timer10Minutes
-		     >([this, do_listpeers](Msg::Timer10Minutes const& _) {
+		     >([do_listpeers](Msg::Timer10Minutes const& _) {
 		return Boss::concurrent(do_listpeers(false));
 	});
 }

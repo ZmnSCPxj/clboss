@@ -41,6 +41,7 @@ Runner::Runner( S::Bus& bus_
 		, amount(req.amount)
 		, fee_budget(std::make_shared<Ln::Amount>(req.fee_budget))
 		, orig_budget(req.fee_budget)
+		, attempts(0)
 		{ }
 
 Ev::Io<void> Runner::start(std::shared_ptr<Runner> const& self) {
@@ -175,6 +176,7 @@ Ev::Io<void> Runner::gather_info() {
 }
 
 Ev::Io<void> Runner::attempt(Ln::Amount amount) {
+	++attempts;
 	return Ev::lift().then([this, amount]() {
 		auto preimage = claimer.generate();
 		return Attempter::run( bus, rpc, self
@@ -190,6 +192,7 @@ Ev::Io<void> Runner::attempt(Ln::Amount amount) {
 				     , first_scid
 				     );
 	}).then([this, amount](bool result) {
+		--attempts;
 		if (result) {
 			transferred += amount;
 

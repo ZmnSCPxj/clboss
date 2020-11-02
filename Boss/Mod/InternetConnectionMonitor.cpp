@@ -172,7 +172,7 @@ private:
 		using std::placeholders::_1;
 		return Ev::map( std::bind(&Impl::check_server, this, _1)
 			      , servers
-			      ).then([this](std::vector<bool> results) {
+			      ).then([](std::vector<bool> results) {
 			/* If one of the servers passed, it turns out we
 			 * are connected after all.  */
 			for (auto const& r : results)
@@ -265,8 +265,7 @@ private:
 			return waiter.timed( ln_ping_timeout
 					   , do_ln_ping(p)
 					   ).catching< Waiter::TimedOut
-						     >([ this
-						       ](Waiter::TimedOut const& _) {
+						     >([](Waiter::TimedOut const& _) {
 				return Ev::lift(false);
 			});
 		}).then([this, p](bool online) {
@@ -298,7 +297,7 @@ private:
 						.start_object()
 							.field("id", p_s)
 						.end_object()
-					   ).then([this](Jsmn::Object _) {
+					   ).then([](Jsmn::Object _) {
 				return Ev::lift(true);
 			}).catching<RpcError>([](RpcError const& e) {
 				return Ev::lift(false);

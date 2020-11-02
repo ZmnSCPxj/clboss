@@ -58,7 +58,7 @@ protected:
 class HasherStream : private Detail::HasherStreamBase, public std::ostream {
 public:
 	HasherStream() : std::ostream(buf.get()) { }
-	HasherStream(HasherStream&&) =default;
+	/* HasherStream(HasherStream&&) =default; */
 
 	Hash finalize()&& {
 		return std::move(*buf).finalize();

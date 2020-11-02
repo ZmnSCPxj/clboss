@@ -42,9 +42,9 @@ ReqRespBase::execute( std::shared_ptr<void> request
 		set_annotation(request, (void*) key);
 
 		return Boss::concurrent( broadcast(request)
-				       ).then([this, &entry]() {
+				       ).then([&entry]() {
 			return Ev::Io<std::shared_ptr<void>
-				     >([this, &entry
+				     >([&entry
 				       ](PassF pass, FailF fail) {
 				entry.pass = std::move(pass);
 				entry.fail = std::move(fail);

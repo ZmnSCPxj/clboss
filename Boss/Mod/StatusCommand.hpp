@@ -5,9 +5,9 @@
 #include<cstddef>
 #include<map>
 
-namespace Boss { namespace Msg { class CommandRequest; }}
-namespace Boss { namespace Msg { class Manifestation; }}
-namespace Boss { namespace Msg { class ProvideStatus; }}
+namespace Boss { namespace Msg { struct CommandRequest; }}
+namespace Boss { namespace Msg { struct Manifestation; }}
+namespace Boss { namespace Msg { struct ProvideStatus; }}
 namespace Ev { template<typename a> class Io; }
 namespace S { class Bus; }
 

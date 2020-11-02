@@ -260,7 +260,7 @@ private:
 
 	Ev::Io<void>
 	init_db() {
-		return db.transact().then([this](Sqlite3::Tx tx) {
+		return db.transact().then([](Sqlite3::Tx tx) {
 			tx.query_execute(R"QRY(
 			-- Table of when we first started recording
 			-- information about a peer.
@@ -424,7 +424,7 @@ private:
 
 	/* Cleans up old entries.  */
 	Ev::Io<void> clean_entries() {
-		return db.transact().then([this](Sqlite3::Tx tx) {
+		return db.transact().then([](Sqlite3::Tx tx) {
 			tx.query(R"QRY(
 			DELETE FROM "PeerStatistician_sendpayresults"
 			 WHERE creation + :max_age < :now
@@ -745,7 +745,7 @@ private:
 
 	/* Called by `clboss-externpay` command.  */
 	Ev::Io<void> externpay(Sha256::Hash const& hash) {
-		return db.transact().then([this, hash](Sqlite3::Tx tx) {
+		return db.transact().then([hash](Sqlite3::Tx tx) {
 			tx.query(R"QRY(
 			INSERT OR REPLACE
 			  INTO "PeerStatistician_externpays"

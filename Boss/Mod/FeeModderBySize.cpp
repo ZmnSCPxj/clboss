@@ -67,7 +67,7 @@ calculate_multiplier( std::size_t worse
 		/* Remap position from 0 to 0.5 as 0.0 to 1.0.  */
 		pos *= 2;
 		/* Map position of 0 to sqrt(0.5) and 0.5 as 1.0.  */
-		auto static constexpr base = sqrt(0.5);
+		auto static const base = sqrt(0.5);
 		x = base - pos * base + pos * 1.0;
 	} else {
 		/* The more total peers, the lower our fee multiplier limit.  */

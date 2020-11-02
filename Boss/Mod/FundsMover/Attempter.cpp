@@ -168,7 +168,7 @@ private:
 						  "route from getroute: %s"
 						, Util::stringify(route)
 							.c_str()
-						).then([this]() {
+						).then([]() {
 					throw Fail();
 					return Ev::lift(Jsmn::Object());
 				});
@@ -218,7 +218,7 @@ private:
 						  "%s"
 						, Util::stringify(res)
 							.c_str()
-						).then([this]() {
+						).then([]() {
 					return Ev::lift(false);
 				});
 			}
@@ -345,7 +345,7 @@ private:
 						  "Unexpected error code "
 						  "%d from %s, error: %s"
 						, code
-						, e.command
+						, e.command.c_str()
 						, Util::stringify(e.error)
 							.c_str()
 						);

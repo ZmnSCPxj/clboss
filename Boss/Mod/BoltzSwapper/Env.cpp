@@ -30,7 +30,7 @@ Ev::Io<std::uint32_t> Env::get_feerate() {
 					.start_object()
 						.field("style", "perkw")
 					.end_object()
-		).then([this](Jsmn::Object res) {
+		).then([](Jsmn::Object res) {
 			auto rate = res["perkw"]["opening"];
 			return Ev::lift<std::uint32_t>(double(rate));
 		});

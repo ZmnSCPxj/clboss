@@ -128,7 +128,7 @@ private:
 					my_waiter();
 				}
 			};
-			a_it->run([this, finish, r_it](b val) {
+			a_it->run([finish, r_it](b val) {
 				*r_it = Util::make_unique<b>(std::move(val));
 				finish();
 			}, [this, finish](std::exception_ptr n_exc) {

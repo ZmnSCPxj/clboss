@@ -102,14 +102,14 @@ public:
 	Secp256k1::Signature
 	get_signature_tweak( Secp256k1::PrivKey const& tweak
 			   , Sha256::Hash const& m
-			   ) {
+			   ) override {
 		return Secp256k1::Signature::create
 			( tweak * sk
 			, m
 			);
 	}
 	Sha256::Hash
-	get_privkey_salted_hash(std::uint8_t salt[32]) {
+	get_privkey_salted_hash(std::uint8_t salt[32]) override {
 		auto hasher = Sha256::Hasher();
 		hasher.feed(salt, 32);
 		std::uint8_t buf[32];

@@ -66,7 +66,7 @@ private:
 		bus.subscribe<Msg::DbResource
 			     >([this](Msg::DbResource const& m) {
 			db = m.db;
-			return db.transact().then([this](Sqlite3::Tx tx) {
+			return db.transact().then([](Sqlite3::Tx tx) {
 				tx.query_execute(R"QRY(
 				CREATE TABLE
 				       IF NOT EXISTS "SendpayResultMonitor"
@@ -538,7 +538,7 @@ private:
 	}
 
 	Ev::Io<void> on_periodic() {
-		return db.transact().then([this](Sqlite3::Tx tx) {
+		return db.transact().then([](Sqlite3::Tx tx) {
 			/* Just drop rows whose creation is more
 			 * than a month ago.
 			 * TODO: maybe a better solution would be to

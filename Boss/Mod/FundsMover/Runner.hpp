@@ -10,7 +10,7 @@
 namespace Boss { namespace Mod { namespace FundsMover { class Attempter; }}}
 namespace Boss { namespace Mod { namespace FundsMover { class Claimer; }}}
 namespace Boss { namespace Mod { class Rpc; }}
-namespace Boss { namespace Msg { class RequestMoveFunds; }}
+namespace Boss { namespace Msg { struct RequestMoveFunds; }}
 namespace Ev { template<typename a> class Io; }
 namespace S { class Bus; }
 

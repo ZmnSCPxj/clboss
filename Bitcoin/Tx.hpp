@@ -13,7 +13,8 @@ namespace Bitcoin {
  * @brief represents a complete Bitcoin
  * transaction.
  */
-struct Tx {
+class Tx {
+public:
 	std::uint32_t nVersion;
 	std::vector<TxIn> inputs;
 	std::vector<TxOut> outputs;

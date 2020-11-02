@@ -62,7 +62,7 @@ Carpenter::construct(std::map<Ln::NodeId, Ln::Amount> plan) {
 	/* Nodes that successfully created.  */
 	auto ppasses = std::make_shared<std::queue<Ln::NodeId>>();
 
-	return Ev::yield().then([this, pplan, pfails]() {
+	return Ev::yield().then([pplan, pfails]() {
 		/* The planner can mark some nodes with value 0, indicating
 		 * they have too little capacity to be worth channeling with
 		 * after all.

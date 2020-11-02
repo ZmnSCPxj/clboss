@@ -3,7 +3,7 @@
 
 #include<string>
 
-namespace Boss { namespace Msg { class ListpeersAnalyzedResult; }}
+namespace Boss { namespace Msg { struct ListpeersAnalyzedResult; }}
 namespace Ev { template<typename a> class Io; }
 namespace S { class Bus; }
 

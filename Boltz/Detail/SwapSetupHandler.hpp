@@ -16,7 +16,7 @@
 
 namespace Boltz { class Connection; }
 namespace Boltz { class EnvIF; }
-namespace Boltz { class SwapInfo; }
+namespace Boltz { struct SwapInfo; }
 namespace Ev { template<typename a> class Io; }
 namespace Secp256k1 { class SignerIF; }
 

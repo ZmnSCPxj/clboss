@@ -128,7 +128,7 @@ private:
 			;
 		return rpc->command( "getroute"
 				   , std::move(params)
-				   ).then([this](Jsmn::Object res) {
+				   ).then([](Jsmn::Object res) {
 			auto rv = std::vector<RouteStep>();
 			auto empty = std::vector<RouteStep>();
 
@@ -167,7 +167,7 @@ private:
 			}
 
 			return Ev::lift(std::move(rv));
-		}).catching<RpcError>([this](RpcError const& _) {
+		}).catching<RpcError>([](RpcError const& _) {
 			/* Assume this is route-not-found.  */
 			return Ev::lift(std::vector<RouteStep>());
 		});
@@ -201,7 +201,7 @@ private:
 		using std::placeholders::_1;
 		return Ev::map( std::bind(&Run::get_1_capacity, this, _1)
 			      , route
-			      ).then([this](std::vector<Ln::Amount> amounts) {
+			      ).then([](std::vector<Ln::Amount> amounts) {
 			/* Get the smallest amount.  */
 			auto theoretical_capacity =
 				*std::min_element( amounts.begin()
@@ -223,7 +223,7 @@ private:
 						      , scid
 						      )
 					.end_object()
-				   ).then([this](Jsmn::Object res) {
+				   ).then([](Jsmn::Object res) {
 			auto zero = Ln::Amount::sat(0);
 			if (!res.is_object() || !res.has("channels"))
 				return Ev::lift(zero);

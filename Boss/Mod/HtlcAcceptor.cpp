@@ -160,7 +160,7 @@ private:
 					, "HtlcAcceptor: Unexpected payload "
 					  "of htlc_accepted: %s"
 					, Util::stringify(payload).c_str()
-					).then([this, e]() {
+					).then([e]() {
 				throw e;
 				return Ev::lift(std::shared_ptr<
 					Ln::HtlcAccepted::Request
@@ -182,8 +182,7 @@ private:
 					);
 		}).then([this, req]() {
 			deferring.insert(req->id);
-			auto f = [ this
-				 , req
+			auto f = [ req
 				 ](std::function<Ev::Io<bool>(Ln::HtlcAccepted::Request const&)> deferrer) {
 				return deferrer(*req);
 			};

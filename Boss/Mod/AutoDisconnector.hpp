@@ -2,8 +2,8 @@
 #define BOSS_MOD_AUTODISCONNECTOR_HPP
 
 namespace Boss { namespace Mod { class Rpc; }}
-namespace Boss { namespace Msg { class Init; }}
-namespace Boss { namespace Msg { class ListpeersAnalyzedResult; }}
+namespace Boss { namespace Msg { struct Init; }}
+namespace Boss { namespace Msg { struct ListpeersAnalyzedResult; }}
 namespace Ev { template<typename a> class Io; }
 namespace S { class Bus; }
 

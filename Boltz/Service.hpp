@@ -5,7 +5,7 @@
 #include<memory>
 #include<string>
 
-namespace Boltz { class SwapInfo; }
+namespace Boltz { struct SwapInfo; }
 namespace Ev { template<typename a> class Io; }
 namespace Ln { class Amount; }
 

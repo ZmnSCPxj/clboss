@@ -400,7 +400,7 @@ private:
 				).then(std::bind( &Impl::preinvestigate_core
 						, this
 						, std::move(p)
-						)).then([this]() {
+						)).then([]() {
 			return Ev::lift(0);
 		});
 	}

@@ -7,7 +7,7 @@
 #include<utility>
 #include<vector>
 
-namespace Boss { namespace Msg { class ProposeChannelCandidates; }}
+namespace Boss { namespace Msg { struct ProposeChannelCandidates; }}
 namespace Ln { class NodeId; }
 namespace Sqlite3 { class Tx; }
 

@@ -128,7 +128,7 @@ private:
 
 	/* On initialize.  */
 	Ev::Io<void> on_init() {
-		return db.transact().then([this](Sqlite3::Tx tx) {
+		return db.transact().then([](Sqlite3::Tx tx) {
 			tx.query_execute(R"QRY(
 			CREATE TABLE IF NOT EXISTS "SwapManager"
 			     ( uuid TEXT UNIQUE
@@ -198,8 +198,7 @@ private:
 		});
 	}
 	Ev::Io<void> load_queue(std::queue<Uuid>& q, State s) {
-		return db.transact().then([ this
-					  , &q
+		return db.transact().then([ &q
 					  , s
 					  ](Sqlite3::Tx tx) {
 			if (!q.empty()) {
@@ -332,7 +331,7 @@ private:
 		/* Push it in the needs-invoice loop.  */
 		needs_invoice.push(std::move(uuid));
 
-		return std::move(act).then([this]() {
+		return std::move(act).then([]() {
 			return Ev::yield();
 		}).then([this]() {
 			return loop_needs_address();
@@ -483,7 +482,7 @@ private:
 					, (unsigned int)
 					  swap->timeout_blockheight
 					);
-		}).then([this]() {
+		}).then([]() {
 			return Ev::yield();
 		}).then([this]() {
 			needs_invoice.pop();
@@ -592,7 +591,7 @@ private:
 			return bus.raise(Msg::SwapResponse{
 				sh_tx, uuid, false, Ln::Amount()
 			});
-		}).then([this, sh_tx]() {
+		}).then([sh_tx]() {
 			if (*sh_tx)
 				sh_tx->commit();
 			return Ev::lift();

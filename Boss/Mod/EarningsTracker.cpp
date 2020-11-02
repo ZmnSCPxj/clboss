@@ -52,7 +52,7 @@ private:
 	}
 
 	Ev::Io<void> init() {
-		return db.transact().then([this](Sqlite3::Tx tx) {
+		return db.transact().then([](Sqlite3::Tx tx) {
 			tx.query_execute(R"QRY(
 			CREATE TABLE IF NOT EXISTS "EarningsTracker"
 			     ( node TEXT PRIMARY KEY

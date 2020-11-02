@@ -4,7 +4,7 @@
 #include<functional>
 
 namespace Ev { template<typename a> class Io; }
-namespace Ln { namespace HtlcAccepted { class Request; }}
+namespace Ln { namespace HtlcAccepted { struct Request; }}
 
 namespace Boss { namespace Msg {
 

@@ -116,7 +116,7 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 				      , min_remaining
 				      );
 		return std::move(planner).run();
-	}).then([this, plan](std::map<Ln::NodeId, Ln::Amount> n_plan) {
+	}).then([plan](std::map<Ln::NodeId, Ln::Amount> n_plan) {
 		*plan = n_plan;
 
 		return Ev::yield();

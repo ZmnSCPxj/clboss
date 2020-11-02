@@ -251,7 +251,7 @@ public:
 			);
 			return bus.raise(Boss::Msg::SwapRequest{
 				sh_tx, uuid, min, max
-			}).then([this, sh_tx]() {
+			}).then([sh_tx]() {
 				assert(sh_tx);
 				assert(!*sh_tx);
 				return Ev::lift();

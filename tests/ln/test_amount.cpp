@@ -27,6 +27,7 @@ int main() {
 	auto flag = false;
 	try {
 		auto tmp = Ln::Amount("garbage");
+		(void) tmp;
 		assert(false);
 	} catch (std::invalid_argument const& _) {
 		flag = true;
@@ -36,6 +37,7 @@ int main() {
 	try {
 		/* Printer go brr... */
 		auto tmp = Ln::Amount("999999999999999999999999999999999msat");
+		(void) tmp;
 		assert(false);
 	} catch (std::invalid_argument const& _) {
 		flag = true;

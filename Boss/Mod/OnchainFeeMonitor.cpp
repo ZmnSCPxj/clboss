@@ -162,8 +162,8 @@ private:
 					.start_object()
 						.field("style", std::string("perkw"))
 					.end_object()
-				   ).then([this](Jsmn::Object res) {
-			auto failed = [this]() {
+				   ).then([](Jsmn::Object res) {
+			auto failed = []() {
 				return Ev::lift<std::unique_ptr<double>>(
 					nullptr
 				);

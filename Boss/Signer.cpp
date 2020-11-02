@@ -45,7 +45,7 @@ public:
 		return Secp256k1::Signature::create(tweak * sk, m);
 	}
 	Sha256::Hash
-	get_privkey_salted_hash(std::uint8_t salt[32]) {
+	get_privkey_salted_hash(std::uint8_t salt[32]) override {
 		auto hasher = Sha256::Hasher();
 		hasher.feed(salt, 32);
 		std::uint8_t buf[32];

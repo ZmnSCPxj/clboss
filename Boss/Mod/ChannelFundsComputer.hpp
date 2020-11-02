@@ -1,7 +1,7 @@
 #ifndef BOSS_MOD_CHANNELFUNDSCOMPUTER_HPP
 #define BOSS_MOD_CHANNELFUNDSCOMPUTER_HPP
 
-namespace Boss { namespace Msg { class ListfundsResult; }}
+namespace Boss { namespace Msg { struct ListfundsResult; }}
 namespace Ev { template<typename a> class Io; }
 namespace S { class Bus; }
 

@@ -70,7 +70,7 @@ public:
 			    ) : pending_completions(0)
 			      , passes()
 			      {
-		bus.subscribe<Boss::Msg::TaskCompletion>([this, &bus](Boss::Msg::TaskCompletion const& _) {
+		bus.subscribe<Boss::Msg::TaskCompletion>([this](Boss::Msg::TaskCompletion const& _) {
 			++pending_completions;
 			trigger();
 			return Ev::lift();

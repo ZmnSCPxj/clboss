@@ -171,7 +171,7 @@ private:
 		auto amount = req.next_amount;
 
 		return Boss::concurrent( check_and_move(node, amount, id)
-				       ).then([this]() {
+				       ).then([]() {
 			return Ev::lift(true);
 		});
 	}
@@ -384,7 +384,7 @@ private:
 						, std::string(amount).c_str()
 						, std::string(it->second.to_us)
 							.c_str()
-						).then([this]() {
+						).then([]() {
 					throw Continue();
 					return Ev::lift();
 				});
@@ -497,7 +497,7 @@ private:
 	Ev::Io<Earnings> get_earnings(Ln::NodeId const& node) {
 		return earnings_info_rr.execute(Msg::RequestEarningsInfo{
 			nullptr, node
-		}).then([this](Msg::ResponseEarningsInfo raw) {
+		}).then([](Msg::ResponseEarningsInfo raw) {
 			return Ev::lift(Earnings{
 				raw.out_earnings, raw.out_expenditures
 			});
@@ -509,7 +509,7 @@ private:
 			nullptr,
 			source, out_node,
 			to_move, this_rebalance_fee
-		}).then([this](Msg::ResponseMoveFunds _) {
+		}).then([](Msg::ResponseMoveFunds _) {
 			/* Ignore result.  */
 			return Ev::lift();
 		});

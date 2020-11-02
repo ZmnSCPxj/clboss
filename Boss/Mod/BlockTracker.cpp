@@ -31,7 +31,7 @@ Ev::Io<void> BlockTracker::loop(Boss::Mod::Rpc& rpc) {
 			.end_object()
 			;
 		return rpc.command("waitblockheight", js);
-	}).then([this, &rpc] (Jsmn::Object result) {
+	}).then([this] (Jsmn::Object result) {
 		if (!result.is_object())
 			return fail("waitblockheight: result not object.");
 		if (!result.has("blockheight"))
@@ -55,7 +55,7 @@ Ev::Io<void> BlockTracker::loop(Boss::Mod::Rpc& rpc) {
 		 * greenthread to fail and terminate CLBOSS.
 		 */
 		return Ev::lift(false);
-	}).then([this, &rpc](bool new_height) {
+	}).then([this](bool new_height) {
 		if (!new_height)
 			/* Timed out, just loop here.  */
 			return Ev::lift();;

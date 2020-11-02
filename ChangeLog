@@ -1,3 +1,4 @@
+0.3A
 - Fixed missing initializations and some checks.
 - Fixed build errors in Debian.
 

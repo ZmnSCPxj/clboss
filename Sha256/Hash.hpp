@@ -26,7 +26,7 @@ private:
 	}
 
 	friend class Sha256::Hasher;
-	friend class std::hash<Hash>;
+	friend struct std::hash<Hash>;
 
 public:
 	Hash() =default;

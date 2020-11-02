@@ -63,6 +63,10 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 	auto plan = std::make_shared<std::map<Ln::NodeId, Ln::Amount>>();
 
 	return Ev::lift().then([this]() {
+		return Boss::log( bus, Debug
+				, "ChannelCreator: Triggered."
+				);
+	}).then([this]() {
 		return rpc->command("getinfo"
 				   , Json::Out::empty_object()
 				   );
@@ -151,7 +155,11 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 		 * candidates as failures to create channels.
 		 * So `plan_is_empty` will still cause this to be called,
 		 * in case the plan has any 0-amount entries.
+		 * Thus, we need to separately check that the plan is truly
+		 * empty here, else the Carpenter assert will trigger.
 		 */
+		if (plan->empty())
+			return Ev::lift();
 		return carpenter.construct(std::move(*plan));
 	});
 }

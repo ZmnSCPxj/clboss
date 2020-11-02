@@ -30,7 +30,7 @@ private:
 	}
 
 	friend class Ripemd160::Hasher;
-	friend class std::hash<Hash>;
+	friend struct std::hash<Hash>;
 
 public:
 	Hash() =default;

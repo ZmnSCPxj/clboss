@@ -59,6 +59,8 @@ void ChannelFinderByListpays::start() {
 				    ; ++i
 				    ) {
 					auto pay = pays[i];
+					if (!pay.has("destination"))
+						continue;
 					auto payee = Ln::NodeId(std::string(
 						pay["destination"]
 					));

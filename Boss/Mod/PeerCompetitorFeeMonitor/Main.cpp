@@ -36,6 +36,7 @@ public:
 	    ) : bus(bus_)
 	      , rpc(nullptr)
 	      , have_channels(false)
+	      , fired_init(false)
 	      { start(); }
 private:
 	void start() {

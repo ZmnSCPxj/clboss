@@ -1,0 +1,13 @@
+language: cpp
+compiler:
+  - clang
+before_install:
+  - sudo apt-get install -y libev-dev libcurl4-gnutls-dev libsqlite3-dev dnsutils autoconf-archive valgrind
+script:
+  - echo "autoreconf" && echo -en 'travis_fold:start:script.autoreconf\\r'
+  - autoreconf -i
+  - echo -en 'travis_fold:end:script.autoreconf\\r'
+  - echo "configure" && echo -en 'travis_fold:start:script.configure\\r'
+  - ./configure
+  - echo -en 'travis_fold:end:script.configure\\r'
+  - make distcheck

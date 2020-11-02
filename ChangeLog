@@ -1,3 +1,4 @@
+- Fixed missing initializations and some checks.
 - Fixed build errors in Debian.
 
 0.2 TV Tropes Will Ruin Your Life

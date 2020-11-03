@@ -21,6 +21,7 @@ private:
 	Boss::Mod::Rpc* rpc;
 	Boss::Mod::Waiter& waiter;
 	Ln::NodeId self_id;
+	bool running;
 
 	class Run;
 
@@ -37,6 +38,7 @@ public:
 			       ) : bus(bus_)
 				 , rpc(nullptr)
 				 , waiter(waiter_)
+				 , running(false)
 				 { start(); }
 };
 

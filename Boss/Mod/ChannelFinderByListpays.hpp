@@ -22,6 +22,8 @@ private:
 	/* Peers we already have channels with.  */
 	std::set<Ln::NodeId> channels;
 
+	bool running;
+
 	void start();
 
 public:
@@ -33,6 +35,7 @@ public:
 	ChannelFinderByListpays( S::Bus& bus_
 			       ) : bus(bus_)
 				 , rpc(nullptr)
+				 , running(false)
 				 { start(); }
 };
 

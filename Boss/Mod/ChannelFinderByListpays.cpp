@@ -48,7 +48,10 @@ void ChannelFinderByListpays::start() {
 		     >([this](Msg::SolicitChannelCandidates const& m) {
 		if (!rpc)
 			return Ev::lift();
+		if (running)
+			return Ev::lift();
 
+		running = true;
 		auto act = rpc->command( "listpays", Json::Out::empty_object()
 				       ).then([this](Jsmn::Object res) {
 			auto payees = std::map<Ln::NodeId, std::size_t>();
@@ -124,6 +127,9 @@ void ChannelFinderByListpays::start() {
 			act += Ev::foreach(std::move(f), std::move(proposals));
 
 			return act;
+		}).then([this]() {
+			running = false;
+			return Ev::lift();
 		});
 		return Boss::concurrent(act);
 	});

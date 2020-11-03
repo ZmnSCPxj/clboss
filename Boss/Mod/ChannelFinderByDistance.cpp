@@ -384,8 +384,15 @@ void ChannelFinderByDistance::start() {
 		     >([this](Msg::SolicitChannelCandidates const& _) {
 		if (!rpc)
 			return Ev::lift();
+		if (running)
+			return Ev::lift();
+
+		running = true;
 		auto run = Run::create(bus, *rpc, waiter, self_id);
-		return Boss::concurrent(run->run());
+		return Boss::concurrent(run->run().then([this]() {
+			running = false;
+			return Ev::lift();
+		}));
 	});
 }
 

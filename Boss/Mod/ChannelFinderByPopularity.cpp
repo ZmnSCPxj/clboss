@@ -37,15 +37,15 @@ namespace {
  * @brief ChannelFinderByPopularity will only
  * propose up to this number of nodes.
  */
-auto const max_proposals = size_t(4);
+auto const max_proposals = size_t(5);
 
-/** min_channels_to_disable
+/** min_channels_to_backoff
  *
  * @brief once we have achieved this number of
  * channels, ChannelFinderByPopularity will
- * stop making proposals.
+ * make only one proposal.
  */
-auto const min_channels_to_disable = size_t(4);
+auto const min_channels_to_backoff = size_t(4);
 
 /** min_nodes_to_process
  *
@@ -79,10 +79,13 @@ private:
 	bool running;
 	/* Set if we are waiting for a while.  */
 	bool try_later;
+	/* Set if we are in single-proposal mode.  */
+	bool single_proposal_only;
 
 	void start() {
 		running = false;
 		try_later = false;
+		single_proposal_only = false;
 		bus.subscribe<Msg::Init>([this](Msg::Init const& init) {
 			rpc = &init.rpc;
 			self = init.self_id;
@@ -183,11 +186,20 @@ private:
 			auto channels = res["channels"];
 			if (!channels.is_array())
 				return self_disable();
-			if (channels.size() >= min_channels_to_disable)
-				return self_disable();
+			auto msg = "";
+			if (channels.size() >= min_channels_to_backoff) {
+				single_proposal_only = true;
+				msg = "We seem to have many channels, "
+				      "will find one node only."
+				    ;
+			} else {
+				single_proposal_only = false;
+				msg = "Will find nodes.";
+			}
 			return Boss::log( bus, Debug
 					, "ChannelFinderByPopularity: "
-					  "Will find nodes."
+					  "%s"
+					, msg
 					).then([this]() {
 				return continue_solicit();
 			});
@@ -197,12 +209,9 @@ private:
 	Ev::Io<void> self_disable() {
 		return Boss::log( bus, Debug
 				, "ChannelFinderByPopularity: "
-				  "Voluntarily not operating, "
-				  "we seem to have many channels."
+				  "Unexpected result of `listchannels`."
 				).then([this]() {
-			/* Do not signal failed, since we successfully
-			 * decided not to do anything.  */
-			return signal_task_completion(false);
+			return signal_task_completion(true);
 		});
 	}
 
@@ -319,7 +328,10 @@ private:
 			wsum += entry.peers.size();
 			/* If fewer are selected than max proposals, go extend
 			 * it.  */
-			if (selected.size() < max_proposals) {
+			auto actual_max_proposals = max_proposals;
+			if (single_proposal_only)
+				actual_max_proposals = 1;
+			if (selected.size() < actual_max_proposals) {
 				selected.emplace_back(std::move(entry));
 				return select_by_popularity();
 			}

@@ -23,6 +23,9 @@ auto const minimum_feerate = double(253);
 
 auto const hysteresis_percent = double(20);
 
+/* Keep two weeks worth of data.  */
+auto constexpr num_samples = std::size_t(2016);
+
 auto const initialization = R"INIT(
 CREATE TABLE IF NOT EXISTS "OnchainFeeMonitor_meanfee"
 	( id INTEGER PRIMARY KEY
@@ -36,6 +39,12 @@ INSERT OR IGNORE INTO "OnchainFeeMonitor_meanfee" VALUES
 	, 10034.9455307263
 	, 1432
 	);
+CREATE TABLE IF NOT EXISTS "OnchainFeeMonitor_samples"
+	( id INTEGER PRIMARY KEY AUTOINCREMENT
+	, data SAMPLE
+	);
+CREATE INDEX IF NOT EXISTS "OnchainFeeMonitor_samples_idx"
+    ON "OnchainFeeMonitor_samples"(data);
 )INIT";
 
 auto const q_get = R"QRY(
@@ -183,6 +192,45 @@ private:
 		});
 	}
 
+	void add_sample(Sqlite3::Tx& tx, double feerate_sample) {
+		tx.query(R"QRY(
+		INSERT INTO "OnchainFeeMonitor_samples"
+		      ( data)
+		VALUES(:data);
+		)QRY")
+			.bind(":data", feerate_sample)
+			.execute()
+			;
+
+		check_num_samples(tx);
+	}
+	void check_num_samples(Sqlite3::Tx& tx) {
+		/* Did we get above `num_samples`?  */
+		auto fetch = tx.query(R"QRY(
+		SELECT COUNT(*)
+		  FROM "OnchainFeeMonitor_samples"
+		     ;
+		)QRY")
+			.execute()
+			;
+		auto num = std::size_t();
+		for (auto& r : fetch)
+			num = r.get<std::size_t>(0);
+
+		if (num > num_samples) {
+			/* We did!  Delete old ones.  */
+			tx.query(R"QRY(
+			DELETE FROM "OnchainFeeMonitor_samples"
+			 ORDER BY id
+			 LIMIT :limit
+			     ;
+			)QRY")
+				.bind(":limit", num - num_samples)
+				.execute()
+				;
+		}
+	}
+
 	double update_mean(Sqlite3::Tx tx, double feerate_sample) {
 		/* Recover the RunningMean.  */
 		auto fetch = tx.query(q_get).execute();
@@ -231,6 +279,7 @@ private:
 			return db.transact().then([ this
 						  , saved_feerate
 						  ](Sqlite3::Tx tx) {
+				add_sample(tx, *saved_feerate);
 				auto mean = update_mean( std::move(tx)
 						       , *saved_feerate
 						       );

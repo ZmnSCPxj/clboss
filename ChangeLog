@@ -1,3 +1,8 @@
+0.4
+0.3B
+- `ChannelFinderByPopularity` now reduces its participation instead of not participating if we have many channels already.
+- Channel finders now ensure they only run once even if multiple triggers occur while they are running.
+
 0.3A
 - Fixed missing initializations and some checks.
 - Fixed build errors in Debian.

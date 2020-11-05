@@ -83,6 +83,8 @@ private:
 
 	/* libev event on read end of RPC socket.  */
 	ev_io read_event;
+	ev_idle read_parse_event;
+	bool read_parse_active;
 	/* libev event on write end of RPC socket.  */
 	std::unique_ptr<ev_io> write_event;
 
@@ -192,10 +194,6 @@ private:
 			if (std::size_t(res) < chunk_size)
 				read_buffer.resize(offset + res);
 		}
-		auto responses = parser.feed(read_buffer);
-		read_buffer.resize(0);
-		for (auto const& r : responses)
-			process_response(r);
 	}
 	/* Wrapper of above for libev.  */
 	static
@@ -204,6 +202,28 @@ private:
 		self->on_read();
 		/* Re-arm.  */
 		ev_io_start(EV_A_ e);
+		/* Trigger read parse event.  */
+		if ( !self->read_parse_active
+		  && self->read_buffer.size() != 0
+		   ) {
+			self->read_parse_active = true;
+			ev_idle_start(EV_A_ &self->read_parse_event);
+		}
+	}
+
+	/* Call when read event took some data.  */
+	void on_read_parse() {
+		auto responses = parser.feed(read_buffer);
+		read_buffer.resize(0);
+		for (auto const& r : responses)
+			process_response(r);
+	}
+	static
+	void on_read_parse_static(EV_P_ ev_idle* e, int _) {
+		auto self = reinterpret_cast<Impl*>(e->data);
+		ev_idle_stop(EV_A_ e);
+		self->read_parse_active = false;
+		self->on_read_parse();
 	}
 
 	/* Call when write end is ready.  */
@@ -284,6 +304,10 @@ public:
 		read_event.data = this;
 		ev_set_priority(&read_event, -1);
 		ev_io_start(EV_DEFAULT_ &read_event);
+
+		ev_idle_init(&read_parse_event, &on_read_parse_static);
+		read_parse_event.data = this;
+		read_parse_active = false;
 
 		/* Listen to Boss::Shutdown events.  */
 		bus.subscribe<Boss::Shutdown>([this](Boss::Shutdown const&) {

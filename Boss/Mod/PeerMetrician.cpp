@@ -92,7 +92,7 @@ private:
 			mets.seconds_per_attempt = stats.lockrealtime
 						 / double(stats.attempts)
 						 ;
-			mets.success_per_attempt = Util::make_unique<double>();
+			mets.success_per_attempt = std::make_shared<double>();
 			*mets.success_per_attempt = double(stats.successes)
 						  / double(stats.attempts)
 						  ;
@@ -103,7 +103,7 @@ private:
 				     / time
 				     ;
 		if (stats.connect_checks > 0) {
-			mets.connect_rate = Util::make_unique<double>();
+			mets.connect_rate = std::make_shared<double>();
 			*mets.connect_rate = double(stats.connects)
 					   / double(stats.connect_checks)
 					   ;

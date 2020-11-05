@@ -25,7 +25,7 @@ struct PeerMetrics {
 	 * nullptr if we have never attempted this peer within the
 	 * time frame of this peer metric.
 	 */
-	std::unique_ptr<double> success_per_attempt;
+	std::shared_ptr<double> success_per_attempt;
 	/* Average number of times we reached the destination when
 	 * sending out via this peer, per day.
 	 * 0 if no successes with this peer.
@@ -36,7 +36,7 @@ struct PeerMetrics {
 	 * nullptr if we have not made any connectivity checks in
 	 * the time frame of this peer metric.
 	 */
-	std::unique_ptr<double> connect_rate;
+	std::shared_ptr<double> connect_rate;
 	/* Fees we earned from incoming forwards from this peer,
 	 * divided by time frame.
 	 * Unit is millisatoshi per day.

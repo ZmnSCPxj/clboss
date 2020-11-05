@@ -282,6 +282,7 @@ public:
 			  , socket.get(), EV_READ
 			  );
 		read_event.data = this;
+		ev_set_priority(&read_event, -1);
 		ev_io_start(EV_DEFAULT_ &read_event);
 
 		/* Listen to Boss::Shutdown events.  */

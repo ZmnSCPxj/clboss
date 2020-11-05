@@ -113,7 +113,7 @@ private:
 				.end_object()
 				;
 
-			return process_rpc_command(r)
+			return Boss::concurrent(process_rpc_command(r))
 			     + bus.raise(Msg::CommandResponse{
 					r.id, std::move(resp)
 			       })

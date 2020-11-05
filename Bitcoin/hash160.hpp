@@ -1,6 +1,7 @@
 #ifndef BITCOIN_HASH160_HPP
 #define BITCOIN_HASH160_HPP
 
+#include<cstddef>
 #include<cstdint>
 
 namespace Ripemd160 { class Hash; }

@@ -25,6 +25,11 @@ int main() {
 		flag = true;
 		return Ev::lift(i);
 	};
+	auto is_odd = [](int i) {
+		if (i % 2)
+			return Ev::lift(true);
+		return Ev::lift(false);
+	};
 
 	auto code = Ev::lift().then([&]() {
 
@@ -65,6 +70,20 @@ int main() {
 		assert(ovec.size() == 0);
 		/* Nothing to process, so it should not have been called.  */
 		assert(!flag);
+
+		/* Check vector of boolean.  */
+		auto vec = std::vector<int>();
+		vec.push_back(0);
+		vec.push_back(1);
+		vec.push_back(43);
+		vec.push_back(42);
+		return Ev::map(is_odd, std::move(vec));
+	}).then([&](std::vector<bool> ovec) {
+		assert(ovec.size() == 4);
+		assert(ovec[0] == false);
+		assert(ovec[1] == true);
+		assert(ovec[2] == true);
+		assert(ovec[3] == false);
 
 		return Ev::lift(0);
 	});

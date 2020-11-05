@@ -5,6 +5,7 @@
 #include"Ev/concurrent.hpp"
 #include"Ev/yield.hpp"
 #include"Util/make_unique.hpp"
+#include"Util/vector_emplace_back.hpp"
 #include<algorithm>
 #include<iterator>
 #include<memory>
@@ -158,7 +159,11 @@ private:
 				fail = nullptr;
 				auto rv = std::vector<b>();
 				for (auto& r : results) {
-					rv.emplace_back(std::move(*r));
+					Util::vector_emplace_back( rv
+								 , std::move(
+									*r
+								   )
+								 );
 				}
 				return pass(std::move(rv));
 			}

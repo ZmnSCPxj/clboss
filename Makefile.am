@@ -404,6 +404,7 @@ libclboss_la_SOURCES = \
 	Util/Str.hpp \
 	Util/make_unique.hpp \
 	Util/stringify.hpp \
+	Util/vector_emplace_back.hpp \
 	Uuid.cpp \
 	Uuid.hpp
 

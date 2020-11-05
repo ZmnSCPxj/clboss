@@ -2,7 +2,10 @@
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Msg/Block.hpp"
+#include"Boss/Msg/CommandRequest.hpp"
+#include"Boss/Msg/CommandResponse.hpp"
 #include"Boss/Msg/Init.hpp"
+#include"Boss/Msg/ManifestCommand.hpp"
 #include"Boss/Msg/ManifestNotification.hpp"
 #include"Boss/Msg/Manifestation.hpp"
 #include"Boss/Msg/Notification.hpp"
@@ -93,12 +96,7 @@ private:
 		});
 		bus.subscribe< Msg::SolicitChannelCandidates
 			     >([this](Msg::SolicitChannelCandidates const& _) {
-			if (running || !rpc || !self)
-				return Ev::lift();
-			running = true;
-			return Boss::concurrent(Ev::lift().then([this]() {
-				return solicit();
-			}));
+			return on_solicit();
 		});
 		bus.subscribe< Msg::Block
 			     >([this](Msg::Block const& _) {
@@ -126,6 +124,11 @@ private:
 			     >([this](Msg::Manifestation const& _) {
 			return bus.raise(Msg::ManifestNotification{
 				"connect"
+			}) + bus.raise(Msg::ManifestCommand{
+				"clboss-findbypopularity",
+				"",
+				"Trigger ChannelFinderByPopularity algorithm.",
+				false
 			});
 		});
 		bus.subscribe< Msg::Notification
@@ -137,6 +140,26 @@ private:
 			try_later = false;
 			return Boss::concurrent(on_new_connect());
 		});
+		bus.subscribe< Msg::CommandRequest
+			     >([this](Msg::CommandRequest const& r) {
+			if (r.command != "clboss-findbypopularity")
+				return Ev::lift();
+			return bus.raise(Msg::CommandResponse{
+				r.id,
+				Json::Out::empty_object()
+			}) + Ev::lift().then([this]() {
+				return on_solicit();
+			});
+		});
+	}
+
+	Ev::Io<void> on_solicit() {
+		if (running || !rpc || !self)
+			return Ev::lift();
+		running = true;
+		return Boss::concurrent(Ev::lift().then([this]() {
+			return solicit();
+		}));
 	}
 
 	/* List of all nodes.  */

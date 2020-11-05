@@ -86,6 +86,8 @@ private:
 	/* libev event on write end of RPC socket.  */
 	std::unique_ptr<ev_io> write_event;
 
+	/* Data we get on the read end of the RPC socket.  */
+	std::string read_buffer;
 
 	/* Call at shutdown.  */
 	void shutdown() {
@@ -165,26 +167,35 @@ private:
 
 	/* Call when read end is ready.  */
 	void on_read() {
-		char buf[256];
+		auto static constexpr chunk_size = std::size_t(4096);
+
 		while (is_ready(socket.get(), POLLIN)) {
+			auto offset = read_buffer.size();
+			read_buffer.resize(offset + chunk_size);
+			auto ptr = &*(read_buffer.begin() + offset);
+
 			auto res = ssize_t();
 			do {
-				res = read(socket.get(), buf, sizeof(buf));
+				res = read(socket.get(), ptr, chunk_size);
 			} while (res < 0 && errno == EINTR);
 			if (res < 0 && ( errno == EWOULDBLOCK
 				      || errno == EAGAIN
-				       ))
+				       )) {
+				read_buffer.resize(offset);
 				break;
+			}
 			if (res < 0)
 				throw std::runtime_error(
 					std::string("Rpc: read: ") +
 					strerror(errno)
 				);
-			auto s = std::string(buf, res);
-			auto responses = parser.feed(s);
-			for (auto const& r : responses)
-				process_response(r);
+			if (std::size_t(res) < chunk_size)
+				read_buffer.resize(offset + res);
 		}
+		auto responses = parser.feed(read_buffer);
+		read_buffer.resize(0);
+		for (auto const& r : responses)
+			process_response(r);
 	}
 	/* Wrapper of above for libev.  */
 	static
@@ -257,6 +268,7 @@ public:
 	      , is_shutting_down(false)
 	      , next_id(0)
 	      , write_event(nullptr)
+	      , read_buffer("")
 	      {
 
 		{

@@ -1,6 +1,7 @@
 #ifndef STATS_RESERVOIRSAMPLER_HPP
 #define STATS_RESERVOIRSAMPLER_HPP
 
+#include"Util/vector_emplace_back.hpp"
 #include<cstdint>
 #include<random>
 #include<vector>
@@ -50,7 +51,9 @@ public:
 			wsum += w;
 
 		if (selected.size() < max_selected) {
-			selected.emplace_back(std::move(s));
+			Util::vector_emplace_back( selected
+						 , std::move(s)
+						 );
 			return;
 		}
 

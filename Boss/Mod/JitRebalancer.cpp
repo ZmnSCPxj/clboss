@@ -333,7 +333,7 @@ private:
 					    ; j < cs.size()
 					    ; ++j
 					    ) {
-						auto c = cs[i];
+						auto c = cs[j];
 						auto state = std::string(
 							c["state"]
 						);

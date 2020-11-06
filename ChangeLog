@@ -1,4 +1,8 @@
-0.4
+0.5A
+- Long-running processes (channel finders, peer fee competitor measuring) now print progress reports.
+- Lowered execution priority of RPC socket reading and parsing, hopefully this will make us more responsive to our hooks.
+
+0.4 Failed a Spot Check
 0.3B
 - `ChannelFinderByPopularity` now reduces its participation instead of not participating if we have many channels already.
 - Channel finders now ensure they only run once even if multiple triggers occur while they are running.

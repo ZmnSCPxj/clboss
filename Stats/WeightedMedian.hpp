@@ -2,6 +2,7 @@
 #define STATS_WEIGHTEDMEDIAN_HPP
 
 #include<algorithm>
+#include<functional>
 #include<stdexcept>
 #include<utility>
 #include<vector>

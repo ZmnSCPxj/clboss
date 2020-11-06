@@ -8,6 +8,7 @@
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
 #include"Ev/Io.hpp"
+#include"Ev/now.hpp"
 #include"Ev/yield.hpp"
 #include"Graph/Dijkstra.hpp"
 #include"Jsmn/Object.hpp"
@@ -67,6 +68,10 @@ private:
 	Dijkstra djk;
 	/* Resulting navigation guide.  */
 	DijkstraResult nav;
+
+	/* Progress reporting.  */
+	double prev_time;
+	std::size_t progress_count;
 
 	/* Used to extact leaf nodes in the Dijkstra run.  */
 	std::queue<TreeNode const*> extract_q;
@@ -171,6 +176,8 @@ private:
 
 	Ev::Io<void> start_processing() {
 		return Ev::lift().then([this]() {
+			prev_time = Ev::now();
+			progress_count = 0;
 			return Boss::log( bus, Debug
 					, "ChannelFinderByDistance: "
 					  "Starting Dijkstra."
@@ -182,7 +189,18 @@ private:
 		});
 	}
 	Ev::Io<void> loop() {
-		return Ev::yield().then([this]() {
+		auto act = Ev::yield();
+		if (Ev::now() - prev_time >= 5.0) {
+			prev_time = Ev::now();
+			act += Boss::log( bus, Info
+					, "ChannelFinderByDistance: "
+					  "Dijkstra progress: "
+					  "%zu nodes scanned."
+					, progress_count
+					);
+		}
+
+		return std::move(act).then([this]() {
 			auto n = djk.current();
 			if (!n)
 				return Boss::log( bus, Debug
@@ -193,6 +211,7 @@ private:
 		});
 	}
 	Ev::Io<void> step(Ln::NodeId const& n) {
+		++progress_count;
 		auto parms = Json::Out()
 			.start_object()
 				.field("source", std::string(n))
@@ -254,6 +273,9 @@ private:
 
 	Ev::Io<void> find_leaves() {
 		return Ev::lift().then([this]() {
+			prev_time = Ev::now();
+			progress_count = 0;
+
 			nav = std::move(djk).finalize();
 			auto n = nav[self_id].get();
 			extract_q.push(n);
@@ -261,7 +283,17 @@ private:
 		});
 	}
 	Ev::Io<void> find_leaves_loop() {
-		return Ev::yield().then([this]() {
+		auto act = Ev::yield();
+		if (Ev::now() - prev_time >= 5.0) {
+			prev_time = Ev::now();
+			act += Boss::log( bus, Info
+					, "ChannelFinderByDistance: "
+					  "Leaf progress: %zu nodes scanned."
+					, progress_count
+					);
+		}
+
+		return std::move(act).then([this]() {
 			if (extract_q.empty())
 				return Boss::log( bus, Debug
 						, "ChannelFinderByDistance: "
@@ -271,6 +303,7 @@ private:
 
 			auto n = extract_q.front();
 			extract_q.pop();
+			++progress_count;
 			/* Is it a leaf?  */
 			if (n->children.empty())
 				leaves.push_back(n);

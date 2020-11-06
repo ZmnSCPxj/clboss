@@ -19,6 +19,7 @@
 #include"Boss/random_engine.hpp"
 #include"Ev/Io.hpp"
 #include"Ev/map.hpp"
+#include"Ev/now.hpp"
 #include"Ev/yield.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
@@ -84,6 +85,11 @@ private:
 	bool try_later;
 	/* Set if we are in single-proposal mode.  */
 	bool single_proposal_only;
+
+	/* Progress tracking.  */
+	double prev_time;
+	std::size_t count;
+	std::size_t all_nodes_count;
 
 	void start() {
 		running = false;
@@ -266,6 +272,10 @@ private:
 			num_processed = 0;
 			wsum = 0;
 			selected.clear();
+			/* Initialize progress tracking.  */
+			prev_time = Ev::now();
+			count = 0;
+			all_nodes_count = all_nodes.size();
 			/* Print details.  */
 			return Boss::log( bus, Debug
 					, "ChannelFinderByPopularity: "
@@ -301,7 +311,20 @@ private:
 
 	/* A-Chao Reservoir sampling algorithm.  */
 	Ev::Io<void> select_by_popularity() {
-		return Ev::yield().then([this]() {
+		auto act = Ev::yield();
+		if (Ev::now() - prev_time >= 5.0) {
+			prev_time = Ev::now();
+			act += Boss::log( bus, Info
+					, "ChannelFinderByPopularity: "
+					  "Progress: %zu / %zu (%f)"
+					, count, all_nodes_count
+					, ( double(count)
+					  / double(all_nodes_count)
+					  )
+					);
+		}
+
+		return std::move(act).then([this]() {
 
 		/* This is a loop.  */
 		if (all_nodes.empty())
@@ -320,6 +343,7 @@ private:
 			/* Now move the current node off the queue.  */
 			entry.node = std::move(all_nodes.front());
 			all_nodes.pop();
+			++count;
 
 			/* Now fill in the entry.  */
 			if (!res.is_object() || !res.has("channels"))

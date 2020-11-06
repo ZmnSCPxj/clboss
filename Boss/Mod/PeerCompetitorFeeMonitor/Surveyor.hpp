@@ -34,6 +34,11 @@ private:
 	Stats::WeightedMedian<std::uint32_t, Ln::Amount> bases;
 	Stats::WeightedMedian<std::uint32_t, Ln::Amount> proportionals;
 
+	/* Progress reporting.  */
+	double prev_time;
+	std::size_t count;
+	std::size_t total_count;
+
 	Surveyor( S::Bus& bus_
 		, Boss::Mod::Rpc& rpc_
 		, Ln::NodeId self_id_

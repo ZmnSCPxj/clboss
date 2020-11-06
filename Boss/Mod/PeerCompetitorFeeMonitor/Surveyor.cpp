@@ -2,6 +2,7 @@
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/log.hpp"
 #include"Ev/Io.hpp"
+#include"Ev/now.hpp"
 #include"Ev/yield.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
@@ -29,13 +30,19 @@ Surveyor::extract() {
 	return Ev::lift(std::move(res));
 }
 Ev::Io<void> Surveyor::core_run() {
-	auto parms = Json::Out()
-		.start_object()
-			.field("source", std::string(peer_id))
-		.end_object()
-		;
-	return rpc.command( "listchannels", std::move(parms)
-			  ).then([this](Jsmn::Object result) {
+	return Ev::lift().then([this]() {
+		return Boss::log( bus, Debug
+				, "PeerCompetitorFeeMonitor: Surveying %s."
+				, std::string(peer_id).c_str()
+				);
+	}).then([this]() {
+		auto parms = Json::Out()
+			.start_object()
+				.field("source", std::string(peer_id))
+			.end_object()
+			;
+		return rpc.command( "listchannels", std::move(parms));
+	}).then([this](Jsmn::Object result) {
 		try {
 			auto cs = result["channels"];
 			for (auto i = std::size_t(0); i < cs.size(); ++i) {
@@ -76,6 +83,11 @@ Ev::Io<void> Surveyor::core_run() {
 	}).then([this](bool ok) {
 		if (!ok)
 			return Ev::lift();
+
+		prev_time = Ev::now();
+		count = 0;
+		total_count = to_process.size();
+
 		return loop();
 	});
 }
@@ -83,9 +95,21 @@ Ev::Io<void> Surveyor::core_run() {
 Ev::Io<void> Surveyor::loop() {
 	if (to_process.empty())
 		return Ev::lift();
-	return Ev::yield().then([this]() {
+	auto act = Ev::yield();
+	if (Ev::now() - prev_time >= 5.0) {
+		prev_time = Ev::now();
+		act += Boss::log( bus, Info
+				, "PeerCompetitorFeeMonitor: Surveying %s "
+				  "progress: %zu/%zu (%f)"
+				, std::string(peer_id).c_str()
+				, count, total_count
+				, double(count) / double(total_count)
+				);
+	}
+	return std::move(act).then([this]() {
 		auto scid = to_process.front();
 		to_process.pop();
+		++count;
 		auto parms = Json::Out()
 			.start_object()
 				.field("short_channel_id", std::string(scid))

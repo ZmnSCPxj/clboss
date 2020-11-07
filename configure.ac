@@ -33,6 +33,22 @@ AX_LIB_CURL(,[:],[
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
+CLBOSS_CXXFLAGS=''
+AC_SUBST([CLBOSS_CXXFLAGS])
+# Determine if compiling ev.h succeeds with -Wno-noexcept-type
+# On FreeBSD ev.h compilation fails without this flag.
+AC_MSG_CHECKING([if compiler compiles ev.h with -Wno-noexcept-type])
+saved_CXXFLAGS="${CXXFLAGS}"
+CXXFLAGS="${CXXFLAGS} ${libev_CFLAGS} -Wno-noexcept-type"
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+#include<ev.h>
+]])], [ # then
+    CLBOSS_CXXFLAGS="${CLBOSS_CXXFLAGS} -Wno-noexcept-type"
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+CXXFLAGS="${saved_CXXFLAGS}"
 
 # Checks for library functions.
 

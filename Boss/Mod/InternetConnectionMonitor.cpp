@@ -140,6 +140,9 @@ private:
 					      , online ? std::string("online")
 						       : std::string("offline")
 					      )
+					.field( "checking_connectivity"
+					      , checking_connectivity
+					      )
 				.end_object()
 				;
 			return bus.raise(Msg::ProvideStatus{
@@ -161,9 +164,16 @@ private:
 	Ev::Io<bool> check_server_connectivity() {
 		assert(connector);
 		auto i = dist(Boss::random_engine);
-		return check_server(servers[i]).then([this](bool res) {
+		return check_server(servers[i]).then([this, i](bool res) {
 			if (!res)
-				return check_all_servers();
+				return Boss::log( bus, Debug
+						, "InternetConnectionMonitor: "
+						  "Could not contact %s, "
+						  "will contact other servers."
+						, servers[i].first.c_str()
+						).then([this]() {
+					return check_all_servers();
+				});
 			else
 				return Ev::lift(true);
 		});
@@ -172,13 +182,31 @@ private:
 		using std::placeholders::_1;
 		return Ev::map( std::bind(&Impl::check_server, this, _1)
 			      , servers
-			      ).then([](std::vector<bool> results) {
+			      ).then([this](std::vector<bool> results) {
 			/* If one of the servers passed, it turns out we
 			 * are connected after all.  */
+			auto res = false;
 			for (auto const& r : results)
-				if (r)
-					return Ev::lift(true);
-			return Ev::lift(false);
+				if (r) {
+					res = true;
+					break;
+				}
+			auto act = Ev::lift();
+			if (res)
+				act += Boss::log( bus, Debug
+						, "InternetConnectionMonitor: "
+						  "Other server contacted, "
+						  "we are online after all."
+						);
+			else
+				act += Boss::log( bus, Debug
+						, "InternetConnectionMonitor: "
+						  "Other servers also not "
+						  "reached."
+						);
+			return std::move(act).then([res]() {
+				return Ev::lift(res);
+			});
 		});
 	}
 	Ev::Io<bool> check_server(std::pair<std::string, int> const& s) {

@@ -1,11 +1,9 @@
 #include"Boss/Mod/SendpayResultMonitor.hpp"
-#include"Boss/Msg/CommandRequest.hpp"
-#include"Boss/Msg/CommandResponse.hpp"
 #include"Boss/Msg/DbResource.hpp"
-#include"Boss/Msg/ManifestHook.hpp"
 #include"Boss/Msg/ManifestNotification.hpp"
 #include"Boss/Msg/Manifestation.hpp"
 #include"Boss/Msg/Notification.hpp"
+#include"Boss/Msg/RpcCommandHook.hpp"
 #include"Boss/Msg/SendpayResult.hpp"
 #include"Boss/Msg/Timer10Minutes.hpp"
 #include"Boss/concurrent.hpp"
@@ -54,8 +52,7 @@ private:
 	void start() {
 		bus.subscribe<Msg::Manifestation
 			     >([this](Msg::Manifestation const&_) {
-			return bus.raise(Msg::ManifestHook{"rpc_command"})
-			     + bus.raise(Msg::ManifestNotification{
+			return bus.raise(Msg::ManifestNotification{
 					"sendpay_success"
 			       })
 			     + bus.raise(Msg::ManifestNotification{
@@ -102,21 +99,9 @@ private:
 		/* Extract the first hop for the payment, from the
 		 * RPC command used.
 		 */
-		bus.subscribe<Msg::CommandRequest
-			     >([this](Msg::CommandRequest const& r) {
-			if (r.command != "rpc_command")
-				return Ev::lift();
-
-			auto resp = Json::Out()
-				.start_object()
-					.field("result", "continue")
-				.end_object()
-				;
-
+		bus.subscribe<Msg::RpcCommandHook
+			     >([this](Msg::RpcCommandHook const& r) {
 			return Boss::concurrent(process_rpc_command(r))
-			     + bus.raise(Msg::CommandResponse{
-					r.id, std::move(resp)
-			       })
 			     ;
 		});
 		/* Check for `sendpay_failure` or `sendpay_success`.
@@ -152,7 +137,7 @@ private:
 	 * commands.
 	 */
 	Ev::Io<void>
-	process_rpc_command(Msg::CommandRequest const& r) {
+	process_rpc_command(Msg::RpcCommandHook const& r) {
 		auto params = std::make_shared<Jsmn::Object>(r.params);
 		return Ev::lift().then([this, params]() {
 			try {

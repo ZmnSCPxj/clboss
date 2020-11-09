@@ -1,4 +1,5 @@
 0.5A
+- Handle `rpc_command` specially for better RPC response times even when CLBOSS is busy.
 - Make compilable on FreeBSD.
 - Print more debug logs for internet connection monitoring.
 - Limit resources used by rebalancing attempts.

@@ -4,7 +4,11 @@
 #include"Boss/Msg/CommandResponse.hpp"
 #include"Boss/Msg/JsonCin.hpp"
 #include"Boss/Msg/JsonCout.hpp"
+#include"Boss/Msg/ManifestHook.hpp"
+#include"Boss/Msg/Manifestation.hpp"
 #include"Boss/Msg/Notification.hpp"
+#include"Boss/Msg/RpcCommandHook.hpp"
+#include"Boss/concurrent.hpp"
 #include"S/Bus.hpp"
 
 namespace Boss { namespace Mod {
@@ -28,9 +32,28 @@ CommandReceiver::CommandReceiver(S::Bus& bus_) : bus(bus_) {
 
 		if (!inp.has("id")) {
 			/* Notification.  */
-			return bus.raise(Boss::Msg::Notification{
-				method, params
-			});
+			return Boss::concurrent(
+				bus.raise(Boss::Msg::Notification{
+					method, params
+				})
+			);
+		} else if (method == "rpc_command") {
+			/* Respond immediately!  */
+			auto js = Json::Out()
+				.start_object()
+					.field("jsonrpc", std::string("2.0"))
+					.field("id", inp["id"])
+					.start_object("result")
+						.field("result", "continue")
+					.end_object()
+				.end_object()
+				;
+			return bus.raise(Msg::JsonCout{std::move(js)})
+			     /* Execute in background.  */
+			     + Boss::concurrent(
+					bus.raise(Msg::RpcCommandHook{params})
+			       )
+			     ;
 		} else {
 			if (!inp["id"].is_number())
 				return Ev::lift();
@@ -39,9 +62,11 @@ CommandReceiver::CommandReceiver(S::Bus& bus_) : bus(bus_) {
 			auto id = std::uint64_t((double) inp["id"]);
 			pendings.insert(id);
 
-			return bus.raise(Boss::Msg::CommandRequest{
-				method, params, id
-			});
+			return Boss::concurrent(
+				bus.raise(Boss::Msg::CommandRequest{
+					method, params, id
+				})
+			);
 		}
 	});
 	bus.subscribe<Boss::Msg::CommandResponse>([this](Boss::Msg::CommandResponse const& resp) {
@@ -79,6 +104,10 @@ CommandReceiver::CommandReceiver(S::Bus& bus_) : bus(bus_) {
 			.end_object()
 			;
 		return bus.raise(Boss::Msg::JsonCout{std::move(js)});
+	});
+	bus.subscribe<Msg::Manifestation
+		     >([this](Msg::Manifestation const& _) {
+		return bus.raise(Msg::ManifestHook{"rpc_command"});
 	});
 }
 

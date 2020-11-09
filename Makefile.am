@@ -264,6 +264,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ResponseNewaddr.hpp \
 	Boss/Msg/ResponsePeerMetrics.hpp \
 	Boss/Msg/ResponsePeerStatistics.hpp \
+	Boss/Msg/RpcCommandHook.hpp \
 	Boss/Msg/SendpayResult.hpp \
 	Boss/Msg/SetChannelFee.hpp \
 	Boss/Msg/SolicitChannelCandidates.hpp \

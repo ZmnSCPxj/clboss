@@ -19,6 +19,9 @@ namespace {
 /* Minimum size below which we will no longer split.  */
 auto const minimum_split_size = Ln::Amount::msat(100000);
 
+/* Maximum number of attempts in parallel to invoke.  */
+auto constexpr maximum_attempts = std::size_t(30);
+
 /* Golden ratio.  */
 auto const gold = (1.0 + sqrt(5.0)) / 2.0;
 
@@ -203,7 +206,9 @@ Ev::Io<void> Runner::attempt(Ln::Amount amount) {
 					, std::string(source).c_str()
 					, std::string(destination).c_str()
 					);
-		} else if (amount >= minimum_split_size) {
+		} else if ( (amount >= minimum_split_size)
+			 && (attempts + 2 < maximum_attempts)
+			  ) {
 			auto a1 = amount / gold;
 			auto a2 = amount - a1;
 			auto as = std::vector<Ln::Amount>{a1, a2};

@@ -40,6 +40,9 @@ private:
 	 */
 	Ln::Amount orig_budget;
 
+	/* Time this run started.  */
+	double start_time;
+
 	Runner( S::Bus& bus
 	      , Boss::Mod::Rpc& rpc
 	      , Ln::NodeId self

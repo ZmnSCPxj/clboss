@@ -8,6 +8,7 @@
 #include"Boss/log.hpp"
 #include"Ev/Io.hpp"
 #include"Ev/foreach.hpp"
+#include"Ev/now.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
 #include"S/Bus.hpp"
@@ -21,6 +22,8 @@ auto const minimum_split_size = Ln::Amount::msat(100000);
 
 /* Maximum number of attempts in parallel to invoke.  */
 auto constexpr maximum_attempts = std::size_t(30);
+/* Maximum amount of time we run, in seconds.  */
+auto constexpr maximum_time = double(120.0);
 
 /* Golden ratio.  */
 auto const gold = (1.0 + sqrt(5.0)) / 2.0;
@@ -44,6 +47,7 @@ Runner::Runner( S::Bus& bus_
 		, amount(req.amount)
 		, fee_budget(std::make_shared<Ln::Amount>(req.fee_budget))
 		, orig_budget(req.fee_budget)
+		, start_time(Ev::now())
 		, attempts(0)
 		{ }
 
@@ -208,6 +212,7 @@ Ev::Io<void> Runner::attempt(Ln::Amount amount) {
 					);
 		} else if ( (amount >= minimum_split_size)
 			 && (attempts + 2 < maximum_attempts)
+			 && ((Ev::now() - start_time) < maximum_time)
 			  ) {
 			auto a1 = amount / gold;
 			auto a2 = amount - a1;

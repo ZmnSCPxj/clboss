@@ -1,4 +1,5 @@
 0.5A
+- Limit resources used by rebalancing attempts.
 - Long-running processes (channel finders, peer fee competitor measuring) now print progress reports.
 - Lowered execution priority of RPC socket reading and parsing, hopefully this will make us more responsive to our hooks.
 

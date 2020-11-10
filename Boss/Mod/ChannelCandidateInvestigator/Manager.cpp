@@ -12,6 +12,7 @@
 #include"Boss/Msg/SolicitChannelCandidates.hpp"
 #include"Boss/Msg/SolicitStatus.hpp"
 #include"Boss/Msg/TimerRandomHourly.hpp"
+#include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
 #include"Ev/map.hpp"
@@ -72,7 +73,9 @@ void Manager::start() {
 			tx.commit();
 
 			if (good_candidates < min_good_candidates)
-				return solicit_candidates(good_candidates);
+				return Boss::concurrent(
+					solicit_candidates(good_candidates)
+				);
 
 			return Ev::lift();
 		});

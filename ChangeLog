@@ -1,3 +1,6 @@
+0.5B
+- Do not delay response to `init`.
+
 0.5A
 - Handle `rpc_command` specially for better RPC response times even when CLBOSS is busy.
 - Make compilable on FreeBSD.

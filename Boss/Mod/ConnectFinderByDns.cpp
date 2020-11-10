@@ -4,6 +4,7 @@
 #include"Boss/Msg/ProposeConnectCandidates.hpp"
 #include"Boss/Msg/Network.hpp"
 #include"Boss/Msg/SolicitConnectCandidates.hpp"
+#include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
 #include"DnsSeed/get.hpp"
@@ -140,13 +141,16 @@ private:
 						});
 					});
 				};
-				return Ev::map(std::move(f), it->second
-					      ).then([this](DnsSeeds n_seeds) {
+				auto code = Ev::map(std::move(f), it->second
+						   ).then([this
+							  ](DnsSeeds n_seeds
+							   ) {
 					dnsseeds = Util::make_unique<DnsSeeds>(
 						std::move(n_seeds)
 					);
 					return check_dnsseeds();
 				});
+				return Boss::concurrent(std::move(code));
 			}
 			return Boss::log( bus, Warn
 					, "DnsSeed: Cannot seed by DNS: %s"

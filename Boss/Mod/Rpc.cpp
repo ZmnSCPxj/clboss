@@ -191,6 +191,12 @@ private:
 					std::string("Rpc: read: ") +
 					strerror(errno)
 				);
+			if (res == 0)
+				/* Unexpected end of file!  */
+				throw std::runtime_error(
+					"Rpc: read: unexpected end-of-file "
+					"in RPC socket."
+				);
 			if (std::size_t(res) < chunk_size)
 				read_buffer.resize(offset + res);
 		}

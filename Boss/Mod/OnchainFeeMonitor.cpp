@@ -79,7 +79,12 @@ private:
 		bus.subscribe<Msg::Init>([this](Msg::Init const& ini) {
 			rpc = &ini.rpc;
 			db = ini.db;
-			return on_init();
+			/* Set up table if not yet present.  */
+			return db.transact().then([this](Sqlite3::Tx tx) {
+				tx.query_execute(initialization);
+				tx.commit();
+				return Boss::concurrent(on_init());
+			});
 		});
 		bus.subscribe<Msg::Timer10Minutes>([this](Msg::Timer10Minutes const&) {
 			return on_timer();
@@ -124,11 +129,7 @@ private:
 	Ev::Io<void> on_init() {
 		auto saved_feerate = std::make_shared<double>();
 
-		/* Set up table if not yet present.  */
-		return db.transact().then([this](Sqlite3::Tx tx) {
-			tx.query_execute(initialization);
-			tx.commit();
-
+		return Ev::lift().then([this]() {
 			/* Now query the feerate.  */
 			return get_feerate();
 		}).then([ this

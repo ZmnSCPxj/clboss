@@ -1,3 +1,5 @@
+- Really, do not delay response to `init`, for reals.
+
 0.5B
 - Do not delay response to `init`.
 

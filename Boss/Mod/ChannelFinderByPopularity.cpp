@@ -259,8 +259,7 @@ private:
 			if (nodes.size() < min_nodes_to_process)
 				return defer_solicit(nodes.size());
 			all_nodes = std::queue<Ln::NodeId>();
-			for (auto i = size_t(0); i < nodes.size(); ++i) {
-				auto node = nodes[i];
+			for (auto node : nodes) {
 				if (!node.is_object() || !node.has("nodeid"))
 					continue;
 				auto id = node["nodeid"];
@@ -352,8 +351,7 @@ private:
 			auto channels = res["channels"];
 			if (!channels.is_array())
 				return select_by_popularity();
-			for (auto i = size_t(0); i < channels.size(); ++i) {
-				auto channel = channels[i];
+			for (auto channel : channels) {
 				if ( !channel.is_object()
 				  || !channel.has("destination")
 				   )

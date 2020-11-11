@@ -1,4 +1,5 @@
 #include"Boss/Mod/FundsMover/Attempter.hpp"
+#include"Boss/Mod/FundsMover/create_label.hpp"
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
@@ -252,11 +253,7 @@ private:
 		auto payment_hash = std::make_shared<Sha256::Hash>();
 		return Ev::lift().then([this, payment_hash]() {
 			*payment_hash = preimage.sha256();
-			auto label = std::string("CLBOSS FundsMover payment, "
-						 "this should automatically "
-						 "get deleted. Hash: ")
-				   + std::string(*payment_hash)
-				   ;
+			auto label = create_label(*payment_hash);
 			auto parms = Json::Out()
 				.start_object()
 					.field("route", make_route())

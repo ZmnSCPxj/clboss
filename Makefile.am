@@ -130,8 +130,12 @@ libclboss_la_SOURCES = \
 	Boss/Mod/FundsMover/Claimer.hpp \
 	Boss/Mod/FundsMover/Main.cpp \
 	Boss/Mod/FundsMover/Main.hpp \
+	Boss/Mod/FundsMover/PaymentDeleter.cpp \
+	Boss/Mod/FundsMover/PaymentDeleter.hpp \
 	Boss/Mod/FundsMover/Runner.cpp \
 	Boss/Mod/FundsMover/Runner.hpp \
+	Boss/Mod/FundsMover/create_label.cpp \
+	Boss/Mod/FundsMover/create_label.hpp \
 	Boss/Mod/HtlcAcceptor.cpp \
 	Boss/Mod/HtlcAcceptor.hpp \
 	Boss/Mod/InitialConnect.cpp \

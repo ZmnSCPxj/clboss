@@ -132,11 +132,7 @@ private:
 			try {
 				auto cs = res["channels"];
 				empty = cs.size() == 0;
-				for ( auto i = std::size_t(0)
-				    ; i < cs.size()
-				    ; ++i
-				    ) {
-					auto c = cs[i];
+				for (auto c : cs) {
 					if (c["active"]) {
 						any_active = true;
 						break;
@@ -221,11 +217,7 @@ private:
 				  ).then([this](Jsmn::Object res) {
 			try {
 				auto cs = res["channels"];
-				for ( auto i = std::size_t(0)
-				    ; i < cs.size()
-				    ; ++i
-				    ) {
-					auto c = cs[i];
+				for (auto c : cs) {
 					if (!c["active"])
 						continue;
 					/* Neighbor.  */

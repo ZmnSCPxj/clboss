@@ -1,3 +1,6 @@
+
+0.5C
+- `FundsMover` now has a backup process to clean up its payments.
 - `ChannelFinderByListpays` now ignores self-payments instead of possibly proposing self.
 - Optimize traversing JSON results for channel finders.
 - Reduce processing load when printing really long RPC logs.

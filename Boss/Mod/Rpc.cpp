@@ -22,21 +22,15 @@
 
 namespace {
 
-template<typename a>
-std::string enstring(a const& val) {
-	auto os = std::ostringstream();
-	os << val;
-	return os.str();
-}
-template<typename a>
-std::string limited_enstring(a const& val) {
-	auto rv = enstring(val);
-	if (rv.size() > 160) {
-		rv.erase(rv.begin() + 160, rv.end());
-		rv += "...";
-	}
+std::string limited_enstring(Jsmn::Object const& val) {
+	char const* t;
+	std::size_t len;
+	val.direct_text(t, len);
 
-	return rv;
+	if (len > 160)
+		return std::string(t, 160) + "...";
+
+	return std::string(t, len);
 }
 
 }

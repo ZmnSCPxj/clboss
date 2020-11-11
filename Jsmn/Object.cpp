@@ -82,6 +82,11 @@ public:
 		auto& tok = token();
 		return at(tok.start, tok.end);
 	}
+	void direct_text(char const*& t, std::size_t& len) const {
+		auto& tok = token();
+		t = &at(tok.start);
+		len = tok.end - tok.start;
+	}
 
 	/* Object/Array.  */
 	std::size_t size() const {
@@ -257,8 +262,17 @@ Object Object::operator[](std::size_t i) const {
 
 std::string Object::direct_text() const {
 	if (!pimpl)
-		throw TypeError();
+		return "null";
 	return pimpl->direct_text();
+}
+void Object::direct_text(char const*& t, std::size_t& len) const {
+	if (!pimpl) {
+		auto static const text = "null";
+		t = text;
+		len = 4;
+		return;
+	}
+	return pimpl->direct_text(t, len);
 }
 
 /* Implements indented printing.  */

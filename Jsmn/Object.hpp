@@ -73,6 +73,7 @@ public:
 
 	/* Access text directly, not recommended.  */
 	std::string direct_text() const;
+	void direct_text(char const*& t, std::size_t& len) const;
 };
 
 std::ostream& operator<<(std::ostream&, Jsmn::Object const&);

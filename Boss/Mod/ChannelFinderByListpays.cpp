@@ -9,6 +9,7 @@
 #include"Boss/random_engine.hpp"
 #include"Ev/Io.hpp"
 #include"Ev/foreach.hpp"
+#include"Ev/yield.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
 #include"S/Bus.hpp"
@@ -52,35 +53,14 @@ void ChannelFinderByListpays::start() {
 			return Ev::lift();
 
 		running = true;
+		count = 0;
 		auto act = rpc->command( "listpays", Json::Out::empty_object()
 				       ).then([this](Jsmn::Object res) {
-			auto payees = std::map<Ln::NodeId, std::size_t>();
+			payees.clear();
 			try {
-				auto pays = res["pays"];
-				for ( auto i = std::size_t(0)
-				    ; i < pays.size()
-				    ; ++i
-				    ) {
-					auto pay = pays[i];
-					if (!pay.has("destination"))
-						continue;
-					auto payee = Ln::NodeId(std::string(
-						pay["destination"]
-					));
-
-					/* Do we already have a channel with
-					 * that payee?  */
-					auto cit = channels.find(payee);
-					if (cit != channels.end())
-						continue;
-
-					/* Track number of payments.  */
-					auto pit = payees.find(payee);
-					if (pit == payees.end())
-						payees[payee] = 1;
-					else
-						++pit->second;
-				}
+				pays = res["pays"];
+				it = pays.begin();
+				count = 0;
 			} catch (Jsmn::TypeError const&) {
 				return Boss::log( bus, Error
 						, "ChannelFinderByListpays: "
@@ -89,6 +69,8 @@ void ChannelFinderByListpays::start() {
 						, Util::stringify(res).c_str()
 						);
 			}
+			return extract_payees_loop();
+		}).then([this]() {
 
 			/* Select by number of payments made.  */
 			auto smp = Stats::ReservoirSampler<Ln::NodeId>(
@@ -99,7 +81,6 @@ void ChannelFinderByListpays::start() {
 				       , Boss::random_engine
 				       );
 			auto proposals = std::move(smp).finalize();
-
 			/* Generate report.  */
 			auto os = std::ostringstream();
 			auto first = true;
@@ -129,9 +110,59 @@ void ChannelFinderByListpays::start() {
 			return act;
 		}).then([this]() {
 			running = false;
-			return Ev::lift();
+
+			/* Drop the data.  */
+			payees.clear();
+			pays = Jsmn::Object();
+			it = Jsmn::Object::iterator();
+
+			return Boss::log( bus, Debug
+					, "ChannelFinderByListpays: "
+					  "Run completion."
+					);
 		});
 		return Boss::concurrent(act);
+	});
+}
+Ev::Io<void> ChannelFinderByListpays::extract_payees_loop() {
+	return Ev::yield().then([this]() {
+		if (it == pays.end())
+			return Boss::log( bus, Debug
+					, "ChannelFinderByListpays: "
+					  "Finished processing %zu `listpays`."
+					, count
+					);
+		auto pay = *it;
+		++it;
+		try {
+			if (!pay.has("destination"))
+				return extract_payees_loop();
+			auto payee = Ln::NodeId(std::string(
+				pay["destination"]
+			));
+
+			/* Do we already have a channel with
+			 * that payee?  */
+			auto cit = channels.find(payee);
+			if (cit != channels.end())
+				return extract_payees_loop();
+
+			/* Track number of payments.  */
+			auto pit = payees.find(payee);
+			if (pit == payees.end())
+				payees[payee] = 1;
+			else
+				++pit->second;
+			++count;
+			return extract_payees_loop();
+		} catch (std::exception const&) {
+			return Boss::log( bus, Error
+					, "ChannelFinderByListpays: "
+					  "Unexpected result from `listpays` "
+					  "`pays` field: %s"
+					, Util::stringify(pay).c_str()
+					);
+		}
 	});
 }
 

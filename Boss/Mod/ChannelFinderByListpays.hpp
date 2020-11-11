@@ -1,10 +1,14 @@
 #ifndef BOSS_MOD_CHANNELFINDERBYLISTPAYS_HPP
 #define BOSS_MOD_CHANNELFINDERBYLISTPAYS_HPP
 
+#include"Jsmn/Object.hpp"
 #include"Ln/NodeId.hpp"
+#include<cstddef>
+#include<map>
 #include<set>
 
 namespace Boss { namespace Mod { class Rpc; }}
+namespace Ev { template<typename a> class Io; }
 namespace S { class Bus; }
 
 namespace Boss { namespace Mod {
@@ -23,6 +27,13 @@ private:
 	std::set<Ln::NodeId> channels;
 
 	bool running;
+	/* Used in a run.  */
+	std::map<Ln::NodeId, std::size_t> payees;
+	Jsmn::Object pays;
+	Jsmn::Object::iterator it;
+	std::size_t count;
+
+	Ev::Io<void> extract_payees_loop();
 
 	void start();
 

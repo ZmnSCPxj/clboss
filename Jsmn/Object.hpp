@@ -1,6 +1,7 @@
 #ifndef JSMN_OBJECT_HPP
 #define JSMN_OBJECT_HPP
 
+#include"Jsmn/Detail/Iterator.hpp"
 #include<cstddef>
 #include<istream>
 #include<memory>
@@ -70,10 +71,18 @@ public:
 
 	/* Formal factory.  */
 	friend class Parser;
+	/* Iterator type.  */
+	friend class Jsmn::Detail::Iterator;
 
 	/* Access text directly, not recommended.  */
 	std::string direct_text() const;
 	void direct_text(char const*& t, std::size_t& len) const;
+
+	/* Iterate over array elements.  */
+	typedef Jsmn::Detail::Iterator const_iterator;
+	typedef Jsmn::Detail::Iterator iterator;
+	iterator begin() const;
+	iterator end() const;
 };
 
 std::ostream& operator<<(std::ostream&, Jsmn::Object const&);

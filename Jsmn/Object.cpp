@@ -15,6 +15,7 @@ class Object::Impl {
 private:
 	std::shared_ptr<Detail::ParseResult> parse_result;
 	unsigned int i;
+	unsigned int i_end;
 
 	Detail::Token& token() {
 		return parse_result->tokens[i];
@@ -35,7 +36,16 @@ public:
 	    , unsigned int i_
 	    ) : parse_result(std::move(parse_result_))
 	      , i(i_)
-	      { }
+	      , i_end(i_ + 1)
+	      {
+		if (type() == Detail::Array) {
+			auto& tok = token();
+			Detail::Token const* tokptr = &tok + 1;
+			for (auto step = 0; step < tok.size; ++step)
+				Detail::Token::next(tokptr);
+			i_end = tokptr - &parse_result->tokens[0];
+		}
+	}
 
 	Detail::Type type() const {
 		return token().type;
@@ -169,6 +179,13 @@ public:
 					     , tokptr - &parse_result->tokens[0]
 					     );
 	}
+
+	Detail::Iterator begin() const {
+		return Detail::Iterator(parse_result, i + 1);
+	}
+	Detail::Iterator end() const {
+		return Detail::Iterator(parse_result, i_end);
+	}
 };
 
 Object::Object() : pimpl(nullptr) { }
@@ -273,6 +290,17 @@ void Object::direct_text(char const*& t, std::size_t& len) const {
 		return;
 	}
 	return pimpl->direct_text(t, len);
+}
+
+Detail::Iterator Object::begin() const {
+	if (!pimpl)
+		throw TypeError();
+	return pimpl->begin();
+}
+Detail::Iterator Object::end() const {
+	if (!pimpl)
+		throw TypeError();
+	return pimpl->end();
 }
 
 /* Implements indented printing.  */

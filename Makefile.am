@@ -317,6 +317,8 @@ libclboss_la_SOURCES = \
 	Graph/TreeNode.hpp \
 	Jsmn/Detail/EndAdvancer.cpp \
 	Jsmn/Detail/EndAdvancer.hpp \
+	Jsmn/Detail/Iterator.cpp \
+	Jsmn/Detail/Iterator.hpp \
 	Jsmn/Detail/ParseResult.hpp \
 	Jsmn/Detail/Str.cpp \
 	Jsmn/Detail/Str.hpp \
@@ -464,6 +466,7 @@ TESTS = \
 	tests/ev/test_runcmd \
 	tests/ev/test_throw_in_then \
 	tests/graph/test_dijkstra \
+	tests/jsmn/test_iterator \
 	tests/json/test_out_simple \
 	tests/ln/test_amount \
 	tests/ln/test_htlcaccepted \

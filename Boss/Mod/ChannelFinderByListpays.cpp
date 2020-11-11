@@ -32,6 +32,7 @@ void ChannelFinderByListpays::start() {
 	bus.subscribe<Msg::Init
 		     >([this](Msg::Init const& init) {
 		rpc = &init.rpc;
+		self_id = init.self_id;
 		return Ev::lift();
 	});
 	bus.subscribe<Msg::ListpeersAnalyzedResult
@@ -145,6 +146,9 @@ Ev::Io<void> ChannelFinderByListpays::extract_payees_loop() {
 			 * that payee?  */
 			auto cit = channels.find(payee);
 			if (cit != channels.end())
+				return extract_payees_loop();
+			/* Is it a self-payment?  */
+			if (payee == self_id)
 				return extract_payees_loop();
 
 			/* Track number of payments.  */

@@ -25,6 +25,8 @@ private:
 
 	/* Peers we already have channels with.  */
 	std::set<Ln::NodeId> channels;
+	/* Ourself.  */
+	Ln::NodeId self_id;
 
 	bool running;
 	/* Used in a run.  */

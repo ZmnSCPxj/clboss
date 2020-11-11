@@ -1,3 +1,5 @@
+- Reduce processing load when printing really long RPC logs.
+- Correctly handle sudden death of `lightningd` process.
 - Really, do not delay response to `init`, for reals.
 
 0.5B

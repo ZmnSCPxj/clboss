@@ -5,7 +5,7 @@
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/RequestMoveFunds.hpp"
-#include"Boss/Msg/Timer10Minutes.hpp"
+#include"Boss/Msg/TimerRandomDaily.hpp"
 #include"Boss/concurrent.hpp"
 #include"Ev/Io.hpp"
 #include"Ev/yield.hpp"
@@ -43,8 +43,8 @@ private:
 				return Runner::start(runner);
 			});
 		});
-		bus.subscribe< Msg::Timer10Minutes
-			     >([this](Msg::Timer10Minutes const&) {
+		bus.subscribe< Msg::TimerRandomDaily
+			     >([this](Msg::TimerRandomDaily const&) {
 			return wait_for_rpc() + delpay_our_payments();
 		});
 	}

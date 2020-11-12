@@ -213,10 +213,21 @@ private:
 
 	/* Call when read event took some data.  */
 	void on_read_parse() {
-		auto responses = parser.feed(read_buffer);
-		read_buffer.resize(0);
-		for (auto const& r : responses)
-			process_response(r);
+		auto static constexpr batch_size = std::size_t(65536);
+		if (read_buffer.size() < batch_size) {
+			auto responses = parser.feed(read_buffer);
+			read_buffer.resize(0);
+			for (auto const& r : responses)
+				process_response(r);
+		} else {
+			auto b_it = read_buffer.begin();
+			auto e_it = read_buffer.begin() + batch_size;
+			auto batch = std::string(b_it, e_it);
+			read_buffer.erase(b_it, e_it);
+			auto responses = parser.feed(batch);
+			for (auto const& r : responses)
+				process_response(r);
+		}
 	}
 	static
 	void on_read_parse_static(EV_P_ ev_idle* e, int _) {
@@ -224,6 +235,8 @@ private:
 		ev_idle_stop(EV_A_ e);
 		self->read_parse_active = false;
 		self->on_read_parse();
+		if (self->read_buffer.size() > 0)
+			ev_idle_start(EV_A_ e);
 	}
 
 	/* Call when write end is ready.  */

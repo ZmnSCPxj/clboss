@@ -1,3 +1,4 @@
+- Batch up RPC socket response parsing.
 
 0.5C
 - `FundsMover` now has a backup process to clean up its payments.

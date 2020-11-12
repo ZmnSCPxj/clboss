@@ -22,6 +22,8 @@ private:
 	Boss::Mod::Rpc* rpc;
 	Ln::NodeId self_id;
 
+	bool deleting_payments;
+
 	void start() {
 		bus.subscribe<Msg::Init>([this](Msg::Init const& init) {
 			rpc = &init.rpc;
@@ -54,7 +56,16 @@ private:
 		});
 	}
 	Ev::Io<void> delpay_our_payments() {
-		return PaymentDeleter::run(bus, *rpc);
+		return Ev::lift().then([this]() {
+			if (deleting_payments)
+				return Ev::lift();
+
+			deleting_payments = true;
+			return PaymentDeleter::run(bus, *rpc).then([this]() {
+				deleting_payments = false;
+				return Ev::lift();
+			});
+		});
 	}
 
 public:
@@ -66,6 +77,7 @@ public:
 	Impl(S::Bus& bus_) : bus(bus_)
 			   , claimer(bus_)
 			   , rpc(nullptr)
+			   , deleting_payments(false)
 			   { start(); }
 };
 

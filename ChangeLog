@@ -1,3 +1,4 @@
+0.5D
 - Tone down `FundsMover` payment cleanup.
 - Batch up RPC socket response parsing.
 

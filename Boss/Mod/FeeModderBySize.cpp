@@ -103,6 +103,7 @@ private:
 	/* Total channel capacity of our node.  */
 	std::unique_ptr<Ln::Amount> my_capacity;
 	bool computing_my_capacity;
+	std::vector<std::function<void()>> my_capacity_waiters;
 
 	/* Cache of multipliers.  */
 	std::map<Ln::NodeId, double> multipliers;
@@ -149,15 +150,24 @@ private:
 
 		bus.subscribe<Shutdown>([this](Shutdown const& _) {
 			shutdown = true;
-			return Ev::lift();
+			return awaken_waiters();
 		});
 	}
 
 	Ev::Io<void> reset() {
+		multipliers.clear();
+
+		if (computing_my_capacity && !my_capacity) {
+			/* A long-running process is *still* computing
+			 * our capacity.
+			 * Do not touch the other data.
+			 */
+			return Ev::lift();
+		}
+
 		computing_my_capacity = false;
 		my_capacity = nullptr;
-		multipliers.clear();
-		return Ev::lift();
+		return awaken_waiters();
 	}
 
 	Ev::Io<void> wait_for_rpc() {
@@ -175,11 +185,16 @@ private:
 		return Ev::lift().then([this]() {
 			if (shutdown)
 				throw Shutdown();
-
 			if (my_capacity)
 				return Ev::lift();
 			if (computing_my_capacity)
-				return Ev::yield() + ensure_my_capacity();
+				/* This can still awaken with
+				 * my_capacity==null, e.g. if
+				 * triggered by reset or shutdown.
+				 */
+				return wait_for_my_capacity()
+				     + ensure_my_capacity()
+				     ;
 			computing_my_capacity = true;
 
 			return wait_for_rpc().then([this]() {
@@ -188,8 +203,33 @@ private:
 				my_capacity = Util::make_unique<Ln::Amount>(
 					n_capacity
 				);
-				return Ev::lift();
+
+				return awaken_waiters();
 			});
+		});
+	}
+	Ev::Io<void> wait_for_my_capacity() {
+		return Ev::Io<void>([this
+				    ]( std::function<void()> pass
+				     , std::function<void(std::exception_ptr)
+						    > fail
+				     ) {
+			if (my_capacity)
+				return pass();
+			my_capacity_waiters.emplace_back(std::move(pass));
+		}) + Ev::yield();
+	}
+	Ev::Io<void> awaken_waiters() {
+		return Ev::Io<void>([this
+				    ]( std::function<void()> pass
+				     , std::function<void(std::exception_ptr)
+						    > fail
+				     ) {
+			auto waiters = std::move(my_capacity_waiters);
+			my_capacity_waiters.clear();
+			for (auto const& w : waiters)
+				w();
+			pass();
 		});
 	}
 

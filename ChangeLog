@@ -1,3 +1,6 @@
+- Do not use `proxy` if `always-use-proxy` is not `true`.
+- New `ChannelFinderByEarnedFee` module proposes peers of our most lucrative peers, to improve alternate routes to popular destinations.
+
 0.6 Nice Job Breaking It, Hero!
 0.5E
 - Remove busy-wait loop in `FeeModderBySize`.

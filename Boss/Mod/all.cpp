@@ -11,6 +11,7 @@
 #include"Boss/Mod/ChannelFeeManager.hpp"
 #include"Boss/Mod/ChannelFeeSetter.hpp"
 #include"Boss/Mod/ChannelFinderByDistance.hpp"
+#include"Boss/Mod/ChannelFinderByEarnedFee.hpp"
 #include"Boss/Mod/ChannelFinderByListpays.hpp"
 #include"Boss/Mod/ChannelFinderByPopularity.hpp"
 #include"Boss/Mod/ChannelFundsComputer.hpp"
@@ -123,6 +124,7 @@ std::shared_ptr<void> all( std::ostream& cout
 
 	/* Channel creation wrangling.  */
 	all->install<ChannelFinderByDistance>(bus, *waiter);
+	all->install<ChannelFinderByEarnedFee>(bus);
 	all->install<ChannelFinderByListpays>(bus);
 	all->install<ChannelFinderByPopularity>(bus, *waiter);
 	all->install<ChannelCandidatePreinvestigator>(bus);

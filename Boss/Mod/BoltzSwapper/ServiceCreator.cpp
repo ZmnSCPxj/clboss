@@ -102,7 +102,7 @@ void ServiceCreator::start() {
 			, init.db
 			, init.signer
 			, env
-			, init.proxy
+			, init.always_use_proxy ? init.proxy : ""
 			);
 		auto q = std::queue<std::string>();
 		for (auto const& instance : it->second)

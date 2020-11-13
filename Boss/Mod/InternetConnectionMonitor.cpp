@@ -183,26 +183,32 @@ private:
 		return Ev::map( std::bind(&Impl::check_server, this, _1)
 			      , servers
 			      ).then([this](std::vector<bool> results) {
+			auto bitvector = std::string("");
 			/* If one of the servers passed, it turns out we
 			 * are connected after all.  */
 			auto res = false;
-			for (auto const& r : results)
+			for (auto const& r : results) {
 				if (r) {
 					res = true;
-					break;
-				}
+					bitvector += "1";
+				} else
+					bitvector += "0";
+			}
 			auto act = Ev::lift();
 			if (res)
 				act += Boss::log( bus, Debug
 						, "InternetConnectionMonitor: "
 						  "Other server contacted, "
-						  "we are online after all."
+						  "we are online after all. "
+						  "(%s)"
+						, bitvector.c_str()
 						);
 			else
 				act += Boss::log( bus, Debug
 						, "InternetConnectionMonitor: "
 						  "Other servers also not "
-						  "reached."
+						  "reached. (%s)"
+						, bitvector.c_str()
 						);
 			return std::move(act).then([res]() {
 				return Ev::lift(res);

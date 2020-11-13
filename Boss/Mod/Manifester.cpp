@@ -24,7 +24,7 @@ void Manifester::start() {
 			auto result = Json::Out();
 			auto robj = result.start_object();
 			robj
-				.field("dynamic", false)
+				.field("dynamic", true)
 				.start_array("options").end_array()
 				;
 

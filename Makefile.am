@@ -3,7 +3,8 @@ clboss_SOURCES = \
 	main.cpp
 noinst_PROGRAMS = \
 	dev-boltz \
-	dev-boltz-api
+	dev-boltz-api \
+	dev-proxy-connect
 
 # These are the actual source files of clboss.
 # We separate them here so that we can test parts of

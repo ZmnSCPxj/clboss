@@ -289,10 +289,35 @@ public:
 					/* No proxy?  */
 					if (proxy == "")
 						always_use_proxy = false;
-					setup_proxy(proxy);
 				}
 
-				return bus.raise(Boss::Msg::Init{
+				auto act = Ev::lift();
+				if (always_use_proxy) {
+					setup_proxy(proxy);
+					act += Boss::log( bus, Debug
+							, "Initiator: Using "
+							  "proxy: %s"
+							, proxy.c_str()
+							);
+				} else if (proxy != "") {
+					act += Boss::log( bus, Debug
+							, "Initiator: Proxy "
+							  "%s set, but "
+							  "always-use-proxy "
+							  "is false, not "
+							  "using proxy for "
+							  "CLBOSS."
+							, proxy.c_str()
+							);
+				} else {
+					act += Boss::log( bus, Debug
+							, "Initiator: "
+							  "No proxy."
+							);
+				}
+
+				return std::move(act)
+				     + bus.raise(Boss::Msg::Init{
 					network, *rpc, self_id, db,
 					*connector, *signer,
 					proxy, always_use_proxy

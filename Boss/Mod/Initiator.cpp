@@ -274,10 +274,9 @@ public:
 				if ( cfg.has("proxy")
 				  && cfg["proxy"].is_string()
 				   ) {
-					auto proxy = std::string(
+					proxy = std::string(
 						cfg["proxy"]
 					);
-					setup_proxy(std::move(proxy));
 				}
 				if (cfg.has("always-use-proxy")) {
 					auto flag = cfg["always-use-proxy"];
@@ -287,6 +286,10 @@ public:
 						always_use_proxy = false;
 					else
 						always_use_proxy = true;
+					/* No proxy?  */
+					if (proxy == "")
+						always_use_proxy = false;
+					setup_proxy(proxy);
 				}
 
 				return bus.raise(Boss::Msg::Init{

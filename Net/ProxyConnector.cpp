@@ -145,7 +145,7 @@ ProxyConnector::connect(std::string const& host, int port) {
 	}
 
 	/* Request.  */
-	buffer.resize(4);
+	buffer.resize(4 + hostaddr.size() + 2);
 	buffer[0] = 0x05; /* SOCKS5.  */
 	buffer[1] = 0x01; /* CONNECT.  */
 	buffer[2] = 0x00; /* RSV.  */
@@ -155,18 +155,15 @@ ProxyConnector::connect(std::string const& host, int port) {
 	case Name: buffer[3] = 0x03; break;
 	case IPv6: buffer[3] = 0x04; break;
 	}
-	if (!writebuff(ret, buffer)) {
-		ret.reset();
-		return ret;
-	}
-	if (!writebuff(ret, hostaddr)) {
-		ret.reset();
-		return ret;
-	}
+	/* Host.  */
+	memcpy(&buffer[4], &hostaddr[0], hostaddr.size());
 	/* Port.  */
-	buffer.resize(2);
-	buffer[0] = std::uint8_t((port >> 8) & 0xFF);
-	buffer[1] = std::uint8_t((port >> 0) & 0xFF);
+	buffer[4 + hostaddr.size() + 0] = std::uint8_t((port >> 8) & 0xFF);
+	buffer[4 + hostaddr.size() + 1] = std::uint8_t((port >> 0) & 0xFF);
+	/* Send the entire sequence in a single `write`, since it looks
+	 * like Tor has a latent bug where it does not wait for the
+	 * hostname to be sent before going to look it up.
+	 */
 	if (!writebuff(ret, buffer)) {
 		ret.reset();
 		return ret;

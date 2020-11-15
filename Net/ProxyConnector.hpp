@@ -13,6 +13,11 @@ private:
 	std::string proxy_host;
 	int proxy_port;
 
+	Net::SocketFd
+	single_connect( std::string const& host, int port
+		      , bool& socks5_general_error
+		      );
+
 public:
 	ProxyConnector() =delete;
 	explicit ProxyConnector( std::unique_ptr<Net::Connector> base_

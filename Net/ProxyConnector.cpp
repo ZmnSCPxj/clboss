@@ -102,7 +102,14 @@ int to_errno(std::uint8_t socks5_err) {
 namespace Net {
 
 Net::SocketFd
-ProxyConnector::connect(std::string const& host, int port) {
+ProxyConnector::single_connect( std::string const& host, int port
+			      , bool& socks5_general_error
+			      ) {
+	/* Tor likes to send a "general proxy failure" when it is unable
+	 * to resolve a hostname, and it tends to fail hostname
+	 * resolution fairly often.  */
+	socks5_general_error = false;
+
 	/* Determine if host is a IPv4 or IPv6 numeric address.  */
 	auto hosttype = HostType();
 	auto hostaddr = std::vector<std::uint8_t>();
@@ -187,6 +194,11 @@ ProxyConnector::connect(std::string const& host, int port) {
 	/* REP.  */
 	if (buffer[1] != 0x0) {
 		ret.reset();
+		/* If we got the SOCKS5 general proxy error, mark
+		 * the flag.
+		 */
+		if (buffer[1] == 0x01)
+			socks5_general_error = true;
 		errno = to_errno(buffer[1]);
 		return ret;
 	}
@@ -226,6 +238,21 @@ ProxyConnector::connect(std::string const& host, int port) {
 	/* Completed!  */
 
 	return ret;
+}
+
+Net::SocketFd
+ProxyConnector::connect(std::string const& host, int port) {
+	auto static constexpr max_tries = 100;
+	auto tries = 0;
+	auto rv = Net::SocketFd();
+	auto socks5_general_error = bool();
+
+	do {
+		rv = single_connect(host, port, socks5_general_error);
+		++tries;
+	} while (!rv && socks5_general_error && (tries < max_tries));
+
+	return rv;
 }
 
 }

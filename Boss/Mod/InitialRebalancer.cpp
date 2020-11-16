@@ -17,6 +17,7 @@
 #include"Util/make_unique.hpp"
 #include"Util/stringify.hpp"
 #include<map>
+#include<sstream>
 #include<vector>
 
 namespace {
@@ -46,6 +47,12 @@ private:
 	void start() {
 		bus.subscribe<Msg::ListpeersResult
 			     >([this](Msg::ListpeersResult const& m) {
+			/* If this is the initial startup, then we might not
+			 * be connected to the peers involved yet, so better
+			 * to wait and let it "simmer" a bit.
+			 */
+			if (m.initial)
+				return Ev::lift();
 			return run(m.peers);
 		});
 	}
@@ -113,25 +120,17 @@ private:
 	Ev::Io<void> core_run() {
 		return Ev::lift().then([this]() {
 			try {
-				for ( auto i = std::size_t(0)
-				    ; i < peers.size()
-				    ; ++i
-				    ) {
+				for (auto p : peers) {
 					auto spendable = Ln::Amount::sat(0);
 					auto receivable = Ln::Amount::sat(0);
 					auto total = Ln::Amount::sat(0);
 
-					auto p = peers[i];
 					auto id = Ln::NodeId(std::string(
 						p["id"]
 					));
 
 					auto cs = p["channels"];
-					for ( auto j = std::size_t(0)
-					    ; j < cs.size()
-					    ; ++j
-					    ) {
-						auto c = cs[j];
+					for (auto c : cs) {
 						auto priv = bool(
 							c["private"]
 						);
@@ -142,23 +141,11 @@ private:
 						);
 						if (state != "CHANNELD_NORMAL")
 							continue;
-						if ( !c.has("total_msat")
-						  || !c.has("spendable_msat")
-						  || !c.has("receivable_msat")
-						   )
-							continue;
-						spendable += Ln::Amount(
-							std::string(
-							c["spendable_msat"]
-						));
-						receivable += Ln::Amount(
-							std::string(
-							c["receivable_msat"]
-						));
-						total += Ln::Amount(
-							std::string(
-							c["total_msat"]
-						));
+						compute_spendable( spendable
+								 , receivable
+								 , total
+								 , c
+								 );
 					}
 
 					if (total == Ln::Amount::sat(0))
@@ -179,7 +166,31 @@ private:
 			return plan_move();
 		});
 	}
+	void compute_spendable( Ln::Amount& a_spendable
+			      , Ln::Amount& a_receivable
+			      , Ln::Amount& a_total
+			      , Jsmn::Object const& c
+			      ) {
+		if ( !c.has("to_us_msat")
+		  || !c.has("total_msat")
+		  || !c.has("htlcs")
+		   )
+			return;
+		/* FIXME: Handle reserves.  */
+		auto to_us = Ln::Amount(std::string(c["to_us_msat"]));
+		auto total = Ln::Amount(std::string(c["total_msat"]));
+		auto to_them = total - to_us;
+		for (auto h : c["htlcs"])
+			to_them -= Ln::Amount(std::string(
+				h["amount_msat"]
+			));
+		a_spendable += to_us;
+		a_receivable += to_them;
+		a_total += total;
+	}
 	Ev::Io<void> plan_move() {
+		auto msg = std::ostringstream();
+		auto first = true;
 		/* Gather sources and destinations.  */
 		auto sources = std::vector<Ln::NodeId>();
 		auto destinations = std::map<Ln::NodeId, Info>();
@@ -190,18 +201,38 @@ private:
 			next = it;
 			++next;
 
-			auto& info = it->second;
-			if ( (info.spendable / info.total)
-			  >= (spendable_percent / 100.0)
-			   )
-				sources.push_back(it->first);
+			if (first)
+				first = false;
 			else
+				msg << ", ";
+
+			auto& info = it->second;
+			auto peer_spendable_percent = ( info.spendable
+						      / info.total
+						      )
+						    * 100.0
+						    ;
+			msg << it->first << ": "
+			    << peer_spendable_percent << "% "
+			    ;
+			if (peer_spendable_percent >= spendable_percent) {
+				sources.push_back(it->first);
+				msg << "(source)";
+			} else {
 				destinations.insert(*it);
+				msg << "(destination)";
+			}
 		}
+		auto act = Ev::lift();
+		if (!first)
+			act += Boss::log( bus, Debug
+					, "InitialRebalancer: %s"
+					, msg.str().c_str()
+					);
 
 		/* Nothing to do.  */
 		if (sources.empty())
-			return Ev::lift();
+			return act;
 
 		for (auto& s : sources) {
 			if (destinations.empty())
@@ -220,7 +251,7 @@ private:
 			plan.push_back(std::make_pair(s, dest));
 		}
 
-		return execute_plan();
+		return std::move(act) + execute_plan();
 	}
 
 	Ev::Io<void> execute_plan() {
@@ -242,6 +273,12 @@ private:
 			if (amount > max_receive)
 				amount = max_receive;
 
+			act += Boss::log( bus, Debug
+					, "InitialRebalancer: %s --> %s --> %s"
+					, std::string(source).c_str()
+					, std::string(amount).c_str()
+					, std::string(destination).c_str()
+					);
 			act += Boss::concurrent(move_funds( source
 							  , destination
 							  , amount

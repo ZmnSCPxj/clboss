@@ -1,3 +1,4 @@
+- Properly rebalance channels greater than 42.94mBTC payment limit.
 - Use `payment_secret` in rebalances.
 - Work around a timing bug in Tor SOCKS5 implementation.
 - CLBOSS can now be started and stopped with the `lightningd` `plugin` command.

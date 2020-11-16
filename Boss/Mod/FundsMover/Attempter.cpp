@@ -26,6 +26,7 @@ private:
 	Boss::Mod::Rpc& rpc;
 	Ln::NodeId self_id;
 	Ln::Preimage preimage;
+	Ln::Preimage payment_secret;
 	Ln::NodeId source;
 	Ln::NodeId destination;
 	Ln::Amount amount;
@@ -59,6 +60,7 @@ public:
 	    , Boss::Mod::Rpc& rpc_
 	    , Ln::NodeId self_id_
 	    , Ln::Preimage preimage_
+	    , Ln::Preimage payment_secret_
 	    , Ln::NodeId source_
 	    , Ln::NodeId destination_
 	    , Ln::Amount amount_
@@ -72,6 +74,7 @@ public:
 	      , rpc(rpc_)
 	      , self_id(std::move(self_id_))
 	      , preimage(std::move(preimage_))
+	      , payment_secret(std::move(payment_secret_))
 	      , source(std::move(source_))
 	      , destination(std::move(destination_))
 	      , amount(amount_)
@@ -261,6 +264,9 @@ private:
 					      , std::string(*payment_hash)
 					      )
 					.field("label" , label)
+					.field( "payment_secret"
+					      , std::string(payment_secret)
+					      )
 				.end_object()
 				;
 			return rpc.command("sendpay", std::move(parms));
@@ -511,6 +517,7 @@ Attempter::run( S::Bus& bus
 	      , Ln::NodeId self
 	      /* The preimage should have been pre-arranged to be claimed.  */
 	      , Ln::Preimage preimage
+	      , Ln::Preimage payment_secret
 	      , Ln::NodeId source
 	      , Ln::NodeId destination
 	      , Ln::Amount amount
@@ -527,6 +534,7 @@ Attempter::run( S::Bus& bus
 					  , rpc
 					  , std::move(self)
 					  , std::move(preimage)
+					  , std::move(payment_secret)
 					  , std::move(source)
 					  , std::move(destination)
 					  , amount

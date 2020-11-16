@@ -23,6 +23,7 @@ private:
 	struct Entry {
 		double timeout;
 		Ln::Preimage preimage;
+		Ln::Preimage payment_secret;
 	};
 	std::unordered_map<Sha256::Hash, Entry> entries;
 
@@ -36,8 +37,9 @@ public:
 	explicit
 	Claimer(S::Bus& bus_) : bus(bus_) { start(); }
 
-	/* Generate a new preimage for a new Attempter.  */
-	Ln::Preimage generate();
+	/* Generate a new preimage and payment secret for a new
+	 * Attempter.  */
+	std::pair<Ln::Preimage, Ln::Preimage> generate();
 };
 
 }}}

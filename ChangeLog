@@ -1,3 +1,4 @@
+- Use `payment_secret` in rebalances.
 - Work around a timing bug in Tor SOCKS5 implementation.
 - CLBOSS can now be started and stopped with the `lightningd` `plugin` command.
 - Do not use `proxy` if `always-use-proxy` is not `true`.

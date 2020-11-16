@@ -35,8 +35,10 @@ public:
 	run( S::Bus& bus
 	   , Boss::Mod::Rpc& rpc
 	   , Ln::NodeId self
-	   /* The preimage should have been pre-arranged to be claimed.  */
+	   /* The preimage+payment_secret should have been pre-arranged to
+	    * be claimed.  */
 	   , Ln::Preimage preimage
+	   , Ln::Preimage payment_secret
 	   , Ln::NodeId source
 	   , Ln::NodeId destination
 	   , Ln::Amount amount

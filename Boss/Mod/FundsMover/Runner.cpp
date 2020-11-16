@@ -185,9 +185,12 @@ Ev::Io<void> Runner::gather_info() {
 Ev::Io<void> Runner::attempt(Ln::Amount amount) {
 	++attempts;
 	return Ev::lift().then([this, amount]() {
-		auto preimage = claimer.generate();
+		auto pair = claimer.generate();
+		auto preimage = std::move(pair.first);
+		auto payment_secret = std::move(pair.second);
 		return Attempter::run( bus, rpc, self
 				     , std::move(preimage)
+				     , std::move(payment_secret)
 				     , source
 				     , destination
 				     , amount

@@ -25,6 +25,10 @@ void Claimer::start() {
 			auto it = entries.find(h);
 			if (it == entries.end())
 				return Ev::lift(false);
+			auto const& payment_secret = it->second.payment_secret;
+
+			if (r.payment_secret != payment_secret)
+				return Ev::lift(false);
 
 			/* Extract data.  */
 			auto id = r.id;
@@ -70,15 +74,17 @@ void Claimer::start() {
 	});
 }
 
-Ln::Preimage Claimer::generate() {
-	auto rv = Ln::Preimage(rand);
+std::pair<Ln::Preimage, Ln::Preimage> Claimer::generate() {
+	auto pre = Ln::Preimage(rand);
+	auto sec = Ln::Preimage(rand);
 
-	auto h = rv.sha256();
+	auto h = pre.sha256();
 	auto& entry = entries[h];
 	entry.timeout = Ev::now() + timeout;
-	entry.preimage = rv;
+	entry.preimage = pre;
+	entry.payment_secret = sec;
 
-	return rv;
+	return std::make_pair(std::move(pre), std::move(sec));
 }
 
 }}}

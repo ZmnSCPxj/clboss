@@ -1,3 +1,4 @@
+- Work around a timing bug in Tor SOCKS5 implementation.
 - CLBOSS can now be started and stopped with the `lightningd` `plugin` command.
 - Do not use `proxy` if `always-use-proxy` is not `true`.
 - New `ChannelFinderByEarnedFee` module proposes peers of our most lucrative peers, to improve alternate routes to popular destinations.

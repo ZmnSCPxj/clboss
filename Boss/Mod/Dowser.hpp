@@ -2,6 +2,7 @@
 #define BOSS_MOD_DOWSER_HPP
 
 #include"Ln/NodeId.hpp"
+#include<memory>
 
 namespace Boss { namespace Mod { class Rpc; }}
 namespace S { class Bus; }
@@ -20,6 +21,9 @@ private:
 	Boss::Mod::Rpc* rpc;
 	Ln::NodeId self_id;
 
+	class CommandImpl;
+	std::unique_ptr<CommandImpl> cmdimpl;
+
 	class Run;
 
 	void start();
@@ -29,12 +33,9 @@ public:
 	Dowser(Dowser&&) =delete;
 	Dowser(Dowser const&) =delete;
 
+	~Dowser();
 	explicit
-	Dowser( S::Bus& bus_
-	      ) : bus(bus_)
-		, rpc(nullptr)
-		, self_id()
-		{ start(); }
+	Dowser(S::Bus& bus);
 };
 
 }}

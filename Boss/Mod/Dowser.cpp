@@ -1,6 +1,12 @@
 #include"Boss/Mod/Dowser.hpp"
 #include"Boss/Mod/Rpc.hpp"
+#include"Boss/ModG/ReqResp.hpp"
+#include"Boss/Msg/CommandFail.hpp"
+#include"Boss/Msg/CommandRequest.hpp"
+#include"Boss/Msg/CommandResponse.hpp"
 #include"Boss/Msg/Init.hpp"
+#include"Boss/Msg/ManifestCommand.hpp"
+#include"Boss/Msg/Manifestation.hpp"
 #include"Boss/Msg/RequestDowser.hpp"
 #include"Boss/Msg/ResponseDowser.hpp"
 #include"Boss/concurrent.hpp"
@@ -12,6 +18,7 @@
 #include"Json/Out.hpp"
 #include"Ln/Scid.hpp"
 #include"S/Bus.hpp"
+#include"Util/make_unique.hpp"
 #include<assert.h>
 #include<memory>
 #include<string>
@@ -253,6 +260,90 @@ private:
 	}
 };
 
+class Dowser::CommandImpl {
+private:
+	S::Bus& bus;
+	ModG::ReqResp< Msg::RequestDowser
+		     , Msg::ResponseDowser
+		     > dowse_rr;
+
+	void start() {
+		/* clboss-dowser command.  */
+		bus.subscribe<Msg::Manifestation
+			     >([this](Msg::Manifestation const& _) {
+			return bus.raise(Msg::ManifestCommand{
+				"clboss-dowser", "fromid toid",
+				"Execute the dowsing algorithm to "
+				"estimate the useful capacity between "
+				"two nodes.",
+				false
+			});
+		});
+		bus.subscribe<Msg::CommandRequest
+			     >([this](Msg::CommandRequest const& m) {
+			if (m.command != "clboss-dowser")
+				return Ev::lift();
+			return run_command(m.params, m.id);
+		});
+	}
+
+	Ev::Io<void> run_command(Jsmn::Object params, std::uint64_t id) {
+		auto param_fail = [this, id]() {
+			return bus.raise(Msg::CommandFail{
+				id, -32602, "Parameter error",
+				Json::Out::empty_object()
+			});
+		};
+		auto fromid = Ln::NodeId();
+		auto toid = Ln::NodeId();
+
+		try {
+			if (params.size() != 2)
+				return param_fail();
+			auto fromid_j = Jsmn::Object();
+			auto toid_j = Jsmn::Object();
+			if (params.is_object()) {
+				fromid_j = params["fromid"];
+				toid_j = params["toid"];
+			} else if (params.is_array()) {
+				fromid_j = params[0];
+				toid_j = params[1];
+			} else
+				return param_fail();
+			fromid = Ln::NodeId(std::string(fromid_j));
+			toid = Ln::NodeId(std::string(toid_j));
+		} catch (std::exception const&) {
+			return param_fail();
+		}
+
+		return dowse_rr.execute(Msg::RequestDowser{
+			nullptr, fromid, toid
+		}).then([this, id](Msg::ResponseDowser r) {
+			auto rsp = Json::Out()
+				.start_object()
+					.field("amount", std::string(r.amount))
+				.end_object()
+				;
+			return bus.raise(Msg::CommandResponse{
+				id, std::move(rsp)
+			});
+		});
+	}
+
+public:
+	CommandImpl( S::Bus& bus_
+		   ) : bus(bus_)
+		     , dowse_rr( bus_
+			       , [](Msg::RequestDowser& m, void* p) {
+					m.requester = p;
+				 }
+			       , [](Msg::ResponseDowser& m) {
+					return m.requester;
+				 }
+			       )
+		     { start(); }
+};
+
 void Dowser::start() {
 	bus.subscribe<Msg::Init
 		     >([this](Msg::Init const& init) {
@@ -269,6 +360,15 @@ void Dowser::start() {
 			return Boss::concurrent(run->run(*rpc, self_id));
 		});
 	});
+
+	cmdimpl = Util::make_unique<CommandImpl>(bus);
 }
+
+Dowser::~Dowser() =default;
+Dowser::Dowser(S::Bus& bus_
+	      ) : bus(bus_)
+		, rpc(nullptr)
+		, self_id()
+		{ start(); }
 
 }}

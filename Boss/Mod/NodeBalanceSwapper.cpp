@@ -48,17 +48,9 @@ private:
 			auto total_recv = Ln::Amount::sat(0);
 			auto total_send = Ln::Amount::sat(0);
 			try {
-				for ( auto i = std::size_t(0)
-				    ; i < m.peers.size()
-				    ; ++i
-				    ) {
-					auto peer = m.peers[i];
+				for (auto peer : m.peers) {
 					auto channels = peer["channels"];
-					for ( auto j = std::size_t(0)
-					    ; j < channels.size()
-					    ; ++j
-					    ) {
-						auto chan = channels[j];
+					for (auto chan : channels) {
 						/* Skip non-active channels.
 						 */
 						if ( std::string(chan["state"])
@@ -71,14 +63,13 @@ private:
 						 */
 						if (chan["private"])
 							continue;
-						auto recv = std::string(chan[
-							"receivable_msat"
-						]);
-						auto send = std::string(chan[
-							"spendable_msat"
-						]);
-						total_recv += Ln::Amount(recv);
-						total_send += Ln::Amount(send);
+						auto recv = Ln::Amount();
+						auto send = Ln::Amount();
+						compute_sendable_receivable(
+							send, recv, chan
+						);
+						total_recv += recv;
+						total_send += send;
 					}
 				}
 			} catch (Jsmn::TypeError const&) {
@@ -142,6 +133,26 @@ private:
 
 			return trigger_swap(f);
 		});
+	}
+
+	void
+	compute_sendable_receivable( Ln::Amount& send
+				   , Ln::Amount& recv
+				   , Jsmn::Object const& c
+				   ) {
+		auto to_us = Ln::Amount(std::string(c["to_us_msat"]));
+		auto total = Ln::Amount(std::string(c["total_msat"]));
+		auto their = total - to_us;
+		for (auto h : c["htlcs"])
+			their -= Ln::Amount(std::string(h["amount_msat"]));
+		auto our_reserve = Ln::Amount(std::string(
+			c["our_reserve_msat"]
+		));
+		auto their_reserve = Ln::Amount(std::string(
+			c["their_reserve_msat"]
+		));
+		send = to_us - our_reserve;
+		recv = their - their_reserve;
 	}
 
 public:

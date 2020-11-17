@@ -43,7 +43,7 @@ std::ostream& operator<<(std::ostream& os, Bitcoin::Tx const& v) {
 }
 
 std::istream& operator>>(std::istream& is, Bitcoin::Tx& v) {
-	auto len = std::size_t();
+	auto len = std::uint64_t();
 
 	is >> Bitcoin::le(v.nVersion)
 	   >> Bitcoin::varint(len)
@@ -58,12 +58,12 @@ std::istream& operator>>(std::istream& is, Bitcoin::Tx& v) {
 		}
 		is >> Bitcoin::varint(len);
 	}
-	v.inputs.resize(len);
+	v.inputs.resize(std::size_t(len));
 	for (auto& i : v.inputs)
 		is >> i;
 
 	is >> Bitcoin::varint(len);
-	v.outputs.resize(len);
+	v.outputs.resize(std::size_t(len));
 	for (auto& o : v.outputs)
 		is >> o;
 

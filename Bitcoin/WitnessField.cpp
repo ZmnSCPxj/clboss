@@ -11,9 +11,9 @@ std::ostream& operator<<(std::ostream& os, Bitcoin::WitnessField const& v) {
 	return os;
 }
 std::istream& operator>>(std::istream& is, Bitcoin::WitnessField& v) {
-	auto len = std::size_t();
+	auto len = std::uint64_t();
 	is >> Bitcoin::varint(len);
-	v.witnesses.resize(len);
+	v.witnesses.resize(std::size_t(len));
 	for (auto& w : v.witnesses) {
 		is >> Bitcoin::varint(len);
 		w.resize(len);

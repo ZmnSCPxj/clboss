@@ -47,8 +47,8 @@ class Dowser::Run : public std::enable_shared_from_this<Run> {
 private:
 	S::Bus& bus;
 	void* requester;
-	Ln::NodeId a;
-	Ln::NodeId b;
+	Ln::NodeId fromid;
+	Ln::NodeId toid;
 
 	Boss::Mod::Rpc* rpc;
 	Ln::NodeId self_id;
@@ -60,12 +60,12 @@ private:
 public:
 	Run( S::Bus& bus_
 	   , void* requester_
-	   , Ln::NodeId const& a_
-	   , Ln::NodeId const& b_
+	   , Ln::NodeId const& fromid_
+	   , Ln::NodeId const& toid_
 	   ) : bus(bus_)
 	     , requester(requester_)
-	     , a(a_)
-	     , b(b_)
+	     , fromid(fromid_)
+	     , toid(toid_)
 	     { }
 
 	Ev::Io<void> run( Boss::Mod::Rpc& rpc_
@@ -122,8 +122,8 @@ private:
 		auto exc = get_excludes();
 		auto params = Json::Out()
 			.start_object()
-				.field("id", std::string(a))
-				.field("fromid", std::string(b))
+				.field("id", std::string(toid))
+				.field("fromid", std::string(fromid))
 				.field("msatoshi", "1msat")
 				/* I never had a decent grasp of
 				 * riskfactor.  */
@@ -353,7 +353,9 @@ void Dowser::start() {
 	});
 	bus.subscribe<Msg::RequestDowser
 		     >([this](Msg::RequestDowser const& r) {
-		auto run = std::make_shared<Run>(bus, r.requester, r.a, r.b);
+		auto run = std::make_shared<Run>( bus, r.requester
+						, r.fromid, r.toid
+						);
 		return Ev::lift().then([this]() {
 			return wait_for_rpc(rpc);
 		}).then([this, run]() {

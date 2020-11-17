@@ -1,3 +1,4 @@
+- Properly consider direction of flow when estimating capacities of nodes.
 - Properly rebalance channels greater than 42.94mBTC payment limit.
 - Use `payment_secret` in rebalances.
 - Work around a timing bug in Tor SOCKS5 implementation.

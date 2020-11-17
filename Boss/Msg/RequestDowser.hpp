@@ -15,8 +15,8 @@ namespace Boss { namespace Msg {
  */
 struct RequestDowser {
 	void* requester;
-	Ln::NodeId a;
-	Ln::NodeId b;
+	Ln::NodeId fromid;
+	Ln::NodeId toid;
 };
 
 }}

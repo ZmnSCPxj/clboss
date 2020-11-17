@@ -13,12 +13,12 @@ std::ostream& operator<<(std::ostream& os, Bitcoin::TxIn const& v) {
 	return os;
 }
 std::istream& operator>>(std::istream& is, Bitcoin::TxIn& v) {
-	auto scriptSigLen = std::size_t();
+	auto scriptSigLen = std::uint64_t();
 	is >> v.prevTxid
 	   >> Bitcoin::le(v.prevOut)
 	   >> Bitcoin::varint(scriptSigLen)
 	    ;
-	v.scriptSig.resize(scriptSigLen);
+	v.scriptSig.resize(std::size_t(scriptSigLen));
 	for (auto& b : v.scriptSig)
 		b = is.get();
 	is >> Bitcoin::le(v.nSequence);

@@ -11,11 +11,11 @@ std::ostream& operator<<(std::ostream& os, Bitcoin::TxOut const& v) {
 	return os;
 }
 std::istream& operator>>(std::istream& is, Bitcoin::TxOut& v) {
-	auto len = std::size_t();
+	auto len = std::uint64_t();
 	is >> Bitcoin::le(v.amount)
 	   >> Bitcoin::varint(len)
 	    ;
-	v.scriptPubKey.resize(len);
+	v.scriptPubKey.resize(std::size_t(len));
 	for (auto& b : v.scriptPubKey)
 		b = is.get();
 	return is;

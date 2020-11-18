@@ -1,3 +1,4 @@
+- Support MacOS compilation, also checked FreeBSD compilation still works.
 - Correct calculation of spendable vs receivable in `NodeBalanceSwapper`.
 
 0.7A

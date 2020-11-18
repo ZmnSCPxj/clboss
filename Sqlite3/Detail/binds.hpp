@@ -29,50 +29,62 @@ struct Bind<double> {
 };
 
 template<>
-struct Bind<std::int8_t> {
-	static void bind(void *stmt, int l, std::int8_t v) {
+struct Bind<signed char> {
+	static void bind(void *stmt, int l, signed char v) {
 		bind_i(stmt, l, v);
 	}
 };
 template<>
-struct Bind<std::uint8_t> {
-	static void bind(void *stmt, int l, std::uint8_t v) {
+struct Bind<unsigned char> {
+	static void bind(void *stmt, int l, unsigned char v) {
 		bind_i(stmt, l, v);
 	}
 };
 template<>
-struct Bind<std::int16_t> {
-	static void bind(void *stmt, int l, std::int16_t v) {
+struct Bind<short> {
+	static void bind(void *stmt, int l, short v) {
 		bind_i(stmt, l, v);
 	}
 };
 template<>
-struct Bind<std::uint16_t> {
-	static void bind(void *stmt, int l, std::uint16_t v) {
+struct Bind<unsigned short> {
+	static void bind(void *stmt, int l, unsigned short v) {
 		bind_i(stmt, l, v);
 	}
 };
 template<>
-struct Bind<std::int32_t> {
-	static void bind(void *stmt, int l, std::int32_t v) {
+struct Bind<int> {
+	static void bind(void *stmt, int l, int v) {
 		bind_i(stmt, l, v);
 	}
 };
 template<>
-struct Bind<std::uint32_t> {
-	static void bind(void *stmt, int l, std::uint32_t v) {
+struct Bind<unsigned int> {
+	static void bind(void *stmt, int l, unsigned int v) {
 		bind_i(stmt, l, v);
 	}
 };
 template<>
-struct Bind<std::int64_t> {
-	static void bind(void *stmt, int l, std::int64_t v) {
+struct Bind<long> {
+	static void bind(void *stmt, int l, long v) {
 		bind_i(stmt, l, v);
 	}
 };
 template<>
-struct Bind<std::uint64_t> {
-	static void bind(void *stmt, int l, std::uint64_t v) {
+struct Bind<unsigned long> {
+	static void bind(void *stmt, int l, unsigned long v) {
+		bind_i(stmt, l, v);
+	}
+};
+template<>
+struct Bind<long long> {
+	static void bind(void *stmt, int l, long long v) {
+		bind_i(stmt, l, v);
+	}
+};
+template<>
+struct Bind<unsigned long long> {
+	static void bind(void *stmt, int l, unsigned long long v) {
 		bind_i(stmt, l, v);
 	}
 };

@@ -29,58 +29,72 @@ struct Column<double> {
 };
 
 template<>
-struct Column<std::int8_t> {
+struct Column<signed char> {
 	static
-	std::int8_t column(void* stmt, int c) {
+	signed char column(void* stmt, int c) {
 		return column_i(stmt, c);
 	}
 };
 template<>
-struct Column<std::uint8_t> {
+struct Column<unsigned char> {
 	static
-	std::uint8_t column(void* stmt, int c) {
+	unsigned char column(void* stmt, int c) {
 		return column_i(stmt, c);
 	}
 };
 template<>
-struct Column<std::int16_t> {
+struct Column<short> {
 	static
-	std::int16_t column(void* stmt, int c) {
+	short column(void* stmt, int c) {
 		return column_i(stmt, c);
 	}
 };
 template<>
-struct Column<std::uint16_t> {
+struct Column<unsigned short> {
 	static
-	std::uint16_t column(void* stmt, int c) {
+	unsigned short column(void* stmt, int c) {
 		return column_i(stmt, c);
 	}
 };
 template<>
-struct Column<std::int32_t> {
+struct Column<int> {
 	static
-	std::int32_t column(void* stmt, int c) {
+	int column(void* stmt, int c) {
 		return column_i(stmt, c);
 	}
 };
 template<>
-struct Column<std::uint32_t> {
+struct Column<unsigned int> {
 	static
-	std::uint32_t column(void* stmt, int c) {
+	unsigned int column(void* stmt, int c) {
 		return column_i(stmt, c);
 	}
 };
 template<>
-struct Column<std::int64_t> {
+struct Column<long> {
 	static
-	std::int64_t column(void* stmt, int c) {
+	long column(void* stmt, int c) {
 		return column_i(stmt, c);
 	}
 };
 template<>
-struct Column<std::uint64_t> {
+struct Column<unsigned long> {
 	static
-	std::uint64_t column(void* stmt, int c) {
+	unsigned long column(void* stmt, int c) {
+		return column_i(stmt, c);
+	}
+};
+template<>
+struct Column<long long> {
+	static
+	long long column(void* stmt, int c) {
+		return column_i(stmt, c);
+	}
+};
+template<>
+struct Column<unsigned long long> {
+	static
+	unsigned long long column(void* stmt, int c) {
 		return column_i(stmt, c);
 	}
 };

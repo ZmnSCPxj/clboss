@@ -41,69 +41,87 @@ struct Serializer<float> {
 	}
 };
 template<>
-struct Serializer<std::int8_t> {
-	static std::string serialize(std::int8_t v) {
+struct Serializer<signed char> {
+	static std::string serialize(signed char v) {
 		auto os = std::ostringstream();
 		os << std::dec << std::int64_t(v);
 		return os.str();
 	}
 };
 template<>
-struct Serializer<std::int16_t> {
-	static std::string serialize(std::int16_t v) {
+struct Serializer<short> {
+	static std::string serialize(short v) {
 		auto os = std::ostringstream();
-		os << std::dec << std::int64_t(v);
+		os << std::dec << v;
 		return os.str();
 	}
 };
 template<>
-struct Serializer<std::int32_t> {
-	static std::string serialize(std::int32_t v) {
+struct Serializer<int> {
+	static std::string serialize(int v) {
 		auto os = std::ostringstream();
-		os << std::dec << std::int64_t(v);
+		os << std::dec << v;
 		return os.str();
 	}
 };
 template<>
-struct Serializer<std::int64_t> {
-	static std::string serialize(std::int64_t v) {
+struct Serializer<long> {
+	static std::string serialize(long v) {
 		auto os = std::ostringstream();
-		os << std::dec << std::int64_t(v);
+		os << std::dec << v;
 		return os.str();
 	}
 };
 template<>
-struct Serializer<std::uint8_t> {
-	static std::string serialize(std::uint8_t v) {
+struct Serializer<long long> {
+	static std::string serialize(long long v) {
+		auto os = std::ostringstream();
+		os << std::dec << v;
+		return os.str();
+	}
+};
+
+template<>
+struct Serializer<unsigned char> {
+	static std::string serialize(unsigned char v) {
 		auto os = std::ostringstream();
 		os << std::dec << std::uint64_t(v);
 		return os.str();
 	}
 };
 template<>
-struct Serializer<std::uint16_t> {
-	static std::string serialize(std::uint16_t v) {
+struct Serializer<unsigned short> {
+	static std::string serialize(unsigned short v) {
 		auto os = std::ostringstream();
-		os << std::dec << std::uint64_t(v);
+		os << std::dec << v;
 		return os.str();
 	}
 };
 template<>
-struct Serializer<std::uint32_t> {
-	static std::string serialize(std::uint32_t v) {
+struct Serializer<unsigned int> {
+	static std::string serialize(unsigned int v) {
 		auto os = std::ostringstream();
-		os << std::dec << std::uint64_t(v);
+		os << std::dec << v;
 		return os.str();
 	}
 };
 template<>
-struct Serializer<std::uint64_t> {
-	static std::string serialize(std::uint64_t v) {
+struct Serializer<unsigned long> {
+	static std::string serialize(unsigned long v) {
 		auto os = std::ostringstream();
-		os << std::dec << std::uint64_t(v);
+		os << std::dec << v;
 		return os.str();
 	}
 };
+template<>
+struct Serializer<unsigned long long> {
+	static std::string serialize(unsigned long long v) {
+		auto os = std::ostringstream();
+		os << std::dec << v;
+		return os.str();
+	}
+};
+
 template<>
 struct Serializer<bool> {
 	static std::string serialize(bool v) {

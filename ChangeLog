@@ -1,3 +1,4 @@
+- Correct calculation of spendable vs receivable in `NodeBalanceSwapper`.
 
 0.7A
 - Properly consider direction of flow when estimating capacities of nodes.

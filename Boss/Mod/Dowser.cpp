@@ -145,8 +145,7 @@ private:
 			auto route = res["route"];
 			if (!route.is_array())
 				return Ev::lift(empty);
-			for (auto i = std::size_t(0); i < route.size(); ++i) {
-				auto step = route[i];
+			for (auto step : route) {
 				if (!step.is_object())
 					return Ev::lift(empty);
 				if (!step.has("id"))
@@ -237,8 +236,7 @@ private:
 			auto chans = res["channels"];
 			if (!chans.is_array())
 				return Ev::lift(zero);
-			for (auto i = std::size_t(0); i < chans.size(); ++i) {
-				auto chan = chans[i];
+			for (auto chan : chans) {
 				if ( !chan.is_object()
 				  || !chan.has("amount_msat")
 				   )

@@ -15,8 +15,7 @@ ListpeersAnalyzer::ListpeersAnalyzer(S::Bus& bus) {
 		auto ar = Msg::ListpeersAnalyzedResult();
 		ar.initial = l.initial;
 
-		for (auto i = std::size_t(0); i < l.peers.size(); ++i) {
-			auto peer = l.peers[i];
+		for (auto peer : l.peers) {
 			if (!peer.is_object() || !peer.has("id"))
 				continue;
 			if (!peer.has("connected"))
@@ -41,8 +40,7 @@ ListpeersAnalyzer::ListpeersAnalyzer(S::Bus& bus) {
 			auto chans = peer["channels"];
 			if (!chans.is_array())
 				continue;
-			for (auto j = std::size_t(0); j < chans.size(); ++j) {
-				auto chan = chans[j];
+			for (auto chan : chans) {
 				if (!chan.is_object() || !chan.has("state"))
 					continue;
 

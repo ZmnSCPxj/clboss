@@ -98,17 +98,9 @@ private:
 		}).then([this](Jsmn::Object res) {
 			try {
 				auto ps = res["peers"];
-				for ( auto i = std::size_t(0)
-				    ; i < ps.size()
-				    ; ++i
-				    ) {
-					auto p = ps[i];
+				for (auto p : ps) {
 					auto cs = p["channels"];
-					for ( auto j = std::size_t(0)
-					    ; j < cs.size()
-					    ; ++j
-					    ) {
-						auto c = cs[j];
+					for (auto c : cs) {
 						if (!c.has("short_channel_id"))
 							continue;
 						if (!c.has("spendable_msat"))
@@ -301,11 +293,7 @@ private:
 			auto found = false;
 			try {
 				auto cs = res["channels"];
-				for ( auto i = std::size_t(0)
-				    ; i < cs.size()
-				    ; ++i
-				    ) {
-					auto c = cs[i];
+				for (auto c : cs) {
 					auto src = Ln::NodeId(std::string(
 						c["source"]
 					));
@@ -377,8 +365,8 @@ private:
 		return Ev::lift().then([this]() {
 			auto os = std::ostringstream();
 			os << chan0;
-			for (auto i = std::size_t(0); i < route.size(); ++i)
-				os << " " << std::string(route[i]["channel"]);
+			for (auto step : route)
+				os << " " << std::string(step["channel"]);
 			return Boss::log( bus, Debug
 					, "ActiveProber: Probe %s by route %s."
 					, std::string(peer).c_str()
@@ -404,11 +392,8 @@ private:
 					.field("style", "tlv")
 				.end_object();
 			/* Load the rest of the hops.  */
-			for ( auto i = std::size_t(0)
-			    ; i < route.size()
-			    ; ++i
-			    )
-				routearr.entry(route[i]);
+			for (auto step : route)
+				routearr.entry(step);
 			routearr.end_array();
 
 			auto label = std::string( "CLBOSS ActiveProber "

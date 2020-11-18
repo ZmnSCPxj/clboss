@@ -45,8 +45,7 @@ Ev::Io<void> Surveyor::core_run() {
 	}).then([this](Jsmn::Object result) {
 		try {
 			auto cs = result["channels"];
-			for (auto i = std::size_t(0); i < cs.size(); ++i) {
-				auto c = cs[i];
+			for (auto c : cs) {
 				auto dest = Ln::NodeId(std::string(
 					c["destination"]
 				));
@@ -119,8 +118,7 @@ Ev::Io<void> Surveyor::loop() {
 	}).then([this](Jsmn::Object result) {
 		try {
 			auto cs = result["channels"];
-			for (auto i = std::size_t(0); i < cs.size(); ++i) {
-				auto c = cs[i];
+			for (auto c : cs) {
 				auto dest = Ln::NodeId(std::string(
 					c["destination"]
 				));

@@ -45,8 +45,7 @@ private:
 			auto peers = result["peers"];
 			if (!peers.is_array())
 				return reconnect();
-			for (auto i = size_t(0); i < peers.size(); ++i) {
-				auto peer = peers[i];
+			for (auto peer : peers) {
 				if (!peer.is_object())
 					continue;
 				if (!peer.has("connected"))

@@ -82,11 +82,7 @@ Ev::Io<void> Runner::gather_info() {
 	}).then([this](Jsmn::Object res) {
 		try {
 			auto cs = res["channels"];
-			for ( auto i = std::size_t(0)
-			    ; i < cs.size()
-			    ; ++i
-			    ) {
-				auto c = cs[i];
+			for (auto c : cs) {
 				auto d = Ln::NodeId(std::string(
 					c["destination"]
 				));
@@ -117,11 +113,7 @@ Ev::Io<void> Runner::gather_info() {
 	}).then([this](Jsmn::Object res) {
 		try {
 			auto cs = res["channels"];
-			for ( auto i = std::size_t(0)
-			    ; i < cs.size()
-			    ; ++i
-			    ) {
-				auto c = cs[i];
+			for (auto c : cs) {
 				auto d = Ln::NodeId(std::string(
 					c["destination"]
 				));

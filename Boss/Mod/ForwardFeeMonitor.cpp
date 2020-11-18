@@ -22,20 +22,12 @@ void ForwardFeeMonitor::start() {
 		/* Construct-temporary...*/
 		auto tmp = std::map<Ln::Scid, Ln::NodeId>();
 		try {
-			for ( auto i = std::size_t(0)
-			    ; i < r.peers.size()
-			    ; ++i
-			    ) {
-				auto peer = r.peers[i];
+			for (auto peer : r.peers) {
 				auto peerid = Ln::NodeId(std::string(
 					peer["id"]
 				));
 				auto cs = peer["channels"];
-				for ( auto j = std::size_t(0)
-				    ; j < cs.size()
-				    ; ++j
-				    ) {
-					auto c = cs[j];
+				for (auto c : cs) {
 					if (!c.has("short_channel_id"))
 						continue;
 					auto scid = Ln::Scid(std::string(

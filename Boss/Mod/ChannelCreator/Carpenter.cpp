@@ -132,8 +132,7 @@ Carpenter::construct(std::map<Ln::NodeId, Ln::Amount> plan) {
 		try {
 			auto chans = res["channel_ids"];
 			auto first = true;
-			for (auto i = std::size_t(0); i < chans.size(); ++i) {
-				auto c = chans[i];
+			for (auto c : chans) {
 				auto node = Ln::NodeId(std::string(c["id"]));
 				ppasses->push(node);
 				if (first)
@@ -149,8 +148,7 @@ Carpenter::construct(std::map<Ln::NodeId, Ln::Amount> plan) {
 			if (bads.size() > 0)
 				report << "; FAILED: ";
 			first = true;
-			for (auto i = std::size_t(0); i < bads.size(); ++i) {
-				auto b = bads[i];
+			for (auto b : bads) {
 				auto node = Ln::NodeId(std::string(b["id"]));
 				pfails->push(node);
 				if (first)

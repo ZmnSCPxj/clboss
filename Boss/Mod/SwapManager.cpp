@@ -669,11 +669,11 @@ private:
 		return Ev::lift().then([this, outputs]() {
 			auto was_empty = onchain_funds.empty();
 			/* Iterate over the outputs array.  */
-			for (auto i = std::size_t(0); i < outputs.size(); ++i)
+			for (auto out : outputs)
 				onchain_funds.push(std::make_pair(
-					std::string(outputs[i]["address"]),
+					std::string(out["address"]),
 					Ln::Amount(std::string(
-						outputs[i]["amount_msat"]
+						out["amount_msat"]
 					))
 				));
 

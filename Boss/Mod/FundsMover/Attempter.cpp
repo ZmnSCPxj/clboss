@@ -192,11 +192,7 @@ private:
 			try {
 				auto found = false;
 				auto cs = res["channels"];
-				for ( auto i = std::size_t(0)
-				    ; i < cs.size()
-				    ; ++i
-				    ) {
-					auto c = cs[i];
+				for (auto c : cs) {
 					auto csrc = Ln::NodeId(std::string(
 						c["source"]
 					));
@@ -427,8 +423,8 @@ private:
 		auto ret = Json::Out();
 		auto arr = ret.start_array();
 		arr.entry(make_hop0());
-		for (auto i = std::size_t(0); i < route.size(); ++i)
-			arr.entry(route[i]);
+		for (auto step : route)
+			arr.entry(step);
 		arr.entry(make_hoplast());
 		arr.end_array();
 		return ret;

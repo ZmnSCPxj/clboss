@@ -19,8 +19,7 @@ ChannelFundsComputer::on_listfunds(Msg::ListfundsResult const& r) {
 		/* Stack em sats.  */
 		auto total = Ln::Amount::sat(0);
 		auto connected = Ln::Amount::sat(0);
-		for (auto i = std::size_t(0); i < r.channels.size(); ++i) {
-			auto chan = r.channels[i];
+		for (auto chan : r.channels) {
 			if (!chan.is_object() || !chan.has("our_amount_msat"))
 				continue;
 			auto amount_j = chan["our_amount_msat"];

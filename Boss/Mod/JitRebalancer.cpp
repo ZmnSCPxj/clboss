@@ -120,11 +120,7 @@ private:
 
 	Ev::Io<void>
 	listpeers_result(Jsmn::Object ps) {
-		for ( auto i = std::size_t(0)
-		    ; i < ps.size()
-		    ; ++i
-		    ) {
-			auto p = ps[i];
+		for (auto p : ps) {
 			if (!p.has("id"))
 				continue;
 			auto node_j = p["id"];
@@ -135,11 +131,7 @@ private:
 				continue;
 			auto node = Ln::NodeId(node_s);
 			auto cs = p["channels"];
-			for ( auto j = std::size_t(0)
-			    ; j < cs.size()
-			    ; ++j
-			    ) {
-				auto c = cs[j];
+			for (auto c : cs) {
 				if (!c.has("short_channel_id"))
 					continue;
 				auto scid_j = c["short_channel_id"];
@@ -317,11 +309,7 @@ private:
 		}).then([this](Jsmn::Object res) {
 			try {
 				auto ps = res["peers"];
-				for ( auto i = std::size_t(0)
-				    ; i < ps.size()
-				    ; ++i
-				    ) {
-					auto p = ps[i];
+				for (auto p : ps) {
 					auto to_us = Ln::Amount::sat(0);
 					auto capacity = Ln::Amount::sat(0);
 					auto peer = Ln::NodeId(std::string(
@@ -329,11 +317,7 @@ private:
 					));
 
 					auto cs = p["channels"];
-					for ( auto j = std::size_t(0)
-					    ; j < cs.size()
-					    ; ++j
-					    ) {
-						auto c = cs[j];
+					for (auto c : cs) {
 						auto state = std::string(
 							c["state"]
 						);

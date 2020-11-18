@@ -171,17 +171,9 @@ private:
 			auto total = Ln::Amount();
 			try {
 				auto ps = res["peers"];
-				for ( auto i = std::size_t(0)
-				    ; i < ps.size()
-				    ; ++i
-				    ) {
-					auto p = ps[i];
+				for (auto p : ps) {
 					auto cs = p["channels"];
-					for ( auto j = std::size_t(0)
-					    ; j < cs.size()
-					    ; ++j
-					    ) {
-						auto c = cs[i];
+					for (auto c : cs) {
 						auto state = std::string(
 							c["state"]
 						);

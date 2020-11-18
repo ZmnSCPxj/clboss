@@ -249,11 +249,7 @@ private:
 			auto running_cap = Ln::Amount::sat(0);
 			try {
 				auto cs = res["channels"];
-				for ( auto i = std::size_t(0)
-				    ; i < cs.size()
-				    ; ++i
-				    ) {
-					auto c = cs[i];
+				for (auto c : cs) {
 					/* Only care about public and
 					 * active channels.
 					 */
@@ -364,11 +360,7 @@ private:
 			auto rv = std::set<Ln::NodeId>();
 			try {
 				auto cs = res["channels"];
-				for ( auto i = std::size_t(0)
-				    ; i < cs.size()
-				    ; ++i
-				    ) {
-					auto c = cs[i];
+				for (auto c : cs) {
 					auto n = Ln::NodeId(std::string(
 						c["destination"]
 					));

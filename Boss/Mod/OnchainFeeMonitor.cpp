@@ -19,27 +19,11 @@
 
 namespace {
 
-/* Works for Bitcoin, so...  */
-auto const minimum_feerate = double(253);
-
-auto const hysteresis_percent = double(20);
-
 /* Keep two weeks worth of data.  */
 auto constexpr num_samples = std::size_t(2016);
 
 auto const initialization = R"INIT(
-CREATE TABLE IF NOT EXISTS "OnchainFeeMonitor_meanfee"
-	( id INTEGER PRIMARY KEY
-	, mean DOUBLE
-	, samples INTEGER
-	);
-INSERT OR IGNORE INTO "OnchainFeeMonitor_meanfee" VALUES
-	( 0
-	-- from a CLBOSS node that has been running for
-	-- about a week.
-	, 10034.9455307263
-	, 1432
-	);
+DROP TABLE IF EXISTS "OnchainFeeMonitor_meanfee";
 CREATE TABLE IF NOT EXISTS "OnchainFeeMonitor_samples"
 	( id INTEGER PRIMARY KEY AUTOINCREMENT
 	, data SAMPLE
@@ -47,20 +31,6 @@ CREATE TABLE IF NOT EXISTS "OnchainFeeMonitor_samples"
 CREATE INDEX IF NOT EXISTS "OnchainFeeMonitor_samples_idx"
     ON "OnchainFeeMonitor_samples"(data);
 )INIT";
-
-auto const q_get = R"QRY(
-SELECT mean, samples FROM "OnchainFeeMonitor_meanfee"
- WHERE id = 0
-     ;
-)QRY";
-
-auto const q_set = R"QRY(
-UPDATE "OnchainFeeMonitor_meanfee"
-   SET mean = :mean
-     , samples = :samples
- WHERE id = 0
-     ;
-)QRY";
 
 /* Initial data we will load into OnchainFeeMonitor_samples,
  * so that new users have something reasonable to start out
@@ -377,13 +347,6 @@ private:
 			if (!db)
 				return Ev::lift();
 			return db.transact().then([this](Sqlite3::Tx tx) {
-				auto mean = double();
-				auto samples = std::size_t();
-				auto fetch = tx.query(q_get).execute();
-				for (auto& r : fetch) {
-					mean = r.get<double>(0);
-					samples = r.get<std::size_t>(1);
-				}
 				auto h2l = get_feerate_at_percentile(
 					tx, hi_to_lo_percentile
 				);
@@ -397,13 +360,9 @@ private:
 
 				auto status = Json::Out()
 					.start_object()
-						.field("mean_perkw", mean)
-						.field( "samples"
-						      , (double)samples
-						      )
-						.field("h2l", h2l)
-						.field("mid", mid)
-						.field("l2h", l2h)
+						.field("hi_to_lo", h2l)
+						.field("init_mid", mid)
+						.field("lo_to_hi", l2h)
 						.field( "last_feerate_perkw"
 						      , last_feerate ? *last_feerate : -1.0
 						      )
@@ -464,15 +423,16 @@ private:
 			last_feerate = std::move(feerate);
 
 			/* Now access the db and check if it is lower or
-			 * higher than the mean, to know our current
+			 * higher than the mid percentile, to know our current
 			 * low/high flag.  */
 			return db.transact().then([ this
 						  , saved_feerate
 						  ](Sqlite3::Tx tx) {
-				auto mean = update_mean( std::move(tx)
-						       , *saved_feerate
-						       );
-				is_low_fee_flag = *saved_feerate < mean;
+				auto mid = get_feerate_at_percentile(
+					tx, mid_percentile
+				);
+				tx.commit();
+				is_low_fee_flag = *saved_feerate < mid;
 				return report_fee("Init");
 			});
 		});
@@ -569,29 +529,6 @@ private:
 		return rv;
 	}
 
-	double update_mean(Sqlite3::Tx tx, double feerate_sample) {
-		/* Recover the RunningMean.  */
-		auto fetch = tx.query(q_get).execute();
-		auto memo = Stats::RunningMean::Memo();
-		for (auto& r : fetch) {
-			memo.mean = r.get<double>(0);
-			memo.samples = r.get<std::size_t>(1);
-		}
-		auto running_mean = Stats::RunningMean(memo);
-
-		/* Update it.  */
-		running_mean.sample(feerate_sample);
-		memo = running_mean.get_memo();
-		tx.query(q_set)
-			.bind(":mean", memo.mean)
-			.bind(":samples", memo.samples)
-			.execute();
-		tx.commit();
-
-		/* Return mean.  */
-		return running_mean.get();
-	}
-
 	Ev::Io<void> report_fee(char const* msg) {
 		return Boss::log( bus, Debug
 				, "OnchainFeeMonitor: %s: %s fees."
@@ -618,33 +555,22 @@ private:
 						  , saved_feerate
 						  ](Sqlite3::Tx tx) {
 				add_sample(tx, *saved_feerate);
-				auto mean = update_mean( std::move(tx)
-						       , *saved_feerate
-						       );
-
-				/* Make it so minimum fee of 253 is 0.  */
-				auto mean_base = mean - minimum_feerate;
-				auto feerate_base = *saved_feerate - minimum_feerate;
-				/* Should not happen.  */
-				if (mean_base < 0) mean_base = 0;
-				if (feerate_base < 0) feerate_base = 0;
 
 				/* Apply hysteresis.  */
 				if (is_low_fee_flag) {
-					auto ref = mean_base
-						 * (100 + hysteresis_percent)
-						 / 100
-						 ;
-					if (feerate_base >= ref)
+					auto ref = get_feerate_at_percentile(
+						tx, lo_to_hi_percentile
+					);
+					if (*saved_feerate >= ref)
 						is_low_fee_flag = false;
 				} else {
-					auto ref = mean_base
-						 * (100 - hysteresis_percent)
-						 / 100
-						 ;
-					if (feerate_base <= ref)
+					auto ref = get_feerate_at_percentile(
+						tx, hi_to_lo_percentile
+					);
+					if (*saved_feerate <= ref)
 						is_low_fee_flag = true;
 				}
+				tx.commit();
 				return report_fee("Periodic");
 			});
 		});
@@ -669,11 +595,12 @@ private:
 			return db.transact().then([ this
 						  , saved_feerate
 						  ](Sqlite3::Tx tx) {
-				auto mean = update_mean( std::move(tx)
-						       , *saved_feerate
-						       );
-				is_low_fee_flag = *saved_feerate < mean;
-				return report_fee("Init retried");
+				auto mid = get_feerate_at_percentile(
+					tx, mid_percentile
+				);
+				tx.commit();
+				is_low_fee_flag = *saved_feerate < mid;
+				return report_fee("Init");
 			});
 		});
 	}

@@ -1,3 +1,4 @@
+- Change onchain fee judgment to use percentile based on the previous 2 weeks of feerates.
 - Support MacOS compilation, also checked FreeBSD compilation still works.
 - Correct calculation of spendable vs receivable in `NodeBalanceSwapper`.
 

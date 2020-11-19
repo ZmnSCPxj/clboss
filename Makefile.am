@@ -179,6 +179,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/OnchainFeeMonitor.hpp \
 	Boss/Mod/OnchainFundsAnnouncer.cpp \
 	Boss/Mod/OnchainFundsAnnouncer.hpp \
+	Boss/Mod/OnchainFundsIgnorer.cpp \
+	Boss/Mod/OnchainFundsIgnorer.hpp \
 	Boss/Mod/PeerCompetitorFeeMonitor/Main.cpp \
 	Boss/Mod/PeerCompetitorFeeMonitor/Main.hpp \
 	Boss/Mod/PeerCompetitorFeeMonitor/Surveyor.cpp \
@@ -258,6 +260,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/RequestConnect.hpp \
 	Boss/Msg/RequestDowser.hpp \
 	Boss/Msg/RequestEarningsInfo.hpp \
+	Boss/Msg/RequestGetOnchainIgnoreFlag.hpp \
 	Boss/Msg/RequestListpays.hpp \
 	Boss/Msg/RequestMoveFunds.hpp \
 	Boss/Msg/RequestNewaddr.hpp \
@@ -266,6 +269,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ResponseConnect.hpp \
 	Boss/Msg/ResponseDowser.hpp \
 	Boss/Msg/ResponseEarningsInfo.hpp \
+	Boss/Msg/ResponseGetOnchainIgnoreFlag.hpp \
 	Boss/Msg/ResponseListpays.hpp \
 	Boss/Msg/ResponseMoveFunds.hpp \
 	Boss/Msg/ResponseNewaddr.hpp \

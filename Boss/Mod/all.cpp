@@ -45,6 +45,7 @@
 #include"Boss/Mod/NodeBalanceSwapper.hpp"
 #include"Boss/Mod/OnchainFeeMonitor.hpp"
 #include"Boss/Mod/OnchainFundsAnnouncer.hpp"
+#include"Boss/Mod/OnchainFundsIgnorer.hpp"
 #include"Boss/Mod/PeerCompetitorFeeMonitor/Main.hpp"
 #include"Boss/Mod/PeerMetrician.hpp"
 #include"Boss/Mod/PeerStatistician.hpp"
@@ -120,6 +121,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<OnchainFeeMonitor>(bus, *waiter);
 	all->install<ListfundsAnnouncer>(bus);
 	all->install<OnchainFundsAnnouncer>(bus);
+	all->install<OnchainFundsIgnorer>(bus);
 	all->install<ChannelCreateDestroyMonitor>(bus);
 
 	/* Channel creation wrangling.  */

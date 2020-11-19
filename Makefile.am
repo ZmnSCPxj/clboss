@@ -457,6 +457,7 @@ TESTS = \
 	tests/boss/test_channelcreationdecider \
 	tests/boss/test_channelcreator_planner \
 	tests/boss/test_needsconnectsolicitor \
+	tests/boss/test_onchainfeemonitor_samples_init \
 	tests/boss/test_peerstatistician \
 	tests/boss/test_reqresp \
 	tests/boss/test_rpc \

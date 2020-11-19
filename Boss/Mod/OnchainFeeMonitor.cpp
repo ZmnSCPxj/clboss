@@ -326,6 +326,18 @@ static_assert( num_samples == ( sizeof(initial_sample_data)
 	     , "initial_sample_data number of entries must equal num_samples"
 	     );
 
+/* What percentile to use to judge low and high.
+ * `mid_percentile` is used in the initial starting check.
+ * `hi_to_lo_percentile` is used when we are currently in
+ * "high fees" mode, and if the onchain fees get less than
+ * or equal that rate, we move to "low fees" mode.
+ * `lo_to_hi_percentile` is used when we are currently in
+ * "low fees" mode.
+ */
+auto constexpr hi_to_lo_percentile = double(20);
+auto constexpr mid_percentile = double(25);
+auto constexpr lo_to_hi_percentile = double(30);
+
 }
 
 namespace Boss { namespace Mod {
@@ -372,6 +384,15 @@ private:
 					mean = r.get<double>(0);
 					samples = r.get<std::size_t>(1);
 				}
+				auto h2l = get_feerate_at_percentile(
+					tx, hi_to_lo_percentile
+				);
+				auto mid = get_feerate_at_percentile(
+					tx, mid_percentile
+				);
+				auto l2h = get_feerate_at_percentile(
+					tx, lo_to_hi_percentile
+				);
 				tx.commit();
 
 				auto status = Json::Out()
@@ -380,6 +401,9 @@ private:
 						.field( "samples"
 						      , (double)samples
 						      )
+						.field("h2l", h2l)
+						.field("mid", mid)
+						.field("l2h", l2h)
 						.field( "last_feerate_perkw"
 						      , last_feerate ? *last_feerate : -1.0
 						      )
@@ -519,6 +543,30 @@ private:
 				.execute()
 				;
 		}
+	}
+
+	double
+	get_feerate_at_percentile(Sqlite3::Tx& tx, double percentile) {
+		auto index = std::size_t(
+			double(num_samples) * percentile / 100.0
+		);
+		if (index < 0)
+			index = std::size_t(0);
+		else if (index >= num_samples)
+			index = num_samples - 1;
+
+		auto fetch = tx.query(R"QRY(
+		SELECT data FROM "OnchainFeeMonitor_samples"
+		 ORDER BY data
+		 LIMIT 1 OFFSET :index
+		)QRY")
+			.bind(":index", index)
+			.execute();
+		auto rv = double();
+		for (auto& r : fetch)
+			rv = r.get<double>(0);
+
+		return rv;
 	}
 
 	double update_mean(Sqlite3::Tx tx, double feerate_sample) {

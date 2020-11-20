@@ -3,6 +3,8 @@
 #include"Boss/Msg/Block.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/OnchainFunds.hpp"
+#include"Boss/Msg/RequestGetOnchainIgnoreFlag.hpp"
+#include"Boss/Msg/ResponseGetOnchainIgnoreFlag.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Ev/Io.hpp"
@@ -50,6 +52,23 @@ void OnchainFundsAnnouncer::start() {
 }
 
 Ev::Io<void> OnchainFundsAnnouncer::on_block() {
+	return Ev::lift().then([this]() {
+		return get_ignore_rr.execute(Msg::RequestGetOnchainIgnoreFlag{
+			nullptr
+		});
+	}).then([this](Msg::ResponseGetOnchainIgnoreFlag res) {
+		if (res.ignore)
+			return Boss::log( bus, Info
+					, "OnchainFundsAnnouncer: "
+					  "Ignoring onchain funds until "
+					  "%f seconds from now."
+					, res.seconds
+					);
+		return announce();
+	});
+}
+
+Ev::Io<void> OnchainFundsAnnouncer::announce() {
 	return Ev::lift().then([this]() {
 		auto params = Json::Out()
 			.start_object()
@@ -102,13 +121,26 @@ OnchainFundsAnnouncer::fail( std::string const& msg
 			   , Jsmn::Object res
 			   ) {
 	auto os = std::ostringstream();
-	os <<res;
+	os << res;
 	return Boss::log( bus, Error
 			, "OnchainFundsAnnouncer: %s: %s"
 			, msg.c_str()
 			, os.str().c_str()
 			);
 }
+
+OnchainFundsAnnouncer::~OnchainFundsAnnouncer() =default;
+OnchainFundsAnnouncer::OnchainFundsAnnouncer(S::Bus& bus_)
+	: bus(bus_), rpc(nullptr)
+	, get_ignore_rr( bus_
+		       , [](Msg::RequestGetOnchainIgnoreFlag& m, void* p) {
+				m.requester = p;
+			 }
+		       , [](Msg::ResponseGetOnchainIgnoreFlag& m) {
+				return m.requester;
+			 }
+		       )
+	{ start(); }
 
 }}
 

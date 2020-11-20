@@ -60,6 +60,10 @@ protected:
 	 * If so, this function will return immediately
 	 * without any log messages.
 	 *
+	 * It will also check if the operator currently is
+	 * telling us to ignore onchain, in which case we
+	 * also return with a log messages.
+	 *
 	 * If not, it will call the given function.
 	 * The given function should return `false` if the
 	 * swap should not push through after all.

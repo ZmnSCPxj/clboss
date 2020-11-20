@@ -1,7 +1,10 @@
+#include"Boss/ModG/ReqResp.hpp"
 #include"Boss/ModG/Swapper.hpp"
 #include"Boss/Msg/Block.hpp"
 #include"Boss/Msg/DbResource.hpp"
 #include"Boss/Msg/ProvideStatus.hpp"
+#include"Boss/Msg/RequestGetOnchainIgnoreFlag.hpp"
+#include"Boss/Msg/ResponseGetOnchainIgnoreFlag.hpp"
 #include"Boss/Msg/SolicitStatus.hpp"
 #include"Boss/Msg/SwapRequest.hpp"
 #include"Boss/Msg/SwapResponse.hpp"
@@ -40,6 +43,10 @@ private:
 	std::string name;
 	std::string statuskey;
 
+	ReqResp< Msg::RequestGetOnchainIgnoreFlag
+	       , Msg::ResponseGetOnchainIgnoreFlag
+	       > get_ignore_rr;
+
 	std::string why;
 
 	Sqlite3::Db db;
@@ -49,7 +56,18 @@ public:
 	Impl( S::Bus& bus_
 	    , char const* name_
 	    , char const* statuskey_
-	    ) : bus(bus_), name(name_), statuskey(statuskey_) { start(); }
+	    ) : bus(bus_), name(name_), statuskey(statuskey_)
+	      , get_ignore_rr( bus_
+			     , []( Msg::RequestGetOnchainIgnoreFlag& m
+				 , void* p
+				 ) {
+					m.requester = p;
+			       }
+			     , [](Msg::ResponseGetOnchainIgnoreFlag& m) {
+					return m.requester;
+			       }
+			     )
+	      { start(); }
 
 private:
 	void start() {
@@ -209,7 +227,17 @@ private:
 	Ev::Io<void> on_solicit_status() {
 		if (!db || !blockheight)
 			return Ev::lift();
-		return db.transact().then([this](Sqlite3::Tx tx) {
+		auto ignore = std::make_shared<bool>();
+		return Ev::lift().then([this]() {
+
+			return get_ignore_rr.execute(
+				Msg::RequestGetOnchainIgnoreFlag{}
+			);
+		}).then([this, ignore](Msg::ResponseGetOnchainIgnoreFlag res) {
+			*ignore = res.ignore;
+
+			return db.transact();
+		}).then([this, ignore](Sqlite3::Tx tx) {
 			auto fetch = tx.query(R"QRY(
 			SELECT swapUuid, blocked_until
 			  FROM "ModG::Swapper"
@@ -224,9 +252,12 @@ private:
 				swapUuid = r.get<std::string>(0);
 				blocked_until = r.get<std::uint32_t>(1);
 			}
+
 			auto status = std::string();
 			if (swapUuid != "")
 				status = "swapping";
+			else if (*ignore)
+				status = "ignoring";
 			else if (blocked_until >= *blockheight)
 				status = "waiting";
 			else
@@ -251,6 +282,24 @@ public:
 		auto ok = std::make_shared<std::function<bool(Ln::Amount&, std::string&)>>(
 			std::move(n_ok)
 		);
+		return get_ignore_rr.execute(Msg::RequestGetOnchainIgnoreFlag{
+			nullptr
+		}).then([this, ok](Msg::ResponseGetOnchainIgnoreFlag res) {
+			if (res.ignore)
+				return Boss::log( bus, Info
+						, "%s: Ignoring onchain funds "
+						  "until %f seconds from now."
+						, name.c_str()
+						, res.seconds
+						);
+			return continue_swap(ok);
+		});
+	}
+private:
+	Ev::Io<void>
+	continue_swap(std::shared_ptr<std::function<bool( Ln::Amount&
+							, std::string&
+							)>> const& ok) {
 		return db.transact().then([this, ok](Sqlite3::Tx tx) {
 			/* Do we currently have a swap, or is the time
 			 * done?

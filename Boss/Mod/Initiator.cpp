@@ -24,6 +24,10 @@
 #include<sstream>
 #include<stdlib.h>
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
 namespace {
 
 std::string stringify_jsmn(Jsmn::Object const& js) {
@@ -189,8 +193,12 @@ public:
 				rpc_file = std::string(rpc_file_js);
 			}
 
+			return Boss::log( bus, Info
+					, "%s"
+					, PACKAGE_STRING
+					)
 			/* Now construct the RPC socket.  */
-			return threadpool.background< Net::Fd
+			     + threadpool.background< Net::Fd
 						    >([ this
 						      , lightning_dir
 						      , rpc_file

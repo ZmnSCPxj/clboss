@@ -201,7 +201,7 @@ private:
 		});
 	}
 	Ev::Io<double> get_disableuntil() {
-		return db.transact().then([this](Sqlite3::Tx tx) {
+		return db.transact().then([](Sqlite3::Tx tx) {
 			auto rv = double();
 
 			auto fetch = tx.query(R"QRY(

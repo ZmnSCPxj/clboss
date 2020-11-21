@@ -1,3 +1,4 @@
+- New option `--clboss-min-onchain=<satoshis>` to indicate an amount to leave onchain.
 - Document `clboss-status` and `clboss-externpay` commands.
 - New commands `clboss-ignore-onchain` and `clboss-notice-onchain` let you temporarily manage onchain funds manually.
 - Change onchain fee judgment to use percentile based on the previous 2 weeks of feerates.

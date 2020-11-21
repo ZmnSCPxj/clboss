@@ -271,6 +271,14 @@ public:
 	Json::Out empty_object() {
 		return Json::Out().start_object().end_object();
 	}
+
+	template<typename a>
+	static
+	Json::Out direct(a const& v) {
+		auto out = Out();
+		*out.content << Detail::Serializer<a>::serialize(v);
+		return out;
+	}
 };
 
 namespace Detail {

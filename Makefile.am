@@ -234,6 +234,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ManifestCommand.hpp \
 	Boss/Msg/ManifestHook.hpp \
 	Boss/Msg/ManifestNotification.hpp \
+	Boss/Msg/ManifestOption.hpp \
 	Boss/Msg/Manifestation.hpp \
 	Boss/Msg/NeedsConnect.hpp \
 	Boss/Msg/NeedsOnchainFunds.hpp \
@@ -241,6 +242,8 @@ libclboss_la_SOURCES = \
 	Boss/Msg/Notification.hpp \
 	Boss/Msg/OnchainFee.hpp \
 	Boss/Msg/OnchainFunds.hpp \
+	Boss/Msg/Option.hpp \
+	Boss/Msg/OptionType.hpp \
 	Boss/Msg/PatronizeChannelCandidate.hpp \
 	Boss/Msg/PayInvoice.hpp \
 	Boss/Msg/PeerMedianChannelFee.hpp \

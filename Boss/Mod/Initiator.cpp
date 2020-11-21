@@ -4,6 +4,8 @@
 #include"Boss/Msg/CommandResponse.hpp"
 #include"Boss/Msg/DbResource.hpp"
 #include"Boss/Msg/Init.hpp"
+#include"Boss/Msg/ManifestOption.hpp"
+#include"Boss/Msg/Option.hpp"
 #include"Boss/Signer.hpp"
 #include"Boss/log.hpp"
 #include"Ev/ThreadPool.hpp"
@@ -21,6 +23,7 @@
 #include"Util/make_unique.hpp"
 #include<algorithm>
 #include<assert.h>
+#include<set>
 #include<sstream>
 #include<stdlib.h>
 
@@ -147,6 +150,11 @@ public:
 				return error( "no 'configuration' param"
 					    , params
 					    );
+
+			auto pre_act = Ev::lift();
+			if (params.has("options"))
+				pre_act += handle_options(params["options"]);
+
 			auto configuration = params["configuration"];
 			if (!configuration.is_object())
 				return error( "configuration not object"
@@ -197,6 +205,7 @@ public:
 					, "%s"
 					, PACKAGE_STRING
 					)
+			     + std::move(pre_act)
 			/* Now construct the RPC socket.  */
 			     + threadpool.background< Net::Fd
 						    >([ this
@@ -346,6 +355,31 @@ public:
 						);
 			});
 		});
+
+		bus.subscribe<Msg::ManifestOption
+			     >([this](Msg::ManifestOption const& o) {
+			options.insert(o.name);
+			return Ev::lift();
+		});
+	}
+
+private:
+	std::set<std::string> options;
+
+	Ev::Io<void> handle_options(Jsmn::Object options_j) {
+		auto rv = Ev::lift();
+
+		if (!options_j.is_object())
+			return error( "options not object"
+				    , options_j
+				    );
+		for (auto const& o : options) {
+			if (!options_j.has(o))
+				continue;
+			auto value = options_j[o];
+			rv += bus.raise(Msg::Option{o, std::move(value)});
+		}
+		return rv;
 	}
 };
 

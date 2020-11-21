@@ -26,6 +26,8 @@ namespace {
  * this code triggers.
  */
 auto constexpr spendable_percent = double(80.0);
+/* Gap to prevent destinations from hitting the spendable_percent.  */
+auto constexpr dest_gap_percent = double(5.0);
 /* Limit on rebalance fee.  */
 auto const min_rebalance_fee = Ln::Amount::sat(5);
 auto constexpr rebalance_fee_percent = double(0.5);
@@ -218,6 +220,10 @@ private:
 			if (peer_spendable_percent >= spendable_percent) {
 				sources.push_back(it->first);
 				msg << "(source)";
+			} else if ( peer_spendable_percent
+				 >= (spendable_percent - dest_gap_percent)
+				  ) {
+				msg << "(neutral)";
 			} else {
 				destinations.insert(*it);
 				msg << "(destination)";
@@ -264,7 +270,9 @@ private:
 
 			auto max_send = s_info.spendable / 2.0;
 
-			auto max_dest = d_info.total * ( spendable_percent
+			auto max_dest = d_info.total * ( ( spendable_percent
+							 - dest_gap_percent
+							 )
 						       / 100.0
 						       );
 			auto max_receive = max_dest - d_info.spendable;
@@ -272,6 +280,9 @@ private:
 			auto amount = max_send;
 			if (amount > max_receive)
 				amount = max_receive;
+
+			if (amount == Ln::Amount::sat(0))
+				continue;
 
 			act += Boss::log( bus, Debug
 					, "InitialRebalancer: %s --> %s --> %s"

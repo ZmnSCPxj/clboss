@@ -1,4 +1,5 @@
-- New option `--clboss-min-onchain=<satoshis>` to indicate an amount to leave onchain.
+- Ensure `InitialRebalancer` does not put the destination node at the edge of triggering `InitialRebalancer` again in the next cycle, which was causing multiple rebalances in sequence.
+- New option `--clboss-min-onchain=<satoshi>` to indicate how much to leave onchain; defaults to 30000 satoshi, which is suggested to leave onchain in preparation for anchor commitments, but you can leave more (or less) now.
 - Document `clboss-status` and `clboss-externpay` commands.
 - New commands `clboss-ignore-onchain` and `clboss-notice-onchain` let you temporarily manage onchain funds manually.
 - Change onchain fee judgment to use percentile based on the previous 2 weeks of feerates.

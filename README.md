@@ -20,6 +20,12 @@ language is unusual today.
 I hope CLBOSS can make the transition from pre-Lightning to
 post-Lightning much smoother in practice.
 
+So far CLBOSS can do the following automatically:
+
+* Open channels to other, useful nodes when fees are low and there are onchain funds
+* Rebalance open channels using boltz.exchange swaps and forwards (JIT Rebalancer)
+* Set forwarding fees so that they're competitive to other nodes
+
 Dependencies
 ------------
 
@@ -201,3 +207,12 @@ resume normal operation.
 In any case, `clboss-ignore-onchain` is temporary and even
 if you forget to issue `clboss-notice-onchain` CLBOSS will
 resume managing onchain funds at some point.
+
+
+### Configuration
+
+You can set the following CLBOSS specific options in your `lightningd.conf`:
+
+* `clboss-min-onchain=<amount in sats>` - Reserve `<amount>` in the on-chain
+  wallet. Anything above this reserve will be used for off-chain activity.
+  Defaults to `30000` sats.

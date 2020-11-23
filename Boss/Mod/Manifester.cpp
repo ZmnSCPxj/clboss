@@ -4,9 +4,25 @@
 #include"Boss/Msg/ManifestCommand.hpp"
 #include"Boss/Msg/ManifestHook.hpp"
 #include"Boss/Msg/ManifestNotification.hpp"
+#include"Boss/Msg/ManifestOption.hpp"
 #include"Boss/Msg/Manifestation.hpp"
 #include"Ev/Io.hpp"
 #include"S/Bus.hpp"
+#include<stdlib.h>
+
+namespace {
+
+std::string option_type_name(Boss::Msg::OptionType t) {
+	switch (t) {
+	case Boss::Msg::OptionType_String: return "string";
+	case Boss::Msg::OptionType_Bool: return "bool";
+	case Boss::Msg::OptionType_Int: return "int";
+	case Boss::Msg::OptionType_Flag: return "flag";
+	}
+	abort();
+}
+
+}
 
 namespace Boss { namespace Mod {
 
@@ -25,7 +41,6 @@ void Manifester::start() {
 			auto robj = result.start_object();
 			robj
 				.field("dynamic", true)
-				.start_array("options").end_array()
 				;
 
 			/* Holy carp.
@@ -57,6 +72,29 @@ void Manifester::start() {
 			}
 			carr.end_array();
 
+			auto oarr = robj.start_array("options");
+			for (auto const& n_o : options) {
+				auto const& o = n_o.second;
+				oarr.entry(
+					Json::Out()
+					.start_object()
+						.field("name", o.name)
+						.field("type"
+						      , option_type_name(
+								o.type
+							)
+						      )
+						.field( "default"
+						      , o.default_value
+						      )
+						.field( "description"
+						      , o.description
+						      )
+					.end_object()
+				);
+			}
+			oarr.end_array();
+
 			robj.end_object();
 
 			/* Now the manifester has created the result,
@@ -82,6 +120,10 @@ void Manifester::start() {
 	});
 	bus.subscribe<Boss::Msg::ManifestNotification>([this](Boss::Msg::ManifestNotification const& n) {
 		notifications.insert(n.name);
+		return Ev::lift();
+	});
+	bus.subscribe<Boss::Msg::ManifestOption>([this](Boss::Msg::ManifestOption const& o) {
+		options[o.name] = o;
 		return Ev::lift();
 	});
 }

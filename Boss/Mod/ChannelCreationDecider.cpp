@@ -1,19 +1,25 @@
 #include"Boss/Mod/ChannelCreationDecider.hpp"
 #include"Boss/Msg/ChannelFunds.hpp"
+#include"Boss/Msg/ManifestOption.hpp"
+#include"Boss/Msg/Manifestation.hpp"
 #include"Boss/Msg/NeedsOnchainFunds.hpp"
 #include"Boss/Msg/OnchainFee.hpp"
 #include"Boss/Msg/OnchainFunds.hpp"
+#include"Boss/Msg/Option.hpp"
 #include"Boss/Msg/RequestChannelCreation.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"S/Bus.hpp"
 #include"Util/make_unique.hpp"
 #include"Util/stringify.hpp"
+#include<sstream>
 
 namespace {
 
 /* How much onchain funds to reserve for anchor commitments.  */
-auto const reserve = Ln::Amount::sat(30000);
+auto const default_reserve = Ln::Amount::sat(30000);
+/* How much onchain funds to add when emitting NeedsOnchainFunds.  */
+auto const needs_reserve = Ln::Amount::sat(30000);
 /* How much minimum funds to put in channels.  */
 auto const min_amount = Ln::Amount::btc(0.010);
 
@@ -34,8 +40,11 @@ private:
 	std::unique_ptr<bool> low_fee;
 	std::unique_ptr<Ln::Amount> channels;
 	std::unique_ptr<Ln::Amount> saved_onchain;
+	Ln::Amount reserve;
 
 	void start() {
+		reserve = default_reserve;
+
 		bus.subscribe< Msg::ChannelFunds
 			     >([this](Msg::ChannelFunds const& m) {
 			if (!channels)
@@ -57,6 +66,38 @@ private:
 			*saved_onchain = m.onchain;
 			return run();
 		});
+
+		/* Option --clboss-min-onchain.  */
+		bus.subscribe< Msg::Manifestation
+			     >([this](Msg::Manifestation const& _) {
+			return bus.raise(Msg::ManifestOption{
+				"clboss-min-onchain", Msg::OptionType_String,
+				Json::Out::direct(default_reserve.to_sat()),
+				"Target to leave this number of satoshis "
+				"onchain, putting the rest into channels."
+			});
+		});
+		bus.subscribe< Msg::Option
+			     >([this](Msg::Option const& o) {
+			if (o.name != "clboss-min-onchain")
+				return Ev::lift();
+			auto is = std::istringstream(std::string(o.value));
+			auto sats = std::uint64_t();
+			is >> sats;
+			reserve = Ln::Amount::sat(sats);
+
+			/* If same as default value, do not spam logs.  */
+			if (reserve == default_reserve)
+				return Ev::lift();
+
+			return Boss::log( bus, Info
+					, "ChannelCreationDecider: "
+					  "Onchain reserve set by "
+					  "--clboss-min-onchain to "
+					  "%s satoshis."
+					, std::string(o.value).c_str()
+					);
+		});
 	}
 
 	Ev::Io<void> run() {
@@ -74,8 +115,13 @@ private:
 
 		/* Below our minimum channeling amount?  */
 		if (*onchain < min_amount + reserve) {
-			/* Double up the reserve here because fees.  */
-			auto more = (min_amount + reserve * 2) - *onchain;
+			/* Add the needs_reserve here because fees.  */
+			auto more = ( min_amount
+				    + reserve
+				    + needs_reserve
+				    )
+				  - *onchain
+				  ;
 			auto more_btc = more.to_btc();
 			/* Totally not a "just send me more funds to
 			 * redeem your money" scam.  */

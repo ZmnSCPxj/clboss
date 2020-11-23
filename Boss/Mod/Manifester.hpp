@@ -2,6 +2,7 @@
 #define BOSS_MOD_MANIFESTER_HPP
 
 #include"Boss/Msg/ManifestCommand.hpp"
+#include"Boss/Msg/ManifestOption.hpp"
 #include<map>
 #include<set>
 #include<string>
@@ -21,6 +22,7 @@ private:
 	std::map<std::string, Boss::Msg::ManifestCommand> commands;
 	std::set<std::string> hooks;
 	std::set<std::string> notifications;
+	std::map<std::string, Boss::Msg::ManifestOption> options;
 
 	void start();
 

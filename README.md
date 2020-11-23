@@ -208,11 +208,21 @@ In any case, `clboss-ignore-onchain` is temporary and even
 if you forget to issue `clboss-notice-onchain` CLBOSS will
 resume managing onchain funds at some point.
 
+`--clboss-min-onchain=<satoshis>`
+---------------------------------
 
-### Configuration
+Pass this option to `lightningd` in order to specify a target
+amount that CLBOSS will leave onchain.
+The amount specified must be an ordinary number, and must be
+in satoshis unit, without any trailing units or other strings.
 
-You can set the following CLBOSS specific options in your `lightningd.conf`:
+The default is "30000", or about 0.0003 BTC.
+The intent is that this minimal amount will be used in the
+future, by C-Lightning, to manage anchor-commitment channels,
+or post-Taproot Decker-Russell-Osuntokun channels.
+These channel types need some small amount of onchain funds
+to unilaterally close, so it is not recommended to set it to 0.
 
-* `clboss-min-onchain=<amount in sats>` - Reserve `<amount>` in the on-chain
-  wallet. Anything above this reserve will be used for off-chain activity.
-  Defaults to `30000` sats.
+The amount specified is a ballpark figure, and CLBOSS may leave
+slightly lower or slightly higher than this amount.
+

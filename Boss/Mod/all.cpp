@@ -55,6 +55,7 @@
 #include"Boss/Mod/SendpayResultMonitor.hpp"
 #include"Boss/Mod/StatusCommand.hpp"
 #include"Boss/Mod/SwapManager.hpp"
+#include"Boss/Mod/TimerTwiceDailyAnnouncer.hpp"
 #include"Boss/Mod/Timers.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Mod/all.hpp"
@@ -105,6 +106,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	/* Regular timers.  */
 	all->install<BlockTracker>(bus);
 	all->install<Timers>(bus, *waiter);
+	all->install<TimerTwiceDailyAnnouncer>(bus);
 
 	/* Connection wrangling.  */
 	all->install<InitialConnect>(bus);

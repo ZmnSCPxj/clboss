@@ -205,6 +205,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/StatusCommand.hpp \
 	Boss/Mod/SwapManager.cpp \
 	Boss/Mod/SwapManager.hpp \
+	Boss/Mod/TimerTwiceDailyAnnouncer.cpp \
+	Boss/Mod/TimerTwiceDailyAnnouncer.hpp \
 	Boss/Mod/Timers.cpp \
 	Boss/Mod/Timers.hpp \
 	Boss/Mod/Waiter.cpp \
@@ -299,6 +301,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/Timer10Minutes.hpp \
 	Boss/Msg/TimerRandomDaily.hpp \
 	Boss/Msg/TimerRandomHourly.hpp \
+	Boss/Msg/TimerTwiceDaily.hpp \
 	Boss/Shutdown.hpp \
 	Boss/Signer.cpp \
 	Boss/Signer.hpp \

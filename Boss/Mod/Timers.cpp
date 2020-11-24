@@ -6,6 +6,7 @@
 #include"Boss/Msg/TimerRandomHourly.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
+#include"Boss/random_engine.hpp"
 #include"Ev/Io.hpp"
 #include"S/Bus.hpp"
 #include<chrono>
@@ -17,19 +18,16 @@ namespace {
 template<typename T>
 class RandomTimeLoop : public std::enable_shared_from_this<RandomTimeLoop<T>> {
 private:
-	std::default_random_engine engine;
 	std::string name;
 	S::Bus& bus;
 	Boss::Mod::Waiter& waiter;
 	std::uniform_real_distribution<double> dist;
 
-	/* FIXME: Use a better seed.  */
 	RandomTimeLoop( std::string name_
 		      , S::Bus& bus_
 		      , Boss::Mod::Waiter& waiter_
 		      , std::uniform_real_distribution<double> dist_
-		      ) : engine(std::chrono::system_clock::now().time_since_epoch().count())
-			, name(std::move(name_))
+		      ) : name(std::move(name_))
 			, bus(bus_)
 			, waiter(waiter_)
 			, dist(std::move(dist_)) {
@@ -37,7 +35,7 @@ private:
 
 	Ev::Io<void> loop() {
 		return Ev::lift().then([this]() {
-			auto time = dist(engine);
+			auto time = dist(Boss::random_engine);
 			return waiter.wait(time);
 		}).then([this]() {
 			return Boss::log( bus, Boss::Debug

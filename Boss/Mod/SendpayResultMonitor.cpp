@@ -261,7 +261,7 @@ private:
 	}
 	Ev::Io<void>
 	record_pending_sendpay( Sha256::Hash payment_hash
-			      , std::uint32_t partid
+			      , std::uint64_t partid
 			      , Ln::NodeId first_hop
 			      , std::unique_ptr<std::size_t> n_route_len
 			      ) {

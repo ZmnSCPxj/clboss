@@ -1,3 +1,4 @@
+0.7C
 - `FundsMover` now deletes its failing payments immediately instead of letting them languish in your db until the cleanup process gets to them.
 
 0.7B

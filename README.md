@@ -23,13 +23,14 @@ post-Lightning much smoother in practice.
 So far CLBOSS can do the following automatically:
 
 * Open channels to other, useful nodes when fees are low and there are onchain funds
-* Rebalance open channels using boltz.exchange swaps and forwards (JIT Rebalancer)
+* Acquire incoming capacity via `boltz.exchange` swaps.
+* Rebalance open channels by self-payment (including JIT rebalancer).
 * Set forwarding fees so that they're competitive to other nodes
 
 Dependencies
 ------------
 
-If you are installing from some official source release tarball,
+If you are installing from some official [source release tarball](https://github.com/ZmnSCPxj/clboss/releases),
 you only need the below packages installed on a Debian or
 Debian-derived systems:
 
@@ -61,7 +62,7 @@ further.
 Installing
 ----------
 
-From an official source release, just:
+From an [official source release](https://github.com/ZmnSCPxj/clboss/releases), just:
 
     ./configure && make
     sudo make install # or su first, then make install
@@ -209,7 +210,6 @@ if you forget to issue `clboss-notice-onchain` CLBOSS will
 resume managing onchain funds at some point.
 
 `--clboss-min-onchain=<satoshis>`
----------------------------------
 
 Pass this option to `lightningd` in order to specify a target
 amount that CLBOSS will leave onchain.

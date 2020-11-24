@@ -1,3 +1,7 @@
+
+0.7D
+- Fix latent `printf`-formatting bugs in `SendpayResultMonitor`, which would crash on 32-bit systems.
+
 0.7C
 - `FundsMover` now deletes its failing payments immediately instead of letting them languish in your db until the cleanup process gets to them.
 

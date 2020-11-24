@@ -50,6 +50,18 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
 ])
 CXXFLAGS="${saved_CXXFLAGS}"
 
+# Determine if the compiler supports __attribute__((format (printf, 2, 3)))
+AC_MSG_CHECKING([[if compiler supports __attribute__((format))]])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+int fake_printf(void* dummy, char const* fmt, ...)
+  __attribute__((format (printf, 2, 3)));
+]])], [# then
+    AC_DEFINE([HAVE_ATTRIBUTE_FORMAT], [1], [Define if understands gcc __attribute__((format))])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
 # Checks for library functions.
 
 AC_CONFIG_FILES([Makefile external/bitcoin-ripemd160/Makefile])

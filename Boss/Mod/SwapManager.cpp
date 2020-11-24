@@ -771,6 +771,7 @@ private:
 				return Boss::log( bus, Error
 						, "SwapManager: Swap %s "
 						  "duplicated."
+						, std::string(uuid).c_str()
 						);
 			}
 

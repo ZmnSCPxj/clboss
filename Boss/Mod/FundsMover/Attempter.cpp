@@ -293,6 +293,9 @@ private:
 		}).catching<RpcError>([ this
 				      , payment_hash
 				      ](RpcError const& e) {
+			/* Starting action: delete failing moves.  */
+			auto act = delpay(payment_hash, false);
+
 			/* Return our fee to the budget.  */
 			*fee_budget += our_fee;
 
@@ -328,7 +331,8 @@ private:
 					));
 				}
 			} catch (std::exception const&) {
-				return Boss::log( bus, Error
+				return std::move(act)
+				     + Boss::log( bus, Error
 						, "FundsMover: Attempt: "
 						  "Unexpected error from "
 						  "%s: %s"
@@ -339,7 +343,8 @@ private:
 			}
 
 			if (code != 202 && code != 204)
-				return Boss::log( bus, Info
+				return std::move(act)
+				     + Boss::log( bus, Info
 						, "FundsMover: Attempt: "
 						  "Unexpected error code "
 						  "%d from %s, error: %s"
@@ -352,13 +357,13 @@ private:
 			 * source or destination node has massive issues,
 			 * so cannot advance.  */
 			if (code == 202 && route.size() <= 1)
-				return Boss::log( bus, Info
+				return std::move(act)
+				     + Boss::log( bus, Info
 						, "FundsMover: Attempt: "
 						  "Unparsable onion, cannot "
 						  "advance further."
 						);
 
-			auto act = Ev::lift();
 			if (code == 204) {
 				act += Boss::log( bus, Debug
 						, "FundsMover: code 204, "
@@ -376,7 +381,7 @@ private:
 				if ( eidx == 0
 				  || (eidx == 1 && (fail & 0x2000))
 				   )
-					return act
+					return std::move(act)
 					     + Boss::log( bus, Info
 							, "FundsMover: "
 							  "Failed at source, "
@@ -385,7 +390,7 @@ private:
 							)
 					     ;
 				if (eidx == route.size() + 1)
-					return act
+					return std::move(act)
 					     + Boss::log( bus, Info
 							, "FundsMover: "
 							  "Failed at "
@@ -415,7 +420,7 @@ private:
 				));
 			}
 
-			return act + getroute();
+			return std::move(act) + getroute();
 		});
 	}
 	/* Splice the us->source and destination->us hops.  */

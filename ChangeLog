@@ -1,3 +1,5 @@
+- `FundsMover` now deletes its failing payments immediately instead of letting them languish in your db until the cleanup process gets to them.
+
 0.7B
 - Ensure `InitialRebalancer` does not put the destination node at the edge of triggering `InitialRebalancer` again in the next cycle, which was causing multiple rebalances in sequence.
 - New option `--clboss-min-onchain=<satoshi>` to indicate how much to leave onchain; defaults to 30000 satoshi, which is suggested to leave onchain in preparation for anchor commitments, but you can leave more (or less) now.

@@ -48,6 +48,7 @@
 #include"Boss/Mod/OnchainFundsAnnouncer.hpp"
 #include"Boss/Mod/OnchainFundsIgnorer.hpp"
 #include"Boss/Mod/PeerCompetitorFeeMonitor/Main.hpp"
+#include"Boss/Mod/PeerComplaintsDesk/Main.hpp"
 #include"Boss/Mod/PeerMetrician.hpp"
 #include"Boss/Mod/PeerStatistician.hpp"
 #include"Boss/Mod/Reconnector.hpp"
@@ -174,6 +175,8 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<PeerMetrician>(bus);
 	all->install<ActiveProber>(bus, *investigator);
 	all->install<RegularActiveProbe>(bus);
+	/* Peer complaints.  */
+	all->install<PeerComplaintsDesk::Main>(bus);
 
 	/* Channel balancing.  */
 	all->install<FundsMover::Main>(bus);

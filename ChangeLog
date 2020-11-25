@@ -1,4 +1,5 @@
 
+0.8
 0.7D
 - Fix latent `printf`-formatting bugs in `SendpayResultMonitor`, which would crash on 32-bit systems.
 

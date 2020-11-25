@@ -209,7 +209,7 @@ In any case, `clboss-ignore-onchain` is temporary and even
 if you forget to issue `clboss-notice-onchain` CLBOSS will
 resume managing onchain funds at some point.
 
-`--clboss-min-onchain=<satoshis>`
+### `--clboss-min-onchain=<satoshis>`
 
 Pass this option to `lightningd` in order to specify a target
 amount that CLBOSS will leave onchain.

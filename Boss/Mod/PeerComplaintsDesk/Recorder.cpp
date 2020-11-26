@@ -36,19 +36,47 @@ void Recorder::initialize(Sqlite3::Tx& tx) {
 	       "PeerComplaintsDesk_complaints_time"
 	    ON "PeerComplaintsDesk_complaints"(time)
 	     ;
+
+	CREATE TABLE IF NOT EXISTS
+	       "PeerComplaintsDesk_closedcomplaints"
+	     ( ccid INTEGER PRIMARY KEY
+	     , peerdbid INTEGER NOT NULL
+	     , time REAL NOT NULL
+	     , closedtime REAL NOT NULL
+	     , complaint TEXT NOT NULL
+	     , FOREIGN KEY(peerdbid)
+	       REFERENCES "PeerComplaintsDesk_peers"(peerdbid)
+	       ON DELETE CASCADE
+	     );
+	CREATE INDEX IF NOT EXISTS
+	       "PeerComplaintsDesk_closedcomplaints_time"
+	    ON "PeerComplaintsDesk_closedcomplaints"(closedtime)
+	     ;
 	)QRY");
 }
-void Recorder::cleanup(Sqlite3::Tx& tx, double age) {
+void Recorder::cleanup( Sqlite3::Tx& tx
+		      , double complaint_age
+		      , double closed_age
+		      ) {
 	tx.query(R"QRY(
 	DELETE FROM "PeerComplaintsDesk_complaints"
 	 WHERE time < :mintime
 	     ;
 	)QRY")
-		.bind(":mintime", Ev::now() - age)
+		.bind(":mintime", Ev::now() - complaint_age)
+		.execute()
+		;
+	tx.query(R"QRY(
+	DELETE FROM "PeerComplaintsDesk_closedcomplaints"
+	 WHERE time < :mintime
+	     ;
+	)QRY")
+		.bind(":mintime", Ev::now() - closed_age)
 		.execute()
 		;
 
-	/* Filter out peerdbids that have no more complaints.
+	/* Filter out peerdbids that have no more complaints
+	 * or closed complaints.
 	 *
 	 * There is probably a nice single query for this,
 	 * but I cannot remember how.
@@ -71,6 +99,21 @@ void Recorder::cleanup(Sqlite3::Tx& tx, double age) {
 			.execute()
 			;
 		for (auto& r : fetch2)
+			count = r.get<std::size_t>(0);
+		if (count != 0)
+			continue;
+		/* FIXME: This could probably be merged with the above
+		 * using a suitable JOIN.
+		 */
+		auto fetch3 = tx.query(R"QRY(
+		SELECT COUNT(*) FROM "PeerComplaintsDesk_closedcomplaints"
+		 WHERE peerdbid = :peerdbid
+		     ;
+		)QRY")
+			.bind(":peerdbid", peerdbid)
+			.execute()
+			;
+		for (auto& r : fetch3)
 			count = r.get<std::size_t>(0);
 		if (count != 0)
 			continue;
@@ -171,7 +214,8 @@ std::map< Ln::NodeId
 	auto fetch = tx.query(R"QRY(
 	SELECT nodeid, time, complaint, ignored, ignoredreason
 	  FROM "PeerComplaintsDesk_peers" NATURAL JOIN
-	       "PeerComplaintsDesk_complaints";
+	       "PeerComplaintsDesk_complaints"
+	 ORDER BY time;
 	)QRY").execute();
 	for (auto& r : fetch) {
 		auto peer = Ln::NodeId(r.get<std::string>(0));
@@ -211,6 +255,61 @@ std::map< Ln::NodeId
 			rv[peer] = 1;
 		else
 			++it->second;
+	}
+
+	return rv;
+}
+
+void Recorder::channel_closed(Sqlite3::Tx& tx, Ln::NodeId const& nid) {
+	auto peerdbid = get_peerdbid(tx, nid);
+
+	tx.query(R"QRY(
+	INSERT INTO "PeerComplaintsDesk_closedcomplaints"
+	     (peerdbid, time, closedtime, complaint)
+	SELECT peerdbid, time, :closedtime, complaint
+	  FROM "PeerComplaintsDesk_complaints"
+	 WHERE peerdbid = :peerdbid
+	   AND ignored = 0
+	     ;
+	)QRY")
+		.bind(":peerdbid", peerdbid)
+		.bind(":closedtime", Ev::now())
+		.execute()
+		;
+
+	tx.query(R"QRY(
+	DELETE FROM "PeerComplaintsDesk_complaints"
+	 WHERE peerdbid = :peerdbid
+	     ;
+	)QRY")
+		.bind(":peerdbid", peerdbid)
+		.execute()
+		;
+}
+std::map< Ln::NodeId
+	, std::vector<std::string>
+	> Recorder::get_closed_complaints(Sqlite3::Tx& tx) {
+	auto rv = std::map<Ln::NodeId, std::vector<std::string>>();
+
+	auto fetch = tx.query(R"QRY(
+	SELECT nodeid, time, closedtime, complaint
+	  FROM "PeerComplaintsDesk_peers" NATURAL JOIN
+	       "PeerComplaintsDesk_closedcomplaints"
+	 ORDER BY time;
+	)QRY").execute();
+	for (auto& r : fetch) {
+		auto peer = Ln::NodeId(r.get<std::string>(0));
+		auto time = r.get<double>(1);
+		auto closedtime = r.get<double>(2);
+		auto complaint = r.get<std::string>(3);
+
+		auto os = std::ostringstream();
+		/* FIXME: Human-readable time.  */
+		os << "Closed " << closedtime << ": "
+		   << time << ": " << complaint
+		   ;
+
+		rv[peer].push_back(os.str());
 	}
 
 	return rv;

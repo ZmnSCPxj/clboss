@@ -58,7 +58,7 @@ int main() {
 		 * affect above, which are really new.  */
 		return db.transact();
 	}).then([&](Sqlite3::Tx tx) {
-		cleanup(tx, 30 * 24 * 3600);
+		cleanup(tx, 30 * 24 * 3600, 60 * 24 * 3600);
 		/* Just a repeat of the above.  */
 		auto record = check_complaints(tx);
 		assert(record[A] == 2);
@@ -74,6 +74,26 @@ int main() {
 		assert(record[B].size() == 1);
 		/* Includes ignored ones.  */
 		assert(record[C].size() == 1);
+		/* Check no closed complaints yet.  */
+		auto closed = get_closed_complaints(tx);
+		assert(closed.empty());
+		tx.commit();
+
+		/* Add more complaints to C.  */
+		return db.transact();
+	}).then([&](Sqlite3::Tx tx) {
+		add_complaint(tx, C, "complaint C 2");
+		add_complaint(tx, C, "complaint C 3");
+		tx.commit();
+
+		/* Close C.  */
+		return db.transact();
+	}).then([&](Sqlite3::Tx tx) {
+		channel_closed(tx, C);
+		auto record = get_all_complaints(tx);
+		assert(record.find(C) == record.end());
+		auto closed = get_closed_complaints(tx);
+		assert(closed[C].size() == 2);
 		tx.commit();
 
 		/* Pointlessly delay a few times.
@@ -86,9 +106,11 @@ int main() {
 		 * clear all the complaints we added before.  */
 		return db.transact();
 	}).then([&](Sqlite3::Tx tx) {
-		cleanup(tx, 0);
+		cleanup(tx, 0, 0);
 		auto record = get_all_complaints(tx);
 		assert(record.empty());
+		auto closed = get_closed_complaints(tx);
+		assert(closed.empty());
 		tx.commit();
 
 		return Ev::lift();

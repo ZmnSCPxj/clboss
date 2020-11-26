@@ -27,8 +27,13 @@ namespace Recorder {
 	 *
 	 * @brief Cleans up old complaints older than the specified
 	 * age.
+	 * Also cleans up old closed peers older than the specified
+	 * closed age.
 	 */
-	void cleanup(Sqlite3::Tx&, double age);
+	void cleanup( Sqlite3::Tx&
+		    , double complaint_age
+		    , double closed_age
+		    );
 	/** Boss::Mod::PeerComplaintsDesk::Recorder::add_complaint
 	 *
 	 * @brief adds a complaint.
@@ -67,6 +72,24 @@ namespace Recorder {
 	std::map< Ln::NodeId
 		, std::size_t
 		> check_complaints(Sqlite3::Tx&);
+
+	/** Boss::Mod::PeerComplaintsDesk::Recorder::channel_closed
+	 *
+	 * @brief tells the db that all channels with the peer have
+	 * been closed.
+	 * This moves non-ignored complaints on that peer to a
+	 * separate area.
+	 */
+	void channel_closed(Sqlite3::Tx&, Ln::NodeId const&);
+	/** Boss::Mod::PeerComplaintsDesk::Recorder::get_closed_complaints
+	 *
+	 * @brief gathers all remembered non-ignored complaints for
+	 * closed peers.
+	 * Adds useful human annotations: time, time when closed.
+	 */
+	std::map< Ln::NodeId
+		, std::vector<std::string>
+		> get_closed_complaints(Sqlite3::Tx&);
 };
 
 }}}

@@ -189,6 +189,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/PeerCompetitorFeeMonitor/Main.hpp \
 	Boss/Mod/PeerCompetitorFeeMonitor/Surveyor.cpp \
 	Boss/Mod/PeerCompetitorFeeMonitor/Surveyor.hpp \
+	Boss/Mod/PeerComplaintsDesk/Exempter.cpp \
+	Boss/Mod/PeerComplaintsDesk/Exempter.hpp \
 	Boss/Mod/PeerComplaintsDesk/Main.cpp \
 	Boss/Mod/PeerComplaintsDesk/Main.hpp \
 	Boss/Mod/PeerComplaintsDesk/Recorder.cpp \

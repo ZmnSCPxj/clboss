@@ -1,3 +1,4 @@
+- Fix a roundoff error with command `id`s.
 
 0.8
 0.7D

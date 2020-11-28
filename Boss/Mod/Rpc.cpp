@@ -33,6 +33,13 @@ std::string limited_enstring(Jsmn::Object const& val) {
 	return std::string(t, len);
 }
 
+std::uint64_t string_to_u64(std::string const& s) {
+	auto is = std::istringstream(s);
+	auto num = std::uint64_t();
+	is >> num;
+	return num;
+}
+
 }
 
 namespace Boss { namespace Mod {
@@ -118,7 +125,9 @@ private:
 		if (!resp["id"].is_number())
 			return;
 
-		auto id = std::uint64_t(double(resp["id"]));
+		auto id_j = resp["id"];
+		auto id_s = id_j.direct_text();
+		auto id = string_to_u64(id_s);
 		auto it = pendings.find(id);
 
 		/* Silently fail.  */
@@ -357,7 +366,7 @@ public:
 			auto js = Json::Out()
 				.start_object()
 					.field("jsonrpc", std::string("2.0"))
-					.field("id", double(id))
+					.field("id", id)
 					.field("method", command)
 					.field("params", params)
 				.end_object()

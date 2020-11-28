@@ -16,6 +16,7 @@
 #include"Sqlite3.hpp"
 #include"Stats/RunningMean.hpp"
 #include"Util/make_unique.hpp"
+#include<vector>
 
 namespace {
 
@@ -493,8 +494,21 @@ private:
 
 		if (num > num_samples) {
 			/* We did!  Delete old ones.  */
-			tx.query(R"QRY(
-			DELETE FROM "OnchainFeeMonitor_samples"
+
+			/** FIXME: This could have been done with
+			 * `DELETE ... ORDER BY id LIMIT :limit`,
+			 * but not all OSs (presumably FreeBSD or
+			 * MacOS) have a default SQLITE3 with
+			 * `SQLITE_ENABLE_UPDATE_DELETE_LIMIT`
+			 * enabled.
+			 * The real fix is to put SQLITE3 into our
+			 * `external/` dir where we can strictly
+			 * control the flags it gets compiled
+			 * with.
+			 */
+			auto ids = std::vector<std::uint64_t>();
+			auto fetch = tx.query(R"QRY(
+			SELECT id FROM "OnchainFeeMonitor_samples"
 			 ORDER BY id
 			 LIMIT :limit
 			     ;
@@ -502,6 +516,18 @@ private:
 				.bind(":limit", num - num_samples)
 				.execute()
 				;
+			for (auto& r : fetch)
+				ids.push_back(r.get<std::uint64_t>(0));
+			for (auto id : ids) {
+				tx.query(R"QRY(
+				DELETE FROM "OnchainFeeMonitor_samples"
+				 WHERE id = :id
+				     ;
+				)QRY")
+					.bind(":id", id)
+					.execute()
+					;
+			}
 		}
 	}
 

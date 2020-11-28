@@ -1,3 +1,4 @@
+- Avoid `DELETE ... ORDER BY`, which might not be enabled on the SQLITE3 available on some systems.
 - Fix a roundoff error with command `id`s.
 
 0.8

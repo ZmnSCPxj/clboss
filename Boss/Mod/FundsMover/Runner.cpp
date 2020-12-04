@@ -170,7 +170,9 @@ Ev::Io<void> Runner::gather_info() {
 					, std::string(source).c_str()
 					, std::string(destination).c_str()
 					);
-		return attempt(amount) + finish();
+		return attempt(amount);
+	}).then([this]() {
+		return finish();
 	});
 }
 

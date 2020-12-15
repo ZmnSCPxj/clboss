@@ -1,7 +1,9 @@
+0.10 Made of Explodium
+0.9A
 - Avoid `DELETE ... ORDER BY`, which might not be enabled on the SQLITE3 available on some systems.
-- Fix a roundoff error with command `id`s.
+- Fix a roundoff error with command `id`s, which would lead to `clboss` eventually crashing after a few days or weeks.
 
-0.8
+0.8 Facepalm of Doom
 0.7D
 - Fix latent `printf`-formatting bugs in `SendpayResultMonitor`, which would crash on 32-bit systems.
 

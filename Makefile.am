@@ -365,6 +365,9 @@ libclboss_la_SOURCES = \
 	Net/Fd.hpp \
 	Net/IPAddr.cpp \
 	Net/IPAddr.hpp \
+	Net/IPBinnerBySubnet.cpp \
+	Net/IPBinnerBySubnet.hpp \
+	Net/IPBinnerIF.hpp \
 	Net/ProxyConnector.cpp \
 	Net/ProxyConnector.hpp \
 	Net/SocketFd.cpp \

@@ -363,6 +363,8 @@ libclboss_la_SOURCES = \
 	Net/DirectConnector.hpp \
 	Net/Fd.cpp \
 	Net/Fd.hpp \
+	Net/IPAddr.cpp \
+	Net/IPAddr.hpp \
 	Net/ProxyConnector.cpp \
 	Net/ProxyConnector.hpp \
 	Net/SocketFd.cpp \
@@ -487,6 +489,7 @@ TESTS = \
 	tests/ln/test_htlcaccepted \
 	tests/ln/test_nodeid \
 	tests/ln/test_scid \
+	tests/net/test_ipaddr \
 	tests/ripemd160/test_ripemd160 \
 	tests/s/test_bus \
 	tests/sha256/test_hash \

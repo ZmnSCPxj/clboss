@@ -23,7 +23,7 @@ std::string enstring(a const& val) {
 namespace DnsSeed {
 
 Ev::Io<std::string> can_get() {
-	return Ev::runcmd("dig", {"localhost"}).then([](std::string _) {
+	return Ev::runcmd("dig", {"-v"}).then([](std::string _) {
 		return Ev::lift(std::string(""));
 	}).catching<std::runtime_error>([](std::runtime_error const& _) {
 		return Ev::lift(std::string(

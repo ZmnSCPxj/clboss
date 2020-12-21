@@ -1,3 +1,5 @@
+- Use `dig -v` to check for `dig` install, instead of `dig localhost`, as the latter may trigger a "real" lookup that will inevitably fail.
+
 0.10 Made of Explodium
 0.9A
 - Avoid `DELETE ... ORDER BY`, which might not be enabled on the SQLITE3 available on some systems.

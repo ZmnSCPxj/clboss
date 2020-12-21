@@ -372,6 +372,8 @@ libclboss_la_SOURCES = \
 	Net/ProxyConnector.hpp \
 	Net/SocketFd.cpp \
 	Net/SocketFd.hpp \
+	Net/get_bin_of_onion.cpp \
+	Net/get_bin_of_onion.hpp \
 	Ripemd160/Hash.cpp \
 	Ripemd160/Hash.hpp \
 	Ripemd160/Hasher.cpp \

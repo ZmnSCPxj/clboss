@@ -365,6 +365,8 @@ libclboss_la_SOURCES = \
 	Net/Fd.hpp \
 	Net/IPAddr.cpp \
 	Net/IPAddr.hpp \
+	Net/IPAddrOrOnion.cpp \
+	Net/IPAddrOrOnion.hpp \
 	Net/IPBinnerBySubnet.cpp \
 	Net/IPBinnerBySubnet.hpp \
 	Net/IPBinnerIF.hpp \
@@ -495,6 +497,7 @@ TESTS = \
 	tests/ln/test_nodeid \
 	tests/ln/test_scid \
 	tests/net/test_ipaddr \
+	tests/net/test_ipaddroronion \
 	tests/ripemd160/test_ripemd160 \
 	tests/s/test_bus \
 	tests/sha256/test_hash \

@@ -99,6 +99,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelCreator/Manager.hpp \
 	Boss/Mod/ChannelCreator/Planner.cpp \
 	Boss/Mod/ChannelCreator/Planner.hpp \
+	Boss/Mod/ChannelCreator/Reprioritizer.cpp \
+	Boss/Mod/ChannelCreator/Reprioritizer.hpp \
 	Boss/Mod/ChannelFeeSetter.cpp \
 	Boss/Mod/ChannelFeeSetter.hpp \
 	Boss/Mod/ChannelFinderByDistance.cpp \
@@ -472,6 +474,7 @@ TESTS = \
 	tests/boss/channelcandidateinvestigator/test_secretary \
 	tests/boss/test_channelcreationdecider \
 	tests/boss/test_channelcreator_planner \
+	tests/boss/test_channelcreator_reprioritizer \
 	tests/boss/test_needsconnectsolicitor \
 	tests/boss/test_onchainfeemonitor_samples_init \
 	tests/boss/test_peerstatistician \

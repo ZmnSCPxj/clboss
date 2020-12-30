@@ -187,7 +187,7 @@ private:
 			/* If one of the servers passed, it turns out we
 			 * are connected after all.  */
 			auto res = false;
-			for (auto const& r : results) {
+			for (auto r : results) {
 				if (r) {
 					res = true;
 					bitvector += "1";

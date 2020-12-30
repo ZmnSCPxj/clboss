@@ -13,8 +13,12 @@
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
 #include"Ln/Amount.hpp"
+#include"Net/IPAddrOrOnion.hpp"
+#include"Net/IPBinnerBySubnet.hpp"
 #include"S/Bus.hpp"
+#include"Util/make_unique.hpp"
 #include<algorithm>
+#include<assert.h>
 #include<sstream>
 
 namespace {
@@ -36,6 +40,27 @@ bool plan_is_empty(std::map<Ln::NodeId, Ln::Amount> const& plan) {
 	});
 }
 
+Ev::Io<void> report_proposals( S::Bus& bus, char const* prefix
+			     , std::vector< std::pair<Ln::NodeId, Ln::NodeId>
+					  > const& proposals
+			     ) {
+	auto os = std::ostringstream();
+
+	auto first = true;
+	for (auto& p : proposals) {
+		if (first)
+			first = false;
+		else
+			os << ", ";
+		os << p.first;
+	}
+	return Boss::log( bus, Boss::Debug
+			, "ChannelCreator: %s: %s"
+			, prefix
+			, os.str().c_str()
+			);
+}
+
 }
 
 namespace Boss { namespace Mod { namespace ChannelCreator {
@@ -45,6 +70,12 @@ void Manager::start() {
 		     >([this](Msg::Init const& init) {
 		rpc = &init.rpc;
 		self = init.self_id;
+		reprioritizer = Util::make_unique<Reprioritizer>
+			( init.signer
+			, Util::make_unique<Net::IPBinnerBySubnet>()
+			, [this](Ln::NodeId n) { return get_node_addr(n); }
+			, [this]() { return get_peers(); }
+			);
 		return Ev::lift();
 	});
 	bus.subscribe<Msg::RequestChannelCreation
@@ -75,6 +106,8 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 			   + (double)info["num_active_channels"]
 			   ;
 		return investigator.get_channel_candidates();
+	}).then([this](std::vector<std::pair<Ln::NodeId, Ln::NodeId>> proposals) {
+		return reprioritize(std::move(proposals));
 	}).then([ this
 		, num_chans
 		, amt
@@ -161,6 +194,91 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 		if (plan->empty())
 			return Ev::lift();
 		return carpenter.construct(std::move(*plan));
+	});
+}
+Ev::Io<std::unique_ptr<Net::IPAddrOrOnion>>
+Manager::get_node_addr(Ln::NodeId n) {
+	assert(rpc);
+	return Ev::lift().then([this, n]() {
+		return rpc->command("listnodes"
+				   , Json::Out()
+					.start_object()
+						.field("id", std::string(n))
+					.end_object()
+				   );
+	}).then([this](Jsmn::Object res) {
+		auto rv = Net::IPAddrOrOnion();
+		try {
+			auto nodes = res["nodes"];
+			/* Node not known?  */
+			if (nodes.length() == 0)
+				return Ev::lift(std::unique_ptr<Net::IPAddrOrOnion>());
+			auto node = nodes[0];
+			auto addrs = node["addresses"];
+			/* No addresses known for node?  */
+			if (addrs.length() == 0)
+				return Ev::lift(std::unique_ptr<Net::IPAddrOrOnion>());
+			/* Report first address.  */
+			auto addr_j = addrs[0];
+			auto addr_s = std::string(addr_j["address"]);
+			rv = Net::IPAddrOrOnion(addr_s);
+		} catch (...) {
+			return Boss::log( bus, Error
+					, "ChannelCreator: Unexpected result from "
+					  "listnodes: %s"
+					, res.direct_text().c_str()
+					).then([]() {
+				return Ev::lift(std::unique_ptr<Net::IPAddrOrOnion>());
+			});
+		}
+		return Ev::lift(Util::make_unique<Net::IPAddrOrOnion>(std::move(rv)));
+	});
+}
+Ev::Io<std::vector<Ln::NodeId>>
+Manager::get_peers() {
+	assert(rpc);
+	return Ev::lift().then([this]() {
+		return rpc->command("listpeers", Json::Out::empty_object());
+	}).then([this](Jsmn::Object res) {
+		auto rv = std::vector<Ln::NodeId>();
+		try {
+			auto peers = res["peers"];
+			for (auto peer : peers) {
+				auto id_j = peer["id"];
+				auto id_s = std::string(id_j);
+				auto id = Ln::NodeId(id_s);
+				rv.push_back(std::move(id));
+			}
+		} catch (...) {
+			return Boss::log( bus, Error
+					, "ChannelCreator: Unexpected result from "
+					  "listpeers: %s"
+					, res.direct_text().c_str()
+					).then([rv]() {
+				return Ev::lift(rv);
+			});
+		}
+		return Ev::lift(std::move(rv));
+	});
+}
+Ev::Io<std::vector<std::pair<Ln::NodeId, Ln::NodeId>>>
+Manager::reprioritize(std::vector<std::pair<Ln::NodeId, Ln::NodeId>> proposals_v) {
+	auto proposals = std::make_shared<std::vector<std::pair<Ln::NodeId, Ln::NodeId>>>
+		(std::move(proposals_v));
+	return Ev::lift().then([this, proposals]() {
+		return report_proposals( bus, "Proposals from ChannelCandidateInvestigator"
+				       , *proposals
+				       );
+	}).then([this, proposals]() {
+		return reprioritizer->reprioritize(std::move(*proposals));
+	}).then([this, proposals](std::vector< std::pair<Ln::NodeId, Ln::NodeId>
+					     > n_proposals) {
+		*proposals = std::move(n_proposals);
+		return report_proposals( bus, "After reprioritization from IP binning"
+				       , *proposals
+				       );
+	}).then([proposals]() {
+		return Ev::lift(std::move(*proposals));
 	});
 }
 

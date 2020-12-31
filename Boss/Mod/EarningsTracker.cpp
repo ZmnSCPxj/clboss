@@ -1,10 +1,12 @@
 #include"Boss/Mod/EarningsTracker.hpp"
 #include"Boss/Msg/DbResource.hpp"
 #include"Boss/Msg/ForwardFee.hpp"
+#include"Boss/Msg/ProvideStatus.hpp"
 #include"Boss/Msg/RequestEarningsInfo.hpp"
 #include"Boss/Msg/RequestMoveFunds.hpp"
 #include"Boss/Msg/ResponseEarningsInfo.hpp"
 #include"Boss/Msg/ResponseMoveFunds.hpp"
+#include"Boss/Msg/SolicitStatus.hpp"
 #include"Boss/concurrent.hpp"
 #include"Ev/Io.hpp"
 #include"S/Bus.hpp"
@@ -48,6 +50,13 @@ private:
 		bus.subscribe<Msg::RequestEarningsInfo
 			     >([this](Msg::RequestEarningsInfo const& req) {
 			return Boss::concurrent(request_earnings_info(req));
+		});
+
+		bus.subscribe<Msg::SolicitStatus
+			     >([this](Msg::SolicitStatus const& _) {
+			if (!db)
+				return Ev::lift();
+			return status();
 		});
 	}
 
@@ -212,6 +221,39 @@ private:
 				requester, node,
 				in_earnings, in_expenditures,
 				out_earnings, out_expenditures
+			});
+		});
+	}
+
+	Ev::Io<void> status() {
+		return db.transact().then([this](Sqlite3::Tx tx) {
+			auto fetch = tx.query(R"QRY(
+			SELECT node
+			     , in_earnings, in_expenditures
+			     , out_earnings, out_expenditures
+			  FROM "EarningsTracker"
+			     ;
+			)QRY").execute();
+
+			auto out = Json::Out();
+			auto obj = out.start_object();
+			for (auto& r : fetch) {
+				auto sub = obj.start_object(r.get<std::string>(0));
+				sub
+					.field("in_earnings", r.get<std::uint64_t>(1))
+					.field("in_expenditures", r.get<std::uint64_t>(2))
+					.field("out_earnings", r.get<std::uint64_t>(3))
+					.field("out_expenditures", r.get<std::uint64_t>(4))
+					;
+				sub.end_object();
+			}
+			obj.end_object();
+
+			tx.commit();
+
+			return bus.raise(Msg::ProvideStatus{
+				"offchain_earnings_tracker",
+				std::move(out)
 			});
 		});
 	}

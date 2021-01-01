@@ -18,6 +18,13 @@
 #include<string>
 #include<vector>
 
+namespace {
+
+auto initial_fuzzpercent = double(11.0);
+auto step_fuzzpercent = double(11.0);
+
+}
+
 namespace Boss { namespace Mod { namespace FundsMover {
 
 class Attempter::Impl : public std::enable_shared_from_this<Impl> {
@@ -108,7 +115,7 @@ private:
 						))
 				    + Ln::Amount::msat(1)
 				    ;
-			fuzzpercent = 99.0;
+			fuzzpercent = initial_fuzzpercent;
 
 			return getroute();
 		});
@@ -510,7 +517,7 @@ private:
 
 	Ev::Io<void> fee_failed() {
 		if (fuzzpercent > 0) {
-			fuzzpercent -= 22;
+			fuzzpercent -= step_fuzzpercent;
 			if (fuzzpercent < 0)
 				fuzzpercent = 0;
 			return getroute();

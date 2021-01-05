@@ -34,6 +34,8 @@ private:
 	Ln::Amount amount;
 	/* Shared budget.  */
 	std::shared_ptr<Ln::Amount> fee_budget;
+	/* Remaining amount to send.  */
+	std::shared_ptr<Ln::Amount> remaining_amount;
 	/* The original budget.
 	 * We determine how much budget was spent by the difference
 	 * between orig_budget and fee_budget.

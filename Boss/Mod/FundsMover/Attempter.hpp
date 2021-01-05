@@ -42,7 +42,20 @@ public:
 	   , Ln::NodeId source
 	   , Ln::NodeId destination
 	   , Ln::Amount amount
+	   /* Budgeting information.
+	    * Attempter will deduct from this fee budget when it sends out an
+	    * attempt, and will return the deducted fee budget if an attempt
+	    * fails.
+	    */
 	   , std::shared_ptr<Ln::Amount> fee_budget
+	   /* Remaining amount that still needs to be sent out.
+	    * Attempter will deduct from this remaining amount when it sends
+	    * out an attempt, and will return the deducted amount if an
+	    * attempt fails.
+	    * This is used to rescale the fee limit of this attempt when
+	    * this attempt is less than the remaining amount to send.
+	    */
+	   , std::shared_ptr<Ln::Amount> remaining_amount
 	   /* Details of the channel from destination to us.  */
 	   , Ln::Scid last_scid
 	   , Ln::Amount base_fee

@@ -13,6 +13,7 @@
 #include"Ln/Scid.hpp"
 #include"Sha256/Hash.hpp"
 #include"Util/stringify.hpp"
+#include<assert.h>
 #include<random>
 #include<string>
 #include<vector>
@@ -31,6 +32,7 @@ private:
 	Ln::NodeId destination;
 	Ln::Amount amount;
 	std::shared_ptr<Ln::Amount> fee_budget;
+	std::shared_ptr<Ln::Amount> remaining_amount;
 	/* Details of the last channel from destination to us.  */
 	Ln::Scid last_scid;
 	Ln::Amount base_fee;
@@ -65,6 +67,7 @@ public:
 	    , Ln::NodeId destination_
 	    , Ln::Amount amount_
 	    , std::shared_ptr<Ln::Amount> fee_budget_
+	    , std::shared_ptr<Ln::Amount> remaining_amount_
 	    , Ln::Scid last_scid_
 	    , Ln::Amount base_fee_
 	    , std::uint32_t proportional_fee_
@@ -79,6 +82,7 @@ public:
 	      , destination(std::move(destination_))
 	      , amount(amount_)
 	      , fee_budget(std::move(fee_budget_))
+	      , remaining_amount(std::move(remaining_amount_))
 	      , last_scid(last_scid_)
 	      , base_fee(base_fee_)
 	      , proportional_fee(proportional_fee_)
@@ -230,9 +234,17 @@ private:
 				      ;
 			source_delay = *hop1_delay + cltv_delta;
 			our_fee = source_amount - amount;
-			if (our_fee > *fee_budget)
+
+			assert(amount <= *remaining_amount);
+
+			/* Make our fee budget proportional to how large we are.  */
+			auto prorata = amount / *remaining_amount;
+			auto prorated_fee_budget = *fee_budget * prorata;
+
+			if (our_fee > prorated_fee_budget)
 				return Ev::lift(false);
 			*fee_budget -= our_fee;
+			*remaining_amount -= amount;
 			return Ev::lift(true);
 		}).catching<RpcError>([](RpcError const&) {
 			return Ev::lift(false);
@@ -298,6 +310,7 @@ private:
 
 			/* Return our fee to the budget.  */
 			*fee_budget += our_fee;
+			*remaining_amount += amount;
 
 			/* Figure out the error.  */
 			auto code = int();
@@ -523,6 +536,7 @@ Attempter::run( S::Bus& bus
 	      , Ln::NodeId destination
 	      , Ln::Amount amount
 	      , std::shared_ptr<Ln::Amount> fee_budget
+	      , std::shared_ptr<Ln::Amount> remaining_amount
 	      /* Details of the channel from destination to us.  */
 	      , Ln::Scid last_scid
 	      , Ln::Amount base_fee
@@ -540,6 +554,7 @@ Attempter::run( S::Bus& bus
 					  , std::move(destination)
 					  , amount
 					  , std::move(fee_budget)
+					  , std::move(remaining_amount)
 					  , last_scid
 					  , base_fee
 					  , proportional_fee

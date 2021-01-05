@@ -46,6 +46,7 @@ Runner::Runner( S::Bus& bus_
 		, destination(req.destination)
 		, amount(req.amount)
 		, fee_budget(std::make_shared<Ln::Amount>(req.fee_budget))
+		, remaining_amount(std::make_shared<Ln::Amount>(req.amount))
 		, orig_budget(req.fee_budget)
 		, start_time(Ev::now())
 		, attempts(0)
@@ -189,6 +190,7 @@ Ev::Io<void> Runner::attempt(Ln::Amount amount) {
 				     , destination
 				     , amount
 				     , fee_budget
+				     , remaining_amount
 				     , last_scid
 				     , base_fee
 				     , proportional_fee

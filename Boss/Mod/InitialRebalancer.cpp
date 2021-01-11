@@ -1,12 +1,15 @@
 #include"Boss/Mod/InitialRebalancer.hpp"
 #include"Boss/ModG/ReqResp.hpp"
 #include"Boss/Msg/ListpeersResult.hpp"
+#include"Boss/Msg/RequestEarningsInfo.hpp"
 #include"Boss/Msg/RequestMoveFunds.hpp"
+#include"Boss/Msg/ResponseEarningsInfo.hpp"
 #include"Boss/Msg/ResponseMoveFunds.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
 #include"Ev/Io.hpp"
+#include"Ev/map.hpp"
 #include"Ev/yield.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
@@ -32,6 +35,10 @@ auto constexpr dest_gap_percent = double(5.0);
 auto const min_rebalance_fee = Ln::Amount::sat(5);
 auto constexpr rebalance_fee_percent = double(0.5);
 
+/* Limit on total amount this module will expend on all rebalances,
+ * as a percent of the channel capacity.  */
+auto constexpr max_in_expenditures_percent = double(0.1); // 10mBTC * 0.001 = 1000 sats
+
 }
 
 namespace Boss { namespace Mod {
@@ -45,6 +52,12 @@ private:
 		     , Msg::ResponseMoveFunds
 		     > MoveRR;
 	MoveRR move_rr;
+	/* Interface to expenditures tracker.  */
+	typedef
+	ModG::ReqResp< Msg::RequestEarningsInfo
+		     , Msg::ResponseEarningsInfo
+		     > ExpenseRR;
+	ExpenseRR expense_rr;
 
 	void start() {
 		bus.subscribe<Msg::ListpeersResult
@@ -71,13 +84,15 @@ private:
 		~Run() =default;
 
 		explicit
-		Run(S::Bus& bus, Jsmn::Object const& peers, MoveRR& move_rr);
+		Run( S::Bus& bus, Jsmn::Object const& peers
+		   , MoveRR& move_rr, ExpenseRR& expense_rr
+		   );
 		Ev::Io<void> run();
 	};
 
 	Ev::Io<void>
 	run(Jsmn::Object const& peers) {
-		return Boss::concurrent(Run(bus, peers, move_rr).run());
+		return Boss::concurrent(Run(bus, peers, move_rr, expense_rr).run());
 	}
 
 public:
@@ -96,6 +111,14 @@ public:
 				return msg.requester;
 			 }
 		       )
+	      , expense_rr( bus_
+			  , [](Msg::RequestEarningsInfo& msg, void* p) {
+				msg.requester = p;
+			    }
+			  , [](Msg::ResponseEarningsInfo& msg) {
+				return msg.requester;
+			    }
+			  )
 	      { start(); }
 };
 
@@ -111,6 +134,10 @@ private:
 		Ln::Amount total;
 	};
 	std::map<Ln::NodeId, Info> info;
+	/* Sources and destinations.  */
+	std::vector<std::pair<Ln::NodeId, Ln::Amount>> sources_total;
+	std::vector<Ln::NodeId> sources;
+	std::map<Ln::NodeId, Info> destinations;
 	/* Plan to move.  */
 	std::vector<std::pair<Ln::NodeId, Ln::NodeId>> plan;
 
@@ -118,6 +145,10 @@ private:
 	ModG::ReqResp< Msg::RequestMoveFunds
 		     , Msg::ResponseMoveFunds
 		     >& move_rr;
+	/* Interface to expenditures tracker.  */
+	ModG::ReqResp< Msg::RequestEarningsInfo
+		     , Msg::ResponseEarningsInfo
+		     >& expense_rr;
 
 	Ev::Io<void> core_run() {
 		return Ev::lift().then([this]() {
@@ -194,8 +225,8 @@ private:
 		auto msg = std::ostringstream();
 		auto first = true;
 		/* Gather sources and destinations.  */
-		auto sources = std::vector<Ln::NodeId>();
-		auto destinations = std::map<Ln::NodeId, Info>();
+		sources_total.clear();
+		destinations.clear();
 		for ( auto it = info.begin(), next = info.begin()
 		    ; it != info.end()
 		    ; it = next
@@ -218,7 +249,9 @@ private:
 			    << peer_spendable_percent << "% "
 			    ;
 			if (peer_spendable_percent >= spendable_percent) {
-				sources.push_back(it->first);
+				sources_total.push_back(std::make_pair( it->first
+								      , info.total
+								      ));
 				msg << "(source)";
 			} else if ( peer_spendable_percent
 				 >= (spendable_percent - dest_gap_percent)
@@ -240,6 +273,65 @@ private:
 		if (sources.empty())
 			return act;
 
+		return std::move(act) + filter_sources();
+	}
+
+	/* Reject sources that have already spent too much on rebalances.  */
+	Ev::Io<void> filter_sources() {
+		/* Data about a potential source.  */
+		struct SourceInfo {
+			Ln::NodeId source;
+			Ln::Amount total;
+			Ln::Amount in_expenditures;
+		};
+		auto get_source_info = [this](std::pair< Ln::NodeId
+							   , Ln::Amount
+							   > source_total) {
+			return expense_rr.execute(Msg::RequestEarningsInfo{
+				nullptr, source_total.first
+			}).then([source_total](Msg::ResponseEarningsInfo rsp) {
+				auto source = source_total.first;
+				auto total = source_total.second;
+				return Ev::lift(SourceInfo{
+					source, total, rsp.in_expenditures
+				});
+			});
+		};
+		return Ev::map( get_source_info
+			      , std::move(sources_total)
+			      ).then([this](std::vector<SourceInfo> source_infos) {
+			auto act = Ev::lift();
+			auto new_sources = std::vector<Ln::NodeId>();
+			for (auto const& si : source_infos) {
+				auto source = si.source;
+				auto total = si.total;
+				auto in_expenditures = si.in_expenditures;
+
+				auto limit = (total * max_in_expenditures_percent) / 100.0;
+
+				if (in_expenditures > limit)
+					act += Boss::log( bus, Debug
+							, "InitialRebalancer: Will not "
+							  "rebalance from %s, we already "
+							  "spent %s on it, limit is %s."
+							, std::string(source)
+								.c_str()
+							, Util::stringify(in_expenditures)
+								.c_str()
+							, Util::stringify(limit)
+								.c_str()
+							);
+				else
+					new_sources.push_back(source);
+			}
+
+			sources = std::move(new_sources);
+
+			return std::move(act) + assign_destinations();
+		});
+	}
+
+	Ev::Io<void> assign_destinations() {
 		for (auto& s : sources) {
 			if (destinations.empty())
 				break;
@@ -257,7 +349,7 @@ private:
 			plan.push_back(std::make_pair(s, dest));
 		}
 
-		return std::move(act) + execute_plan();
+		return execute_plan();
 	}
 
 	Ev::Io<void> execute_plan() {
@@ -319,8 +411,10 @@ public:
 	Impl( S::Bus& bus_
 	    , Jsmn::Object const& peers_
 	    , MoveRR& move_rr_
+	    , ExpenseRR& expense_rr_
 	    ) : bus(bus_), peers(peers_)
 	      , move_rr(move_rr_)
+	      , expense_rr(expense_rr_)
 	      { }
 	static
 	Ev::Io<void> run(std::shared_ptr<Impl> self) {
@@ -332,8 +426,10 @@ public:
 
 InitialRebalancer::Impl::Run::Run( S::Bus& bus
 				 , Jsmn::Object const& peers
-				 , MoveRR& move_rr
-				 ) : pimpl(std::make_shared<Impl>(bus, peers, move_rr))
+				 , MoveRR& move_rr, ExpenseRR& expense_rr
+				 ) : pimpl(std::make_shared<Impl>( bus, peers
+								 , move_rr, expense_rr
+								 ))
 				   { }
 Ev::Io<void> InitialRebalancer::Impl::Run::run() {
 	return Impl::run(pimpl);

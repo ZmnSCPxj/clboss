@@ -1,3 +1,4 @@
+- `InitialRebalancer` will now limit how much it will spend on rebalances, as it is intended for the *initial* rebalancing of new channels.
 - `FundsMover` is now more parsimonious about its fee budget when it splits moved funding attempts.
 - Avoid making multiple channels to nodes with the same IP bin.
 - Fix MacOS compile.

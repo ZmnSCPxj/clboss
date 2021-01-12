@@ -121,6 +121,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Connector.hpp \
 	Boss/Mod/Dowser.cpp \
 	Boss/Mod/Dowser.hpp \
+	Boss/Mod/EarningsRebalancer.cpp \
+	Boss/Mod/EarningsRebalancer.hpp \
 	Boss/Mod/EarningsTracker.cpp \
 	Boss/Mod/EarningsTracker.hpp \
 	Boss/Mod/FeeModderByBalance.cpp \

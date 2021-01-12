@@ -20,6 +20,7 @@
 #include"Boss/Mod/Connector.hpp"
 #include"Boss/Mod/CommandReceiver.hpp"
 #include"Boss/Mod/Dowser.hpp"
+#include"Boss/Mod/EarningsRebalancer.hpp"
 #include"Boss/Mod/EarningsTracker.hpp"
 #include"Boss/Mod/FeeModderByBalance.hpp"
 #include"Boss/Mod/FeeModderBySize.hpp"
@@ -175,6 +176,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<EarningsTracker>(bus);
 	all->install<JitRebalancer>(bus);
 	all->install<InitialRebalancer>(bus);
+	all->install<EarningsRebalancer>(bus);
 
 	return all;
 }

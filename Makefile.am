@@ -127,6 +127,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/EarningsTracker.hpp \
 	Boss/Mod/FeeModderByBalance.cpp \
 	Boss/Mod/FeeModderByBalance.hpp \
+	Boss/Mod/FeeModderByExpenditures.cpp \
+	Boss/Mod/FeeModderByExpenditures.hpp \
 	Boss/Mod/FeeModderBySize.cpp \
 	Boss/Mod/FeeModderBySize.hpp \
 	Boss/Mod/ForwardFeeMonitor.cpp \

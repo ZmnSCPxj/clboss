@@ -23,6 +23,7 @@
 #include"Boss/Mod/EarningsRebalancer.hpp"
 #include"Boss/Mod/EarningsTracker.hpp"
 #include"Boss/Mod/FeeModderByBalance.hpp"
+#include"Boss/Mod/FeeModderByExpenditures.hpp"
 #include"Boss/Mod/FeeModderBySize.hpp"
 #include"Boss/Mod/ForwardFeeMonitor.hpp"
 #include"Boss/Mod/FundsMover/Main.hpp"
@@ -158,6 +159,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ChannelFeeManager>(bus);
 	all->install<FeeModderBySize>(bus);
 	all->install<FeeModderByBalance>(bus);
+	all->install<FeeModderByExpenditures>(bus);
 
 	/* HTLC manipulation.  */
 	all->install<HtlcAcceptor>(bus, *waiter);

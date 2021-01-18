@@ -1,3 +1,4 @@
+0.11A
 - Make `FundsMover` much less willing to pay extra for more private randomized routes.
 - New `EarningsRebalancer` is now the primary rebalancer to replace the role of `InitialRebalancer` in previous releases; it will base its rebalancing decisions on earnings of each channel.
 - `InitialRebalancer` will now limit how much it will spend on rebalances, as it is intended for the *initial* rebalancing of new channels.

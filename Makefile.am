@@ -259,6 +259,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ProposeConnectCandidates.hpp \
 	Boss/Msg/ProposePatronlessChannelCandidate.hpp \
 	Boss/Msg/ProvideChannelFeeModifier.hpp \
+	Boss/Msg/ProvideChannelFeeModifierDetailed.hpp \
 	Boss/Msg/ProvideHtlcAcceptedDeferrer.hpp \
 	Boss/Msg/ProvideStatus.hpp \
 	Boss/Msg/ProvideSwapQuotation.hpp \

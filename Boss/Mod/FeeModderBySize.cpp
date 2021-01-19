@@ -45,6 +45,10 @@ size, and comparing ourselves with the competitors.
 
 namespace {
 
+auto constexpr min_multiplier = double(0.9);
+auto constexpr max_multiplier = double(32.0);
+auto constexpr lowest_max_multiplier = double(4.0);
+
 /* Given the number of nodes that are lower-capacity than us,
  * the number who are higher-capacity, and the total number of
  * competitors, what is the multiplier on the feerates we
@@ -67,17 +71,17 @@ calculate_multiplier( std::size_t worse
 		/* Remap position from 0 to 0.5 as 0.0 to 1.0.  */
 		pos *= 2;
 		/* Map position of 0 to sqrt(0.5) and 0.5 as 1.0.  */
-		auto static const base = sqrt(0.5);
+		auto static const base = sqrt(min_multiplier);
 		x = base - pos * base + pos * 1.0;
 	} else {
 		/* The more total peers, the lower our fee multiplier limit.  */
 		auto log_inv_total = log(1.0 / double(total));
-		auto lim = 16.0 + log_inv_total;
+		auto lim = max_multiplier + log_inv_total;
 		/* This would require the peer to have ridiculous numbers
 		 * of peers.
 		 */
-		if (lim < 2)
-			lim = 2.0;
+		if (lim < lowest_max_multiplier)
+			lim = lowest_max_multiplier;
 
 		/* Remap position from 0.5 to 1.0 as 0.0 to 1.0.  */
 		pos = pos * 2 - 1.0;

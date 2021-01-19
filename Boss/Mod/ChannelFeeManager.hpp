@@ -3,6 +3,7 @@
 
 #include<cstdint>
 #include<functional>
+#include<utility>
 #include<vector>
 
 namespace Ev { template<typename a> class Io; }
@@ -24,10 +25,12 @@ private:
 
 	bool initted;
 	bool soliciting;
-	std::vector<std::function< Ev::Io<double>( Ln::NodeId
-						 , std::uint32_t // b
-						 , std::uint32_t // p
-						 )
+	std::vector<std::function< Ev::Io<std::pair< double // bm
+						   , double // pm
+						   >>( Ln::NodeId
+						     , std::uint32_t // b
+						     , std::uint32_t // p
+						     )
 				 >> modifiers;
 
 	void start();

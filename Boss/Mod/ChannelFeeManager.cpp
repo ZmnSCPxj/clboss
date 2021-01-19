@@ -1,6 +1,7 @@
 #include"Boss/Mod/ChannelFeeManager.hpp"
 #include"Boss/Msg/PeerMedianChannelFee.hpp"
 #include"Boss/Msg/ProvideChannelFeeModifier.hpp"
+#include"Boss/Msg/ProvideChannelFeeModifierDetailed.hpp"
 #include"Boss/Msg/SetChannelFee.hpp"
 #include"Boss/Msg/SolicitChannelFeeModifier.hpp"
 #include"Boss/concurrent.hpp"
@@ -23,6 +24,21 @@ void ChannelFeeManager::start() {
 	});
 	bus.subscribe<Msg::ProvideChannelFeeModifier
 		     >([this](Msg::ProvideChannelFeeModifier const& m) {
+		if (soliciting) {
+			auto f = m.modifier;
+			modifiers.push_back([f]( Ln::NodeId n
+					       , std::uint32_t b
+					       , std::uint32_t p
+					       ) {
+				return f(n, b, p).then([](double m) {
+					return Ev::lift(std::make_pair(m, m));
+				});
+			});
+		}
+		return Ev::lift();
+	});
+	bus.subscribe<Msg::ProvideChannelFeeModifierDetailed
+		     >([this](Msg::ProvideChannelFeeModifierDetailed const& m) {
 		if (soliciting)
 			modifiers.push_back(m.modifier);
 		return Ev::lift();
@@ -58,10 +74,11 @@ ChannelFeeManager::perform( Ln::NodeId node
 		return solicit();
 	}).then([this, msg]() {
 		/* Run the modifiers */
-		auto f = [msg](std::function<Ev::Io<double>( Ln::NodeId
-							   , std::uint32_t
-							   , std::uint32_t
-							   )
+		auto f = [msg](std::function<Ev::Io<std::pair<double, double
+							     >>( Ln::NodeId
+							       , std::uint32_t
+							       , std::uint32_t
+							       )
 					    > modifier) {
 			return modifier( msg->node
 				       , msg->base
@@ -69,14 +86,14 @@ ChannelFeeManager::perform( Ln::NodeId node
 				       );
 		};
 		return Ev::map(std::move(f), modifiers);
-	}).then([this, msg](std::vector<double> multipliers) {
+	}).then([this, msg](std::vector<std::pair<double, double>> multipliers) {
 		/* Get double versions of the base and proportional fees.  */
 		auto b = double(msg->base);
 		auto p = double(msg->proportional);
 		/* Multiply by all, using the `double` versions.  */
 		for (auto m : multipliers) {
-			b *= m;
-			p *= m;
+			b *= m.first;
+			p *= m.second;
 		}
 		/* Round and convert back to uint32_t.  */
 		msg->base = std::uint32_t(round(b));

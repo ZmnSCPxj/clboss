@@ -19,7 +19,7 @@ class ServiceCreator::Core : public std::enable_shared_from_this<Core> {
 private:
 	S::Bus& bus;
 	Boltz::ServiceFactory factory;
-	std::queue<std::string> instances;
+	std::queue<Instance> instances;
 	std::vector<std::unique_ptr<ServiceModule>>& services;
 
 	bool first;
@@ -27,7 +27,7 @@ private:
 
 	Core( S::Bus& bus_
 	    , Boltz::ServiceFactory factory_
-	    , std::queue<std::string> instances_
+	    , std::queue<Instance> instances_
 	    , std::vector<std::unique_ptr<ServiceModule>>& services_
 	    ) : bus(bus_)
 	      , factory(std::move(factory_))
@@ -39,7 +39,7 @@ public:
 	std::shared_ptr<Core>
 	create( S::Bus& bus
 	      , Boltz::ServiceFactory factory
-	      , std::queue<std::string> instances
+	      , std::queue<Instance> instances
 	      , std::vector<std::unique_ptr<ServiceModule>>& services
 	      ) {
 		return std::shared_ptr<Core>(
@@ -75,9 +75,10 @@ private:
 				first = false;
 			else
 				report << ", ";
-			report << "Boltz::Service(\"" << instance << "\")";
+			report << "Boltz::Service(\"" << instance.label << "\")";
 
-			return factory.create_service(instance
+			return factory.create_service_detailed(
+				instance.label, instance.clearnet, instance.onion
 			).then([this](std::unique_ptr<Boltz::Service> core) {
 				auto wrapper = Util::make_unique<ServiceModule>
 					( bus, std::move(core) );
@@ -102,9 +103,10 @@ void ServiceCreator::start() {
 			, init.db
 			, init.signer
 			, env
-			, init.always_use_proxy ? init.proxy : ""
+			, init.proxy
+			, init.always_use_proxy
 			);
-		auto q = std::queue<std::string>();
+		auto q = std::queue<Instance>();
 		for (auto const& instance : it->second)
 			q.push(instance);
 		auto core = Core::create( bus

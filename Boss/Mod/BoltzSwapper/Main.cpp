@@ -5,13 +5,31 @@
 
 namespace {
 
-auto const boltz_instances = std::map<Boss::Msg::Network, std::vector<std::string>>
+auto const boltz_instances = std::map< Boss::Msg::Network
+				     , std::vector<Boss::Mod::BoltzSwapper::Instance>
+				     >
 { { Boss::Msg::Network_Bitcoin
-  , { "https://boltz.exchange/api"
+/* Historically, the clearnet API endpoint was used as the in-database label
+ * for Boltz services.
+ * The boltz.exchange service thus uses the API endpoint as the label for
+ * back-compatibility.
+ * Other services since then were added after we had a separate label.
+ */
+  , { { "https://boltz.exchange/api"
+      , "https://boltz.exchange/api"
+      , "http://boltzzzbnus4m7mta3cxmflnps4fp7dueu2tgurstbvrbt6xswzcocyd.onion/api"
+      }
+    , { "AutonomousOrganization@github.com"
+      , ""
+      , "http://jsyqqszgfrya6nj7nhi4hu4tdpuvfursl7dyxeiukzit5mvckqbzxpad.onion"
+      }
     }
   }
 , { Boss::Msg::Network_Testnet
-  , { "https://testnet.boltz.exchange/api"
+  , { { "https://testnet.boltz.exchange/api"
+      , "https://testnet.boltz.exchange/api"
+      , "http://tboltzzrsoc3npe6sydcrh37mtnfhnbrilqi45nao6cgc6dr7n2eo3id.onion/api"
+      }
     }
   }
 };

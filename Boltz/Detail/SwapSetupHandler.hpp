@@ -14,7 +14,7 @@
 #include<utility>
 #include<vector>
 
-namespace Boltz { class Connection; }
+namespace Boltz { class ConnectionIF; }
 namespace Boltz { class EnvIF; }
 namespace Boltz { struct SwapInfo; }
 namespace Ev { template<typename a> class Io; }
@@ -35,7 +35,7 @@ private:
 	Sqlite3::Db db;
 	Boltz::EnvIF& env;
 	std::string api_endpoint;
-	Boltz::Connection& conn;
+	Boltz::ConnectionIF& conn;
 	Secp256k1::Random& random;
 	std::string destinationAddress;
 	Ln::Amount offchainAmount;
@@ -45,7 +45,7 @@ private:
 			, Sqlite3::Db db_
 			, Boltz::EnvIF& env_
 			, std::string const& api_endpoint_
-			, Boltz::Connection& conn_
+			, Boltz::ConnectionIF& conn_
 			, Secp256k1::Random& random_
 			, std::string const& destinationAddress_
 			, Ln::Amount offchainAmount_
@@ -71,7 +71,7 @@ public:
 	      , Sqlite3::Db db
 	      , Boltz::EnvIF& env
 	      , std::string const& api_endpoint
-	      , Boltz::Connection& conn
+	      , Boltz::ConnectionIF& conn
 	      , Secp256k1::Random& random
 	      , std::string const& destinationAddress
 	      , Ln::Amount offchainAmount

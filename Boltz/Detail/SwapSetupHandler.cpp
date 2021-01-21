@@ -1,5 +1,5 @@
 #include"Bitcoin/hash160.hpp"
-#include"Boltz/Connection.hpp"
+#include"Boltz/ConnectionIF.hpp"
 #include"Boltz/Detail/SwapSetupHandler.hpp"
 #include"Boltz/Detail/compute_preimage.hpp"
 #include"Boltz/Detail/match_lockscript.hpp"

@@ -32,10 +32,12 @@ libclboss_la_SOURCES = \
 	Bitcoin/sighash.hpp \
 	Bitcoin/varint.cpp \
 	Bitcoin/varint.hpp \
-	Boltz/Connection.cpp \
 	Boltz/Connection.hpp \
+	Boltz/ConnectionIF.hpp \
 	Boltz/Detail/ClaimTxHandler.cpp \
 	Boltz/Detail/ClaimTxHandler.hpp \
+	Boltz/Detail/NormalConnection.cpp \
+	Boltz/Detail/NormalConnection.hpp \
 	Boltz/Detail/ServiceImpl.cpp \
 	Boltz/Detail/ServiceImpl.hpp \
 	Boltz/Detail/SwapSetupHandler.cpp \

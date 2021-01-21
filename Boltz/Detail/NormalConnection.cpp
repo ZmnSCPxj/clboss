@@ -1,4 +1,4 @@
-#include"Boltz/Connection.hpp"
+#include"Boltz/Detail/NormalConnection.hpp"
 #include"Ev/Io.hpp"
 #include"Ev/ThreadPool.hpp"
 #include"Jsmn/Object.hpp"
@@ -7,8 +7,6 @@
 #include"Util/make_unique.hpp"
 #include<assert.h>
 #include<curl/curl.h>
-
-#include<iostream>
 
 #ifdef HAVE_CONFIG_H
 # include"config.h"
@@ -123,9 +121,9 @@ private:
 
 }
 
-namespace Boltz {
+namespace Boltz { namespace Detail {
 
-class Connection::Impl {
+class NormalConnection::Impl {
 private:
 	Ev::ThreadPool& threadpool;
 	std::string api_base;
@@ -161,20 +159,20 @@ public:
 	}
 };
 
-Connection::~Connection() =default;
-Connection::Connection(Connection&&) =default;
-Connection::Connection( Ev::ThreadPool& threadpool
-		      , std::string api_base
-		      , std::string proxy
-		      ) : pimpl(Util::make_unique<Impl>( threadpool
-						       , std::move(api_base)
-						       , std::move(proxy)
-						       ))
-			{ }
+NormalConnection::~NormalConnection() =default;
+NormalConnection::NormalConnection(NormalConnection&&) =default;
+NormalConnection::NormalConnection( Ev::ThreadPool& threadpool
+				  , std::string api_base
+				  , std::string proxy
+				  ) : pimpl(Util::make_unique<Impl>( threadpool
+								   , std::move(api_base)
+								   , std::move(proxy)
+								   ))
+				    { }
 
 Ev::Io<Jsmn::Object>
-Connection::api(std::string api, std::unique_ptr<Json::Out> params) {
+NormalConnection::api(std::string api, std::unique_ptr<Json::Out> params) {
 	return pimpl->api(api, std::move(params));
 }
 
-}
+}}

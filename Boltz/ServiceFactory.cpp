@@ -1,4 +1,5 @@
 #include"Boltz/Detail/ServiceImpl.hpp"
+#include"Boltz/Detail/create_connection.hpp"
 #include"Boltz/Service.hpp"
 #include"Boltz/ServiceFactory.hpp"
 #include"Ev/Io.hpp"
@@ -17,6 +18,7 @@ private:
 	Secp256k1::SignerIF& signer;
 	Boltz::EnvIF& env;
 	std::string proxy;
+	bool always_use_proxy;
 
 	/* nullptr if we are currently initializing,
 	 * pointer to false if currently uninitialized,
@@ -46,8 +48,11 @@ private:
 			CREATE TABLE IF NOT EXISTS "BoltzServiceFactory_rsub"
 			     ( id INTEGER PRIMARY KEY
 
-			     -- The api access point that generated
+			     -- The Boltz implementation that generated
 			     -- this row.
+			     -- Historically this was the access point,
+			     -- but now it is "just" a label naming the
+			     -- Boltz implementation.
 			     , apiAccess TEXT NOT NULL
 
 			     -- We generated these.
@@ -115,25 +120,34 @@ public:
 	    , Secp256k1::SignerIF& signer_
 	    , Boltz::EnvIF& env_
 	    , std::string proxy_
+	    , bool always_use_proxy_
 	    ) : threadpool(threadpool_)
 	      , db(std::move(db_))
 	      , signer(signer_)
 	      , env(env_)
 	      , proxy(std::move(proxy_))
+	      , always_use_proxy(always_use_proxy_)
 	      , initted_flag(Util::make_unique<bool>(false))
 	      { }
 
 	Ev::Io<std::unique_ptr<Service>>
-	create_service(std::string const& api_endpoint) {
-		return try_initialize().then([this, api_endpoint]() {
+	create_service_detailed( std::string const& label
+			       , std::string const& clearnet
+			       , std::string const& onion
+			       ) {
+		return try_initialize().then([this, label, clearnet, onion]() {
 			auto ptr = std::unique_ptr<Service>();
 			ptr = Util::make_unique<Detail::ServiceImpl>
-				( threadpool
-				, db
+				( db
 				, signer
 				, env
-				, proxy
-				, api_endpoint
+				, label
+				, Detail::create_connection( threadpool
+							   , clearnet
+							   , onion
+							   , proxy
+							   , always_use_proxy
+							   )
 				);
 			return Ev::lift(std::move(ptr));
 		});
@@ -149,17 +163,22 @@ ServiceFactory::ServiceFactory( Ev::ThreadPool& threadpool
 			      , Secp256k1::SignerIF& signer
 			      , Boltz::EnvIF& env
 			      , std::string proxy
+			      , bool always_use_proxy
 			      ) : pimpl(Util::make_unique<Impl>( threadpool
 							       , std::move(db)
 							       , signer
 							       , env
 							       , std::move(proxy)
+							       , always_use_proxy
 							       ))
 				{ }
 
 Ev::Io<std::unique_ptr<Service>>
-ServiceFactory::create_service(std::string const& api_endpoint) {
-	return pimpl->create_service(api_endpoint);
+ServiceFactory::create_service_detailed( std::string const& label
+				       , std::string const& clearnet
+				       , std::string const& onion
+				       ) {
+	return pimpl->create_service_detailed(label, clearnet, onion);
 }
 
 }

@@ -22,8 +22,8 @@ namespace Boltz { namespace Detail {
  */
 class ServiceImpl : public Service {
 private:
-	std::string api_endpoint;
-	Boltz::Connection conn;
+	std::string label;
+	std::unique_ptr<Boltz::ConnectionIF> conn;
 	Sqlite3::Db db;
 	Secp256k1::SignerIF& signer;
 	Boltz::EnvIF& env;
@@ -34,17 +34,13 @@ public:
 	ServiceImpl(ServiceImpl&&) =delete;
 	ServiceImpl(ServiceImpl const&) =delete;
 
-	ServiceImpl( Ev::ThreadPool& threadpool_
-		   , Sqlite3::Db db_
+	ServiceImpl( Sqlite3::Db db_
 		   , Secp256k1::SignerIF& signer_
 		   , Boltz::EnvIF& env_
-		   , std::string proxy_
-		   , std::string api_endpoint_
-		   ) : api_endpoint(std::move(api_endpoint_))
-		     , conn( threadpool_
-			   , api_endpoint
-			   , std::move(proxy_)
-			   )
+		   , std::string label_
+		   , std::unique_ptr<Boltz::ConnectionIF> conn_
+		   ) : label(std::move(label_))
+		     , conn(std::move(conn_))
 		     , db(std::move(db_))
 		     , signer(signer_)
 		     , env(env_)

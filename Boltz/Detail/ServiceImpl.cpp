@@ -19,7 +19,7 @@
 namespace Boltz { namespace Detail {
 
 std::string ServiceImpl::prefixlog(std::string msg) {
-	return std::string("Boltz::Service(\"") + api_endpoint + "\"): " + msg;
+	return std::string("Boltz::Service(\"") + label + "\"): " + msg;
 }
 Ev::Io<void> ServiceImpl::logd(std::string msg) {
 	return env.logd(prefixlog(std::move(msg)));
@@ -39,7 +39,7 @@ Ev::Io<void> ServiceImpl::on_block(std::uint32_t blockheight) {
 		   AND timeoutBlockheight <= :blockheight
 		     ;
 		)QRY")
-			.bind(":apiAccess", api_endpoint)
+			.bind(":apiAccess", label)
 			.bind(":blockheight", blockheight)
 			.execute();
 
@@ -49,7 +49,7 @@ Ev::Io<void> ServiceImpl::on_block(std::uint32_t blockheight) {
 		 WHERE apiAccess = :apiAccess
 		     ;
 		)QRY")
-			.bind(":apiAccess", api_endpoint)
+			.bind(":apiAccess", label)
 			.execute();
 		auto swapIds = std::vector<std::string>();
 		for (auto& r : swaps)
@@ -98,9 +98,9 @@ Ev::Io<void> ServiceImpl::swap_on_block( std::uint32_t blockheight
 		.start_object()
 			.field("id", *p_swapId)
 		.end_object();
-	return conn.api( "/swapstatus"
-		       , Util::make_unique<Json::Out>(std::move(parms))
-		       ).then([this, p_swapId](Jsmn::Object sres) {
+	return conn->api( "/swapstatus"
+			, Util::make_unique<Json::Out>(std::move(parms))
+			).then([this, p_swapId](Jsmn::Object sres) {
 			/* Save, then log.  */
 			auto tmp_sres = std::make_shared<Jsmn::Object>(
 				std::move(sres)
@@ -227,7 +227,7 @@ ServiceImpl::swap_onchain( std::shared_ptr<std::string> swapId
 			( signer
 			, db
 			, env
-			, api_endpoint
+			, label
 			, *swapId
 			, blockheight
 			, std::move(*tx)
@@ -268,7 +268,7 @@ ServiceImpl::delete_swap(std::shared_ptr<std::string> swapId) {
 		   AND swapId = :swapId
 		     ;
 		)QRY")
-			.bind(":apiAccess", api_endpoint)
+			.bind(":apiAccess", label)
 			.bind(":swapId", *swapId)
 			.execute()
 			;
@@ -286,8 +286,8 @@ ServiceImpl::swap( Ln::Amount offchainAmount
 		( signer
 		, db
 		, env
-		, api_endpoint
-		, conn
+		, label
+		, *conn
 		, random
 		, onchain_address
 		, offchainAmount
@@ -298,8 +298,8 @@ ServiceImpl::swap( Ln::Amount offchainAmount
 
 Ev::Io<std::unique_ptr<Ln::Amount>>
 ServiceImpl::get_quotation(Ln::Amount offchainAmount) {
-	return conn.api("/getpairs", nullptr
-		       ).then([this, offchainAmount](Jsmn::Object res) {
+	return conn->api("/getpairs", nullptr
+			).then([this, offchainAmount](Jsmn::Object res) {
 
 		auto rate = double();
 		auto fee_percent = double();

@@ -3,11 +3,11 @@
 
 #include<functional>
 #include<memory>
+#include"Ev/Io.hpp"
 
 namespace Bitcoin { class Tx; }
 namespace Boltz { class EnvIF; }
 namespace Boltz { class Service; }
-namespace Ev { template<typename a> class Io; }
 namespace Ev { class ThreadPool; }
 namespace Secp256k1 { class SignerIF; }
 namespace Sqlite3 { class Db; }
@@ -47,15 +47,36 @@ public:
 		      , Boltz::EnvIF& env
 		      /* SOCKS5 proxy to use.  Empty string means no proxy.  */
 		      , std::string proxy = ""
+		      /* Whether to always use proxy even for clearnet endpoints.  */
+		      , bool always_use_proxy = false
 		      );
+
+	/** Boltz::ServiceFactory::create_service_detailed
+	 *
+	 * @brief creates a service from a particular
+	 * Boltz implementation, which can have both a
+	 * clearnet and a Tor endpoint.
+	 */
+	Ev::Io<std::unique_ptr<Service>>
+	create_service_detailed( std::string const& label
+			       , std::string const& clearnet
+			       , std::string const& onion
+			       );
 
 	/** Boltz::ServiceFactory::create_service
 	 *
 	 * @brief creates a service from a particular
 	 * API endpoint.
+	 *
+	 * @desc this interface is deprecated.
 	 */
 	Ev::Io<std::unique_ptr<Service>>
-	create_service(std::string const& api_endpoint);
+	create_service(std::string const& api_endpoint) {
+		return create_service_detailed( api_endpoint
+					      , api_endpoint
+					      , ""
+					      );
+	}
 };
 
 }

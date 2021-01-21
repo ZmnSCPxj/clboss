@@ -36,8 +36,12 @@ libclboss_la_SOURCES = \
 	Boltz/ConnectionIF.hpp \
 	Boltz/Detail/ClaimTxHandler.cpp \
 	Boltz/Detail/ClaimTxHandler.hpp \
+	Boltz/Detail/FallbackConnection.cpp \
+	Boltz/Detail/FallbackConnection.hpp \
 	Boltz/Detail/NormalConnection.cpp \
 	Boltz/Detail/NormalConnection.hpp \
+	Boltz/Detail/NullConnection.cpp \
+	Boltz/Detail/NullConnection.hpp \
 	Boltz/Detail/ServiceImpl.cpp \
 	Boltz/Detail/ServiceImpl.hpp \
 	Boltz/Detail/SwapSetupHandler.cpp \

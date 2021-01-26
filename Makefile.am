@@ -113,6 +113,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelFinderByPopularity.hpp \
 	Boss/Mod/ChannelFundsComputer.cpp \
 	Boss/Mod/ChannelFundsComputer.hpp \
+	Boss/Mod/ComplainerByLowConnectRate.cpp \
+	Boss/Mod/ComplainerByLowConnectRate.hpp \
 	Boss/Mod/ConnectFinderByDns.cpp \
 	Boss/Mod/ConnectFinderByDns.hpp \
 	Boss/Mod/ConnectFinderByHardcode.cpp \

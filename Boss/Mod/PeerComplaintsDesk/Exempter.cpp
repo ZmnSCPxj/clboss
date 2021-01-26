@@ -1,4 +1,5 @@
 #include"Boss/Mod/PeerComplaintsDesk/Exempter.hpp"
+#include"Boss/Mod/PeerComplaintsDesk/Unmanager.hpp"
 #include"Boss/ModG/ReqResp.hpp"
 #include"Boss/Msg/RequestPeerMetrics.hpp"
 #include"Boss/Msg/ResponsePeerMetrics.hpp"
@@ -35,6 +36,7 @@ private:
 	ModG::ReqResp< Msg::RequestPeerMetrics
 		     , Msg::ResponsePeerMetrics
 		     > metrics_rr;
+	Unmanager& unmanager;
 
 public:
 	Impl() =delete;
@@ -43,6 +45,7 @@ public:
 
 	explicit
 	Impl( S::Bus& bus
+	    , Unmanager& unmanager_
 	    ) : metrics_rr( bus
 			  , [](Msg::RequestPeerMetrics& m, void* p) {
 				m.requester = p;
@@ -51,13 +54,14 @@ public:
 				return m.requester;
 			    }
 			  )
+	      , unmanager(unmanager_)
 	      { }
 
 	Ev::Io<std::map<Ln::NodeId, std::string>>
 	get_exemptions() {
 		return Ev::lift().then([this]() {
 			return metrics_rr.execute(Msg::RequestPeerMetrics{});
-		}).then([](Msg::ResponsePeerMetrics all_metrics) {
+		}).then([this](Msg::ResponsePeerMetrics all_metrics) {
 			auto const& metrics = all_metrics.day3;
 
 			auto rv = std::map<Ln::NodeId, std::string>();
@@ -146,6 +150,13 @@ public:
 					return inf.out_fee_msat_per_day;
 				});
 
+			/* Add exemptions for unmanaged nodes.  */
+			auto const& unmanaged = unmanager.get_unmanaged();
+			for (auto const& n : unmanaged)
+				add_exempt( n
+					  , "node has `close` unmanagement tag"
+					  );
+
 			return Ev::lift(std::move(rv));
 		});
 	}
@@ -154,8 +165,8 @@ public:
 Exempter::Exempter(Exempter&&) =default;
 Exempter::~Exempter() =default;
 
-Exempter::Exempter(S::Bus& bus)
-	: pimpl(Util::make_unique<Impl>(bus)) { }
+Exempter::Exempter(S::Bus& bus, Unmanager& unmanager)
+	: pimpl(Util::make_unique<Impl>(bus, unmanager)) { }
 
 Ev::Io<std::map<Ln::NodeId, std::string>>
 Exempter::get_exemptions() {

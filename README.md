@@ -244,6 +244,7 @@ The possible unmanagement tags are:
 * `lnfee` - Do not manage the channel fee of channels to this
   node.
 * `open` - Do not automatically open channels to this node.
+* `close` - Do not automatically close channels to this node.
 
 ### `--clboss-min-onchain=<satoshis>`
 

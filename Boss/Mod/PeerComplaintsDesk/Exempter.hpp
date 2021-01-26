@@ -5,6 +5,9 @@
 #include<memory>
 #include<string>
 
+namespace Boss { namespace Mod { namespace PeerComplaintsDesk {
+	class Unmanager;
+}}}
 namespace Ev { template<typename a> class Io; }
 namespace Ln { class NodeId; }
 namespace S { class Bus; }
@@ -29,7 +32,7 @@ public:
 	~Exempter();
 
 	explicit
-	Exempter(S::Bus& bus);
+	Exempter(S::Bus& bus, Unmanager& unmanager);
 
 	/** Boss::Mod::PeerComplaintsDesk::Exempter::get_exemptions
 	 *

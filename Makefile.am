@@ -195,6 +195,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/PeerComplaintsDesk/Main.hpp \
 	Boss/Mod/PeerComplaintsDesk/Recorder.cpp \
 	Boss/Mod/PeerComplaintsDesk/Recorder.hpp \
+	Boss/Mod/PeerComplaintsDesk/Unmanager.cpp \
+	Boss/Mod/PeerComplaintsDesk/Unmanager.hpp \
 	Boss/Mod/PeerMetrician.cpp \
 	Boss/Mod/PeerMetrician.hpp \
 	Boss/Mod/PeerStatistician.cpp \

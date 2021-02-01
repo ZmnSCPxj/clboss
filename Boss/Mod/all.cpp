@@ -16,6 +16,7 @@
 #include"Boss/Mod/ChannelFinderByPopularity.hpp"
 #include"Boss/Mod/ChannelFundsComputer.hpp"
 #include"Boss/Mod/ComplainerByLowConnectRate.hpp"
+#include"Boss/Mod/ComplainerByLowSuccessPerDay.hpp"
 #include"Boss/Mod/ConnectFinderByDns.hpp"
 #include"Boss/Mod/ConnectFinderByHardcode.hpp"
 #include"Boss/Mod/Connector.hpp"
@@ -179,6 +180,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	/* Peer complaints.  */
 	all->install<PeerComplaintsDesk::Main>(bus);
 	all->install<ComplainerByLowConnectRate>(bus);
+	all->install<ComplainerByLowSuccessPerDay>(bus);
 
 	/* Channel balancing.  */
 	all->install<FundsMover::Main>(bus);

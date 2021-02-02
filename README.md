@@ -55,6 +55,7 @@ Debian packages in addition:
 * `git`
 * `automake`
 * `autoconf-archive`
+* `libtool`
 
 A design goal of CLBOSS is to reduce the above dependencies even
 further.

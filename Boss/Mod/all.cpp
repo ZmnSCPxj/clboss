@@ -52,6 +52,7 @@
 #include"Boss/Mod/PeerStatistician.hpp"
 #include"Boss/Mod/Reconnector.hpp"
 #include"Boss/Mod/RegularActiveProbe.hpp"
+#include"Boss/Mod/SelfUptimeMonitor.hpp"
 #include"Boss/Mod/SendpayResultMonitor.hpp"
 #include"Boss/Mod/StatusCommand.hpp"
 #include"Boss/Mod/SwapManager.hpp"
@@ -126,6 +127,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<OnchainFundsAnnouncer>(bus);
 	all->install<OnchainFundsIgnorer>(bus);
 	all->install<ChannelCreateDestroyMonitor>(bus);
+	all->install<SelfUptimeMonitor>(bus);
 
 	/* Channel creation wrangling.  */
 	all->install<ChannelFinderByDistance>(bus, *waiter);

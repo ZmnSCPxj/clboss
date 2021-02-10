@@ -270,7 +270,7 @@ private:
 					);
 
 		/* Nothing to do.  */
-		if (sources.empty())
+		if (sources_total.empty())
 			return act;
 
 		return std::move(act) + filter_sources();

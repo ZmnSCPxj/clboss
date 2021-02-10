@@ -84,6 +84,12 @@ You can then add a `plugin=/path/to/clboss` or
 `important-plugin=/path/to/clboss` setting to your C-Lightning
 configuration file.
 
+__FreeBSD:_
+
+You need to install `autoconf-archive` first before you can run `autoreconf-i` sucessfully.
+
+    pkg install autoconf-archive
+    
 Operating
 ---------
 

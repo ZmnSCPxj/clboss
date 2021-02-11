@@ -19,7 +19,9 @@
 #include"Stats/ReservoirSampler.hpp"
 #include"Util/make_unique.hpp"
 #include"Util/stringify.hpp"
+#include<assert.h>
 #include<map>
+#include<set>
 #include<sstream>
 #include<vector>
 
@@ -59,6 +61,9 @@ private:
 		     > ExpenseRR;
 	ExpenseRR expense_rr;
 
+	/* Peers currently being rebalanced.  */
+	std::set<Ln::NodeId> current_sources;
+
 	void start() {
 		bus.subscribe<Msg::ListpeersResult
 			     >([this](Msg::ListpeersResult const& m) {
@@ -86,13 +91,18 @@ private:
 		explicit
 		Run( S::Bus& bus, Jsmn::Object const& peers
 		   , MoveRR& move_rr, ExpenseRR& expense_rr
+		   , std::set<Ln::NodeId>& current_sources
 		   );
 		Ev::Io<void> run();
 	};
 
 	Ev::Io<void>
 	run(Jsmn::Object const& peers) {
-		return Boss::concurrent(Run(bus, peers, move_rr, expense_rr).run());
+		return Boss::concurrent( Run( bus, peers
+					    , move_rr, expense_rr
+					    , current_sources
+					    ).run()
+				       );
 	}
 
 public:
@@ -149,6 +159,7 @@ private:
 	ModG::ReqResp< Msg::RequestEarningsInfo
 		     , Msg::ResponseEarningsInfo
 		     >& expense_rr;
+	std::set<Ln::NodeId>& current_sources;
 
 	Ev::Io<void> core_run() {
 		return Ev::lift().then([this]() {
@@ -376,6 +387,17 @@ private:
 			if (amount == Ln::Amount::sat(0))
 				continue;
 
+			auto it = current_sources.find(source);
+			if (it != current_sources.end()) {
+				act += Boss::log( bus, Debug
+						, "InitialRebalancer: %s currently "
+						  "rebalancing, will not rebalance further."
+						, std::string(source).c_str()
+						);
+				continue;
+			}
+			current_sources.insert(source);
+
 			act += Boss::log( bus, Debug
 					, "InitialRebalancer: %s --> %s --> %s"
 					, std::string(source).c_str()
@@ -399,10 +421,14 @@ private:
 					;
 		if (this_rebalance_fee < min_rebalance_fee)
 			this_rebalance_fee = min_rebalance_fee;
+
 		return move_rr.execute(Msg::RequestMoveFunds{
 			nullptr, source, destination, amount,
 			this_rebalance_fee
-		}).then([](Msg::ResponseMoveFunds _) {
+		}).then([this, source](Msg::ResponseMoveFunds _) {
+			auto it = current_sources.find(source);
+			assert(it != current_sources.end());
+			current_sources.erase(it);
 			return Ev::lift();
 		});
 	}
@@ -412,9 +438,11 @@ public:
 	    , Jsmn::Object const& peers_
 	    , MoveRR& move_rr_
 	    , ExpenseRR& expense_rr_
+	    , std::set<Ln::NodeId>& current_sources_
 	    ) : bus(bus_), peers(peers_)
 	      , move_rr(move_rr_)
 	      , expense_rr(expense_rr_)
+	      , current_sources(current_sources_)
 	      { }
 	static
 	Ev::Io<void> run(std::shared_ptr<Impl> self) {
@@ -427,8 +455,10 @@ public:
 InitialRebalancer::Impl::Run::Run( S::Bus& bus
 				 , Jsmn::Object const& peers
 				 , MoveRR& move_rr, ExpenseRR& expense_rr
+				 , std::set<Ln::NodeId>& current_sources
 				 ) : pimpl(std::make_shared<Impl>( bus, peers
 								 , move_rr, expense_rr
+								 , current_sources
 								 ))
 				   { }
 Ev::Io<void> InitialRebalancer::Impl::Run::run() {

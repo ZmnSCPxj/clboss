@@ -34,12 +34,12 @@ auto constexpr spendable_percent = double(80.0);
 /* Gap to prevent destinations from hitting the spendable_percent.  */
 auto constexpr dest_gap_percent = double(5.0);
 /* Limit on rebalance fee.  */
-auto const min_rebalance_fee = Ln::Amount::sat(5);
-auto constexpr rebalance_fee_percent = double(0.5);
+auto const min_rebalance_fee = Ln::Amount::sat(3);
+auto constexpr rebalance_fee_percent = double(0.25);
 
 /* Limit on total amount this module will expend on all rebalances,
  * as a percent of the channel capacity.  */
-auto constexpr max_in_expenditures_percent = double(0.1); // 10mBTC * 0.001 = 1000 sats
+auto constexpr max_in_expenditures_percent = double(0.04); // 10mBTC * 0.0004 = 400 sats
 
 }
 

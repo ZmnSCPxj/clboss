@@ -1,29 +1,27 @@
 #include"Sha256/Hash.hpp"
 #include"Sha256/Hasher.hpp"
 #include"Util/make_unique.hpp"
-#include<sodium/crypto_hash_sha256.h>
+#include<crypto/sha256.h>
 #include<sodium/utils.h>
 
 namespace Sha256 {
 
 class Hasher::Impl {
 private:
-	crypto_hash_sha256_state s;
+	CSHA256 s;
 
 public:
-	Impl() {
-		crypto_hash_sha256_init(&s);
-	}
+	Impl() { }
 	~Impl() {
 		sodium_memzero(&s, sizeof(s));
 	}
 	Impl(Impl const&) =default;
 
 	void feed(void const* p, std::size_t len) {
-		crypto_hash_sha256_update(&s, (unsigned char const*) p, len);
+		s.Write((const unsigned char*) p, len);
 	}
 	void finalize(std::uint8_t buff[32]) {
-		crypto_hash_sha256_final(&s, buff);
+		s.Finalize((unsigned char *) buff);
 	}
 };
 

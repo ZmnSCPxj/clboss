@@ -451,10 +451,12 @@ libclboss_la_SOURCES = \
 
 libclboss_la_LIBADD = \
 	external/bitcoin-ripemd160/libbitcoin-ripemd160.la \
+	external/bitcoin-sha256/libbitcoin-sha256.la \
 	external/libsodium/src/libsodium/libsodium.la \
 	external/secp256k1/libsecp256k1.la
 libclboss_la_CPPFLAGS = \
 	-I$(top_srcdir)/external/bitcoin-ripemd160/ \
+	-I$(top_srcdir)/external/bitcoin-sha256/ \
 	-I$(top_srcdir)/external/libsodium/src/libsodium/include/ \
 	-I$(top_srcdir)/external/secp256k1/include/ \
 	-I$(top_srcdir)/external/jsmn
@@ -465,6 +467,7 @@ dev_boltz_CPPFLAGS = \
 # Externals
 SUBDIRS = \
 	external/bitcoin-ripemd160 \
+	external/bitcoin-sha256 \
 	external/libsodium/ \
 	external/secp256k1/
 EXTRA_DIST = \

@@ -58,6 +58,7 @@
 #include"Boss/Mod/SwapManager.hpp"
 #include"Boss/Mod/TimerTwiceDailyAnnouncer.hpp"
 #include"Boss/Mod/Timers.hpp"
+#include"Boss/Mod/UnmanagedManager.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Mod/all.hpp"
 #include<vector>
@@ -181,6 +182,9 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<JitRebalancer>(bus);
 	all->install<InitialRebalancer>(bus);
 	all->install<EarningsRebalancer>(bus);
+
+	/* Unmanaged nodes.  */
+	all->install<UnmanagedManager>(bus);
 
 	return all;
 }

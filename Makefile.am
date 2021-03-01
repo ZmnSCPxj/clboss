@@ -211,6 +211,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/TimerTwiceDailyAnnouncer.hpp \
 	Boss/Mod/Timers.cpp \
 	Boss/Mod/Timers.hpp \
+	Boss/Mod/UnmanagedManager.cpp \
+	Boss/Mod/UnmanagedManager.hpp \
 	Boss/Mod/Waiter.cpp \
 	Boss/Mod/Waiter.hpp \
 	Boss/Mod/all.cpp \
@@ -266,6 +268,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ProvideHtlcAcceptedDeferrer.hpp \
 	Boss/Msg/ProvideStatus.hpp \
 	Boss/Msg/ProvideSwapQuotation.hpp \
+	Boss/Msg/ProvideUnmanagement.hpp \
 	Boss/Msg/ReleaseHtlcAccepted.hpp \
 	Boss/Msg/RequestChannelCreation.hpp \
 	Boss/Msg/RequestConnect.hpp \
@@ -297,6 +300,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/SolicitHtlcAcceptedDeferrer.hpp \
 	Boss/Msg/SolicitStatus.hpp \
 	Boss/Msg/SolicitSwapQuotation.hpp \
+	Boss/Msg/SolicitUnmanagement.hpp \
 	Boss/Msg/StatusListpays.hpp \
 	Boss/Msg/SwapCreation.hpp \
 	Boss/Msg/SwapRequest.hpp \
@@ -490,6 +494,7 @@ TESTS = \
 	tests/boss/test_reqresp \
 	tests/boss/test_rpc \
 	tests/boss/test_swapmanager \
+	tests/boss/test_unmanagedmanager \
 	tests/boss/test_version \
 	tests/boss/test_waiter_timed \
 	tests/dnsseed/test_decode_bech32_node \

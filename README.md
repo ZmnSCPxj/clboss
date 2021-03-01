@@ -222,10 +222,18 @@ which has two parameters, `nodeid` and `tags`.
 
     lightning-cli clboss-unmanage ${NODEID} lnfee
 
+After the above command, you can set the fee manually with
+the normal C-Lightning `setchannelfee` command.
+
 The second parameter, `tags`, is a string containing a
 comma-separated set of unmanagement tags.
-After this, you can ste the fee manually with the normal
-C-Lightning `setchannelfee` command.
+For example, you can require that opening channels to a
+particular node is done only by your manual intervention,
+even if CLBOSS decides later that opening channels to that
+node is a good idea, and also require that CLBOSS not set
+channel fees automatically:
+
+    lightning-cli clboss-unmanage ${NODEID} lnfee,open
 
 To resume full management of the node, give an empty string:
 
@@ -235,6 +243,7 @@ The possible unmanagement tags are:
 
 * `lnfee` - Do not manage the channel fee of channels to this
   node.
+* `open` - Do not automatically open channels to this node.
 
 ### `--clboss-min-onchain=<satoshis>`
 

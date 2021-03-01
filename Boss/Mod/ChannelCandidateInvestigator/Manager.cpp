@@ -9,14 +9,15 @@
 #include"Boss/Msg/ProposeChannelCandidates.hpp"
 #include"Boss/Msg/ProposePatronlessChannelCandidate.hpp"
 #include"Boss/Msg/ProvideStatus.hpp"
+#include"Boss/Msg/ProvideUnmanagement.hpp"
 #include"Boss/Msg/SolicitChannelCandidates.hpp"
 #include"Boss/Msg/SolicitStatus.hpp"
+#include"Boss/Msg/SolicitUnmanagement.hpp"
 #include"Boss/Msg/TimerRandomHourly.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
 #include"Ev/map.hpp"
-#include"Ln/NodeId.hpp"
 #include"S/Bus.hpp"
 #include"Sqlite3.hpp"
 #include<algorithm>
@@ -80,9 +81,35 @@ void Manager::start() {
 			return Ev::lift();
 		});
 	});
-	/* When a new candidate is proposed, add it.  */
+	/* Allow disabling management of opening to particular nodes.  */
+	bus.subscribe< Msg::SolicitUnmanagement
+		     >([this](Msg::SolicitUnmanagement const& _) {
+		return bus.raise(Msg::ProvideUnmanagement{
+			"open", [this](Ln::NodeId const& n, bool u) {
+				if (u) {
+					unmanaged.insert(n);
+					return db.transact().then([this, n](Sqlite3::Tx tx) {
+						secretary.remove_candidate(tx, n);
+						tx.commit();
+						return Ev::lift();
+					});
+				} else {
+					unmanaged.erase(unmanaged.find(n));
+					return Ev::lift();
+				}
+			}
+		});
+	});
+	/* When a new candidate is proposed, add it, unless it is unmanaged.  */
 	bus.subscribe<Msg::ProposeChannelCandidates
 		     >([this](Msg::ProposeChannelCandidates const& c) {
+		if (unmanaged.count(c.proposal) != 0)
+			return Boss::log( bus, Info
+					, "ChannelCandidateInvestigator: %s "
+					  "proposed as channel cadidate, but it is unmanaged "
+					  "by \"open\", will reject candidacy."
+					, std::string(c.proposal).c_str()
+					);
 		return db.transact().then([this, c](Sqlite3::Tx tx) {
 			secretary.add_candidate(tx, c);
 			tx.commit();

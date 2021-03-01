@@ -209,6 +209,33 @@ In any case, `clboss-ignore-onchain` is temporary and even
 if you forget to issue `clboss-notice-onchain` CLBOSS will
 resume managing onchain funds at some point.
 
+### `clboss-unmanage`
+
+Continuing with the previous user story, suppose after the
+channel has been established, as a favor to your friend you
+decide not to charge LN fees towards their node.
+
+Normally CLBOSS will automatically manage LN fees for every
+channel.
+To suppress this, you can use the `clboss-unmanage` command,
+which has two parameters, `nodeid` and `tags`.
+
+    lightning-cli clboss-unmanage ${NODEID} lnfee
+
+The second parameter, `tags`, is a string containing a
+comma-separated set of unmanagement tags.
+After this, you can ste the fee manually with the normal
+C-Lightning `setchannelfee` command.
+
+To resume full management of the node, give an empty string:
+
+    lightning-cli clboss-unmanage ${NODEID} ""
+
+The possible unmanagement tags are:
+
+* `lnfee` - Do not manage the channel fee of channels to this
+  node.
+
 ### `--clboss-min-onchain=<satoshis>`
 
 Pass this option to `lightningd` in order to specify a target

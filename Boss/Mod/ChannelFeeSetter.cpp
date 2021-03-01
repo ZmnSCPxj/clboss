@@ -1,12 +1,16 @@
 #include"Boss/Mod/ChannelFeeSetter.hpp"
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/Msg/Init.hpp"
+#include"Boss/Msg/ProvideUnmanagement.hpp"
+#include"Boss/Msg/SolicitUnmanagement.hpp"
 #include"Boss/concurrent.hpp"
+#include"Boss/log.hpp"
 #include"Ev/Io.hpp"
 #include"Ev/foreach.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
 #include"S/Bus.hpp"
+#include<inttypes.h>
 
 namespace Boss { namespace Mod {
 
@@ -29,9 +33,30 @@ void ChannelFeeSetter::start() {
 		}
 		return set(m);
 	});
+	bus.subscribe< Msg::SolicitUnmanagement
+		     >([this](Msg::SolicitUnmanagement const& _) {
+		return bus.raise(Msg::ProvideUnmanagement{
+			"lnfee", [this](Ln::NodeId const& n, bool flag) {
+				if (flag)
+					unmanaged.insert(n);
+				else
+					unmanaged.erase(unmanaged.find(n));
+				return Ev::lift();
+			}
+		});
+	});
 }
 
 Ev::Io<void> ChannelFeeSetter::set(Msg::SetChannelFee const& m) {
+	if (unmanaged.count(m.node) != 0)
+		return Boss::log( bus, Debug
+				, "ChannelFeeSetter: %s not managed by \"lnfee\"; "
+				  "would have set b=%" PRIu32 ", p=%" PRIu32 "."
+				, std::string(m.node).c_str()
+				, m.base
+				, m.proportional
+				);
+
 	auto parms = Json::Out()
 		.start_object()
 			.field("id", std::string(m.node))

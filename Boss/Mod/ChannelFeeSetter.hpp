@@ -2,7 +2,9 @@
 #define BOSS_MOD_CHANNELFEESETTER_HPP
 
 #include"Boss/Msg/SetChannelFee.hpp"
+#include"Ln/NodeId.hpp"
 #include<queue>
+#include<set>
 
 namespace Boss { namespace Mod { class Rpc; }}
 namespace Ev { template<typename a> class Io; }
@@ -25,6 +27,8 @@ private:
 	void start();
 	Ev::Io<void> set(Boss::Msg::SetChannelFee const& m);
 
+	std::set<Ln::NodeId> unmanaged;
+
 public:
 	ChannelFeeSetter() =delete;
 	ChannelFeeSetter(ChannelFeeSetter&&) =delete;
@@ -34,6 +38,7 @@ public:
 	ChannelFeeSetter(S::Bus& bus_
 			) : bus(bus_)
 			  , rpc(nullptr)
+			  , unmanaged()
 			  { start(); }
 };
 

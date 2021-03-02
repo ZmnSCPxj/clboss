@@ -466,6 +466,7 @@ dev_boltz_CPPFLAGS = \
 
 # Externals
 SUBDIRS = \
+	external/basicsecure \
 	external/bitcoin-ripemd160 \
 	external/bitcoin-sha256 \
 	external/libsodium/ \

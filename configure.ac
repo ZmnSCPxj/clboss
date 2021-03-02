@@ -68,7 +68,8 @@ AC_CONFIG_FILES([Makefile
 		 external/bitcoin-ripemd160/Makefile
 		 external/bitcoin-sha256/Makefile
 		])
-AC_CONFIG_SUBDIRS([external/libsodium
+AC_CONFIG_SUBDIRS([external/basicsecure
+		   external/libsodium
 		   external/secp256k1
 		  ])
 

@@ -2,8 +2,7 @@
 #include"Util/make_unique.hpp"
 #include"Uuid.hpp"
 #include<algorithm>
-#include<sodium/randombytes.h>
-#include<sodium/utils.h>
+#include<basicsecure.h>
 #include<stdexcept>
 
 namespace {
@@ -15,20 +14,20 @@ std::uint8_t const zero[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 Uuid Uuid::random() {
 	auto rv = Uuid();
 	rv.pimpl = Util::make_unique<Impl>();
-	randombytes_buf(rv.pimpl->data, sizeof(rv.pimpl->data));
+	BASICSECURE_RAND(rv.pimpl->data, sizeof(rv.pimpl->data));
 	return rv;
 }
 
 bool Uuid::operator==(Uuid const& o) const {
 	auto a = pimpl ? pimpl->data : zero;
 	auto b = o.pimpl ? o.pimpl->data : zero;
-	return 0 == sodium_memcmp(a, b, 16);
+	return basicsecure_eq(a, b, 16);
 }
 
 Uuid::operator bool() const {
 	if (!pimpl)
 		return false;
-	return 0 != sodium_memcmp(pimpl->data, zero, 16);
+	return !basicsecure_eq(pimpl->data, zero, 16);
 }
 
 Uuid::operator std::string() const {

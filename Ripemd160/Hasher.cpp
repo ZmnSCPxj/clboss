@@ -1,8 +1,8 @@
 #include"Ripemd160/Hash.hpp"
 #include"Ripemd160/Hasher.hpp"
 #include"Util/make_unique.hpp"
+#include<basicsecure.h>
 #include<crypto/ripemd160.h>
-#include<sodium/utils.h>
 
 namespace Ripemd160 {
 
@@ -13,7 +13,7 @@ private:
 public:
 	Impl() : hasher() { }
 	~Impl() {
-		sodium_memzero(&hasher, sizeof(hasher));
+		basicsecure_clear(&hasher, sizeof(hasher));
 	}
 	void feed(void const* p, std::size_t size) {
 		hasher.Write((unsigned char const*) p, size);
@@ -41,7 +41,7 @@ Ripemd160::Hash Hasher::finalize()&& {
 	pimpl = nullptr;
 
 	auto tmp = Ripemd160::Hash(buf);
-	sodium_memzero(buf, sizeof(buf));
+	basicsecure_clear(buf, sizeof(buf));
 	return tmp;
 }
 Ripemd160::Hash Hasher::get() const {

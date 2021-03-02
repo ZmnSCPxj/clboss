@@ -1,7 +1,7 @@
 #include<assert.h>
+#include<basicsecure.h>
 #include<iomanip>
 #include<secp256k1.h>
-#include<sodium/utils.h>
 #include<sstream>
 #include<stdexcept>
 #include<string>
@@ -55,7 +55,7 @@ PrivKey::PrivKey(PrivKey const& o) {
 }
 
 PrivKey::~PrivKey() {
-	sodium_memzero(key, sizeof(key));
+	basicsecure_clear(key, sizeof(key));
 }
 
 PrivKey& PrivKey::negate() {
@@ -81,7 +81,7 @@ PrivKey& PrivKey::operator*=(PrivKey const& o) {
 }
 
 bool PrivKey::operator==(PrivKey const& o) const {
-	return 0 == sodium_memcmp(key, o.key, sizeof(key));
+	return basicsecure_eq(key, o.key, sizeof(key));
 }
 
 }

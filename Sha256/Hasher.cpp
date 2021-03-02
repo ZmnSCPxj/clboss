@@ -1,8 +1,8 @@
 #include"Sha256/Hash.hpp"
 #include"Sha256/Hasher.hpp"
 #include"Util/make_unique.hpp"
+#include<basicsecure.h>
 #include<crypto/sha256.h>
-#include<sodium/utils.h>
 
 namespace Sha256 {
 
@@ -13,7 +13,7 @@ private:
 public:
 	Impl() { }
 	~Impl() {
-		sodium_memzero(&s, sizeof(s));
+		basicsecure_clear(&s, sizeof(s));
 	}
 	Impl(Impl const&) =default;
 
@@ -50,7 +50,7 @@ Sha256::Hash Hasher::finalize()&& {
 	pimpl = nullptr;
 
 	auto tmp = Sha256::Hash(buff);
-	sodium_memzero(buff, sizeof(buff));
+	basicsecure_clear(buff, sizeof(buff));
 
 	return tmp;
 }

@@ -19,10 +19,10 @@
 #include"Sqlite3/Db.hpp"
 #include"Util/make_unique.hpp"
 #include<algorithm>
+#include<basicsecure.h>
 #include<iomanip>
 #include<iostream>
 #include<iterator>
-#include<sodium/utils.h>
 #include<sstream>
 #include<string>
 #include<vector>
@@ -115,7 +115,7 @@ public:
 		std::uint8_t buf[32];
 		sk.to_buffer(buf);
 		hasher.feed(buf, 32);
-		sodium_memzero(buf, sizeof(buf));
+		basicsecure_clear(buf, sizeof(buf));
 		return std::move(hasher).finalize();
 	}
 };

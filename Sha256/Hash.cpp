@@ -1,6 +1,6 @@
 #include"Sha256/Hash.hpp"
 #include"Util/Str.hpp"
-#include<sodium/utils.h>
+#include<basicsecure.h>
 #include<stdexcept>
 
 namespace {
@@ -33,12 +33,12 @@ Hash::operator bool() const {
 	if (!pimpl)
 		return false;
 
-	return 0 != sodium_memcmp(zero, pimpl->d, 32);
+	return !basicsecure_eq(zero, pimpl->d, 32);
 }
 bool Hash::operator==(Hash const& i) const {
 	auto a = pimpl ? pimpl->d : zero;
 	auto b = i.pimpl ? i.pimpl->d : zero;
-	return 0 == sodium_memcmp(a, b, 32);
+	return basicsecure_eq(a, b, 32);
 }
 
 }

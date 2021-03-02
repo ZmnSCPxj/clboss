@@ -11,9 +11,9 @@
 #include"Util/Rw.hpp"
 #include"Util/make_unique.hpp"
 #include"Util/stringify.hpp"
+#include<basicsecure.h>
 #include<errno.h>
 #include<fcntl.h>
-#include<sodium/utils.h>
 #include<stdexcept>
 #include<string.h>
 #include<sys/stat.h>
@@ -51,7 +51,7 @@ public:
 		std::uint8_t buf[32];
 		sk.to_buffer(buf);
 		hasher.feed(buf, 32);
-		sodium_memzero(buf, sizeof(buf));
+		basicsecure_clear(buf, sizeof(buf));
 		return std::move(hasher).finalize();
 	}
 };

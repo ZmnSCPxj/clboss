@@ -6,7 +6,7 @@
 #include"Sha256/Hash.hpp"
 #include"Sha256/fun.hpp"
 #include"Util/Str.hpp"
-#include<sodium/utils.h>
+#include<basicsecure.h>
 #include<stdexcept>
 
 namespace {
@@ -43,12 +43,12 @@ Preimage::operator std::string() const {
 bool Preimage::operator==(Preimage const& o) const {
 	auto a = pimpl ? pimpl->data : zero;
 	auto b = o.pimpl ? o.pimpl->data : zero;
-	return 0 == sodium_memcmp(a, b, 32);
+	return basicsecure_eq(a, b, 32);
 }
 Preimage::operator bool() const {
 	if (!pimpl)
 		return false;
-	return 0 != sodium_memcmp(pimpl->data, zero, 32);
+	return !basicsecure_eq(pimpl->data, zero, 32);
 }
 
 Sha256::Hash Preimage::sha256() const {

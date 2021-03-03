@@ -68,6 +68,13 @@ void Manager::start() {
 		/* Initialize the database.  */
 		return db.transact().then([this](Sqlite3::Tx tx) {
 			secretary.initialize(tx);
+
+			/* We got the db just now, so handle
+			 * any pending unmanagement.
+			 */
+			for (auto const& n : unmanaged)
+				secretary.remove_candidate(tx, n);
+
 			/* Get number of good candidates.  */
 			auto good_candidates =
 				secretary.get_nonnegative_candidates_count(tx);
@@ -88,6 +95,15 @@ void Manager::start() {
 			"open", [this](Ln::NodeId const& n, bool u) {
 				if (u) {
 					unmanaged.insert(n);
+					/* This can happen at initialize,
+					 * at which point we do not have
+					 * access to the db yet.
+					 * If so, just return; `Init`
+					 * handling will handle unmanaged
+					 * nodes when it gets the db.
+					 */
+					if (!db)
+						return Ev::lift();
 					return db.transact().then([this, n](Sqlite3::Tx tx) {
 						secretary.remove_candidate(tx, n);
 						tx.commit();

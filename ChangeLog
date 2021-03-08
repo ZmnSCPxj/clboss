@@ -1,3 +1,4 @@
+- Remove `libsodium` library, instead use SHA256 implementation from Bitcoin and our own code for basic securtiy issues.
 - Add `clboss-unmanage` command to suppress certain aspects of auto-management.
 - Fix `InitialRebalancer` bug (introduced in 0.11A) which completely disables it instead of throttling it.
 

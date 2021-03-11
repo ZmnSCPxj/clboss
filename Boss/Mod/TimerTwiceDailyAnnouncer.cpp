@@ -65,9 +65,9 @@ private:
 				if (prevtime + half_day < now) {
 					tx.query(R"QRY(
 					UPDATE "TimerTwiceDailyAnnouncer"
-					   SET prevtime = :prevtime;
+					   SET prevtime = :now;
 					)QRY")
-						.bind(":prevtime", prevtime)
+						.bind(":now", now)
 						.execute()
 						;
 					act = Boss::concurrent(raise());

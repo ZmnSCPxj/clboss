@@ -63,7 +63,7 @@ auto constexpr initial_price = std::int64_t(0);
  * change will only be put in play when a game is
  * finished and new cards are created for a new game.
  */
-auto constexpr initial_lifetime = std::uint64_t(216);
+auto constexpr initial_lifetime = std::uint64_t(288);
 
 /* Maximum step around the center that we will
  * try.

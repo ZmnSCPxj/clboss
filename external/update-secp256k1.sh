@@ -2,7 +2,7 @@
 
 REPO="https://github.com/bitcoin-core/secp256k1"
 EXTNAME="secp256k1"
-COMMIT="856a01d"
+COMMIT="4c3ba88"
 
 DIR=`mktemp -d`
 

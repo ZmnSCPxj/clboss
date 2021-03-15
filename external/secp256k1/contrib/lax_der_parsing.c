@@ -1,8 +1,8 @@
-/**********************************************************************
- * Copyright (c) 2015 Pieter Wuille                                   *
- * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
- **********************************************************************/
+/***********************************************************************
+ * Copyright (c) 2015 Pieter Wuille                                    *
+ * Distributed under the MIT software license, see the accompanying    *
+ * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
+ ***********************************************************************/
 
 #include <string.h>
 #include <secp256k1.h>
@@ -112,7 +112,6 @@ int ecdsa_signature_parse_der_lax(const secp256k1_context* ctx, secp256k1_ecdsa_
         return 0;
     }
     spos = pos;
-    pos += slen;
 
     /* Ignore leading zeroes in R */
     while (rlen > 0 && input[rpos] == 0) {

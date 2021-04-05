@@ -22,12 +22,27 @@ auto const default_reserve = Ln::Amount::sat(30000);
 auto const needs_reserve = Ln::Amount::sat(30000);
 /* How much minimum funds to put in channels.  */
 auto const min_amount = Ln::Amount::btc(0.010);
+/* How much we are willing to emit as "needs onchain".  */
+auto const max_needs_onchain = Ln::Amount::btc(0.010);
 
+/* If our onchain funds are below this % of our total, hold off on
+ * creating channels.
+ */
+auto const onchain_percent_min = double(10);
 /* If high fees, if onchain funds is more than this percent of
  * total funds, create channels.
  * If below this, wait for low-fee region.
  */
 auto const onchain_percent_max = double(25);
+
+/* If onchain funds are above or equal to this amount, but in
+ * onchain-percent terms is below onchain_percent_min, create
+ * channels anyway --- the channels are going to be fairly
+ * large still, so okay even if below onchain_percent_min.
+ * This only comes into play for really rich nodes with
+ * 1.6777215 BTC or more.
+ */
+auto const max_onchain_holdoff = Ln::Amount::sat(16777215);
 
 }
 
@@ -108,16 +123,26 @@ private:
 		/* Get this trigger.  */
 		auto onchain = std::move(saved_onchain);
 
+		/* How much total money do we have anyway?  */
+		auto total = *channels + *onchain;
+
 		/* Is the amount the reserve?  */
 		if (*onchain <= reserve)
 			/* Do nothing and be silent.  */
 			return decide_do_nothing_silently();
 
+		/* What is our minimum channeling amount?  */
+		auto target = total * (onchain_percent_min / 100.0);
+		if (target < min_amount)
+			target = min_amount;
+		if (target > max_onchain_holdoff)
+			target = max_onchain_holdoff;
+		/* Make sure to add the reserve!  */
+		target += reserve;
 		/* Below our minimum channeling amount?  */
-		if (*onchain < min_amount + reserve) {
+		if (*onchain < target) {
 			/* Add the needs_reserve here because fees.  */
-			auto more = ( min_amount
-				    + reserve
+			auto more = ( target
 				    + needs_reserve
 				    )
 				  - *onchain
@@ -127,9 +152,21 @@ private:
 			 * redeem your money" scam.  */
 			return decide( std::string("Onchain amount too low, ")
 				     + "add " + Util::stringify(more_btc)
-				     + " or more"
+				     + " or more before we create channels"
 				     , nullptr
 				     ).then([this, more]() {
+				if (more > max_needs_onchain) {
+					return Boss::log( bus, Debug
+							, "ChannelCreationDecider: "
+							  "We need %s, which is "
+							  "greater than our limit of "
+							  "%s; will NOT move funds "
+							  "from channels to onchain."
+							, std::string(more).c_str()
+							, std::string(max_needs_onchain)
+								.c_str()
+							);
+				}
 				/* And tell everyone about the
 				 * missingfunds.  */
 				return bus.raise(Msg::NeedsOnchainFunds{
@@ -141,7 +178,6 @@ private:
 		if (*low_fee)
 			return decide("Low fees now", std::move(onchain));
 
-		auto total = *channels + *onchain;
 		auto onchain_percent = (*onchain / total) * 100;
 		if (onchain_percent > onchain_percent_max)
 			return decide( std::string("High fees, but ")

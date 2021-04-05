@@ -1,6 +1,7 @@
 #undef NDEBUG
 #include"Boss/Mod/ChannelCreationDecider.hpp"
 #include"Boss/Msg/ChannelFunds.hpp"
+#include"Boss/Msg/NeedsOnchainFunds.hpp"
 #include"Boss/Msg/OnchainFee.hpp"
 #include"Boss/Msg/OnchainFunds.hpp"
 #include"Boss/Msg/RequestChannelCreation.hpp"
@@ -25,6 +26,13 @@ int main() {
 		     >([&create_amount
 		       ](Boss::Msg::RequestChannelCreation const& rcc) {
 		create_amount = Util::make_unique<Ln::Amount>(rcc.amount);
+		return Ev::lift();
+	});
+	auto needs_funds = std::unique_ptr<Ln::Amount>();
+	bus.subscribe< Boss::Msg::NeedsOnchainFunds
+		     >([&needs_funds
+		       ](Boss::Msg::NeedsOnchainFunds const& nof) {
+		needs_funds = Util::make_unique<Ln::Amount>(nof.needed);
 		return Ev::lift();
 	});
 
@@ -120,6 +128,37 @@ int main() {
 		return onchain_funds(Ln::Amount::sat(547));;
 	}).then([&]() {
 		assert(!create_amount);
+
+		/* If we have a good amount of channel funds and
+		 * a comparatively small amount of onchain funds,
+		 * do not create.
+		 * Also, do not ask for more onchain funds as we
+		 * that can be very difficult to arrange.
+		 */
+		create_amount = nullptr;
+		needs_funds = nullptr;
+		return onchain_fee(LOW_FEE);
+	}).then([&]() {
+		return channel_funds(Ln::Amount::btc(20.0));
+	}).then([&]() {
+		return onchain_funds(Ln::Amount::btc(0.02));
+	}).then([&]() {
+		assert(!create_amount);
+		assert(!needs_funds);
+
+		/* Like the above, but the onchain funds are
+		 * substantial enough that they would still
+		 * make good channels anyway.  */
+		create_amount = nullptr;
+		needs_funds = nullptr;
+		return onchain_fee(LOW_FEE);
+	}).then([&]() {
+		return channel_funds(Ln::Amount::btc(200.0));
+	}).then([&]() {
+		return onchain_funds(Ln::Amount::btc(0.2));
+	}).then([&]() {
+		assert(create_amount);
+		assert(!needs_funds);
 
 		return Ev::lift(0);
 	});

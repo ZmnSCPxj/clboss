@@ -25,7 +25,7 @@ namespace {
 
 /* Minimum and maximum channel size.  */
 auto const min_amount = Ln::Amount::btc(0.005);
-auto const max_amount = Ln::Amount::btc(0.160);
+auto const max_amount = Ln::Amount::sat(16777215);
 /* If it is difficult to fit the amount among multiple
  * proposals, how much should we target leaving until
  * next time?

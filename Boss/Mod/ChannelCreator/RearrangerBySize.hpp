@@ -20,7 +20,7 @@ namespace Boss { namespace Mod { namespace ChannelCreator {
 class RearrangerBySize {
 private:
 	class Impl;
-	std::unique_ptr<Impl> pimpl;
+	std::shared_ptr<Impl> pimpl;
 
 public:
 	RearrangerBySize() =delete;

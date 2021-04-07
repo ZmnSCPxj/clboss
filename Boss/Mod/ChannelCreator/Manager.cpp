@@ -2,6 +2,7 @@
 #include"Boss/Mod/ChannelCreator/Carpenter.hpp"
 #include"Boss/Mod/ChannelCreator/Manager.hpp"
 #include"Boss/Mod/ChannelCreator/Planner.hpp"
+#include"Boss/Mod/ChannelCreator/RearrangerBySize.hpp"
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/RequestChannelCreation.hpp"
@@ -9,6 +10,7 @@
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Ev/Io.hpp"
+#include"Ev/memoize.hpp"
 #include"Ev/yield.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
@@ -93,6 +95,36 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 	auto num_chans = std::make_shared<std::size_t>();
 	auto plan = std::make_shared<std::map<Ln::NodeId, Ln::Amount>>();
 
+	/* Construct the dowser function.  */
+	auto base_dowser_func = [this]( Ln::NodeId proposal
+				      , Ln::NodeId patron
+				      ) {
+		auto amount = std::make_shared<Ln::Amount>();
+
+		return Ev::lift().then([this, proposal, patron]() {
+			return dowser.execute(Msg::RequestDowser{
+				nullptr, proposal, patron
+			});
+		}).then([this
+			, amount
+			, proposal
+			, patron
+			](Msg::ResponseDowser resp) {
+			*amount = resp.amount;
+			return Boss::log( bus, Debug
+					, "ChannelCreator: "
+					  "Propose %s to %s "
+					  "(patron %s)"
+					, std::string(*amount).c_str()
+					, std::string(proposal).c_str()
+					, std::string(patron).c_str()
+					);
+		}).then([amount]() {
+			return Ev::lift(*amount);
+		});
+	};
+	auto dowser_func = Ev::memoize(std::move(base_dowser_func));
+
 	return Ev::lift().then([this]() {
 		return Boss::log( bus, Debug
 				, "ChannelCreator: Triggered."
@@ -106,40 +138,26 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 			   + (double)info["num_active_channels"]
 			   ;
 		return investigator.get_channel_candidates();
+	}).then([ dowser_func
+		](std::vector<std::pair<Ln::NodeId, Ln::NodeId>> proposals) {
+		auto rearranger = RearrangerBySize(dowser_func);
+
+		/* First, rearrange slightly perturbs the given order of
+		 * proposals, letting a higher-capacity proposal go up in
+		 * priority.
+		 */
+		return rearranger.rearrange_by_size(proposals);
 	}).then([this](std::vector<std::pair<Ln::NodeId, Ln::NodeId>> proposals) {
+		/* Then, we reprioritze according to IP binning, greatly
+		 * reducing the chance that we will create channels to
+		 * nodes with similar locations.
+		 */
 		return reprioritize(std::move(proposals));
 	}).then([ this
 		, num_chans
 		, amt
+		, dowser_func
 		](std::vector<std::pair<Ln::NodeId, Ln::NodeId>> proposals) {
-		/* Construct the dowser function.  */
-		auto dowser_func = [this]( Ln::NodeId proposal
-					 , Ln::NodeId patron
-					 ) {
-			auto amount = std::make_shared<Ln::Amount>();
-
-			return Ev::lift().then([this, proposal, patron]() {
-				return dowser.execute(Msg::RequestDowser{
-					nullptr, proposal, patron
-				});
-			}).then([this
-				, amount
-				, proposal
-				, patron
-				](Msg::ResponseDowser resp) {
-				*amount = resp.amount;
-				return Boss::log( bus, Debug
-						, "ChannelCreator: "
-						  "Propose %s to %s "
-						  "(patron %s)"
-						, std::string(*amount).c_str()
-						, std::string(proposal).c_str()
-						, std::string(patron).c_str()
-						);
-			}).then([amount]() {
-				return Ev::lift(*amount);
-			});
-		};
 		auto planner = Planner( std::move(dowser_func)
 				      , amt
 				      , std::move(proposals)

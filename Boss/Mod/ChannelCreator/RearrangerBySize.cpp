@@ -3,7 +3,6 @@
 #include"Ev/map.hpp"
 #include"Ln/Amount.hpp"
 #include"Ln/NodeId.hpp"
-#include"Util/make_unique.hpp"
 #include<algorithm>
 #include<iterator>
 
@@ -83,14 +82,22 @@ RearrangerBySize::RearrangerBySize(RearrangerBySize&&) =default;
 RearrangerBySize::~RearrangerBySize() =default;
 
 RearrangerBySize::RearrangerBySize( DowserFunc dowser_func)
-	: pimpl(Util::make_unique<Impl>(std::move(dowser_func))) { }
+	: pimpl(std::make_shared<Impl>(std::move(dowser_func))) { }
 
 
 Ev::Io<std::vector<std::pair<Ln::NodeId, Ln::NodeId>>>
 RearrangerBySize::rearrange_by_size(std::vector< std::pair< Ln::NodeId
 							  , Ln::NodeId
 							  >> proposals) {
-	return pimpl->rearrange_by_size(std::move(proposals));
+	/* Make a copy of our implementation.*/
+	auto my_pimpl = pimpl;
+	return Ev::lift().then([my_pimpl, proposals]() {
+		return my_pimpl->rearrange_by_size(proposals);
+	}).then([ my_pimpl
+		](std::vector<std::pair<Ln::NodeId, Ln::NodeId>> res) {
+		/* This function just keeps my_pimpl alive.  */
+		return Ev::lift(std::move(res));
+	});
 }
 
 }}}

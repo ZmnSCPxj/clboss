@@ -491,6 +491,7 @@ TESTS = \
 	tests/boss/test_channelcreationdecider \
 	tests/boss/test_channelcreator_planner \
 	tests/boss/test_channelcreator_reprioritizer \
+	tests/boss/test_initialrebalancer \
 	tests/boss/test_needsconnectsolicitor \
 	tests/boss/test_onchainfeemonitor_samples_init \
 	tests/boss/test_peerstatistician \
@@ -530,6 +531,10 @@ TESTS = \
 check_PROGRAMS = $(TESTS)
 
 if USE_VALGRIND
+# This test replicates a use-after-free bug that
+# is only detectable via VALGRIND.
+XFAIL_TESTS = tests/boss/test_initialrebalancer
+
 LOG_COMPILER = valgrind
 AM_LOG_FLAGS = --leak-check=full --error-exitcode=1
 endif

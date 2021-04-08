@@ -528,3 +528,8 @@ TESTS = \
 	tests/stats/test_weighted_median \
 	tests/test_uuid
 check_PROGRAMS = $(TESTS)
+
+if USE_VALGRIND
+LOG_COMPILER = valgrind
+AM_LOG_FLAGS = --leak-check=full --error-exitcode=1
+endif

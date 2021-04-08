@@ -20,6 +20,9 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 
+AX_VALGRIND_CHECK()
+AM_CONDITIONAL([USE_VALGRIND], [test x"$enable_valgrind" = xyes])
+
 # Checks for libraries.
 AX_PTHREAD([:],[
 	AC_MSG_ERROR([Need pthread.])

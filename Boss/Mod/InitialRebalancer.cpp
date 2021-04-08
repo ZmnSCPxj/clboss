@@ -132,7 +132,8 @@ public:
 	      { start(); }
 };
 
-class InitialRebalancer::Impl::Run::Impl {
+class InitialRebalancer::Impl::Run::Impl
+		: public std::enable_shared_from_this<Impl> {
 private:
 	S::Bus& bus;
 	Jsmn::Object peers;
@@ -404,9 +405,15 @@ private:
 					, std::string(amount).c_str()
 					, std::string(destination).c_str()
 					);
+			/* Since move_funds is performed concurrently, we
+			 * keep our self alive, otherwise we could be
+			 * deleted before move_funds completes.
+			 */
 			act += Boss::concurrent(move_funds( source
 							  , destination
 							  , amount
+							  /* Keep alive!  */
+							  , shared_from_this()
 							  ));
 		}
 		return act;
@@ -415,6 +422,7 @@ private:
 	Ev::Io<void> move_funds( Ln::NodeId const& source
 			       , Ln::NodeId const& destination
 			       , Ln::Amount amount
+			       , std::shared_ptr<Impl> self
 			       ) {
 		auto this_rebalance_fee = amount
 					* (rebalance_fee_percent / 100.0)
@@ -430,6 +438,13 @@ private:
 			assert(it != current_sources.end());
 			current_sources.erase(it);
 			return Ev::lift();
+
+			/* This only exists in order to ensure that
+			 * we are still alive after requesting the
+			 * transfer fo funds.
+			 */
+		}).then([self]() {
+			return Ev::lift();
 		});
 	}
 
@@ -444,6 +459,9 @@ public:
 	      , expense_rr(expense_rr_)
 	      , current_sources(current_sources_)
 	      { }
+	/* Make sure a shared pointer exists, since core_run uses
+	 * shared_from_this.
+	 */
 	static
 	Ev::Io<void> run(std::shared_ptr<Impl> self) {
 		return self->core_run().then([self]() {

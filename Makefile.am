@@ -531,10 +531,6 @@ TESTS = \
 check_PROGRAMS = $(TESTS)
 
 if USE_VALGRIND
-# This test replicates a use-after-free bug that
-# is only detectable via VALGRIND.
-XFAIL_TESTS = tests/boss/test_initialrebalancer
-
 LOG_COMPILER = valgrind
 AM_LOG_FLAGS = --leak-check=full --error-exitcode=1
 endif

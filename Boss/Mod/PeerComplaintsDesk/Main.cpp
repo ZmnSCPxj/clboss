@@ -7,7 +7,10 @@
 #include"Boss/Msg/ChannelDestruction.hpp"
 #include"Boss/Msg/DbResource.hpp"
 #include"Boss/Msg/Init.hpp"
+#include"Boss/Msg/ManifestOption.hpp"
+#include"Boss/Msg/Manifestation.hpp"
 #include"Boss/Msg/OnchainFee.hpp"
+#include"Boss/Msg/Option.hpp"
 #include"Boss/Msg/ProvideStatus.hpp"
 #include"Boss/Msg/RaisePeerComplaint.hpp"
 #include"Boss/Msg/RequestPeerMetrics.hpp"
@@ -26,6 +29,9 @@
 #include"Util/stringify.hpp"
 
 namespace {
+
+/* Whether this feature is enabled by default.  */
+auto constexpr default_enabled = bool(false);
 
 /* Maximum age, in seconds, to retain complaints.  */
 auto constexpr max_complaint_age = double(14 * 24 * 60 * 60);
@@ -50,6 +56,9 @@ private:
 	Exempter exempter;
 
 	S::Bus& bus;
+
+	bool enabled;
+
 	Sqlite3::Db db;
 
 	Boss::Mod::Rpc* rpc;
@@ -68,12 +77,40 @@ private:
 		     > metrics_rr;
 
 	void start() {
+		enabled = default_enabled;
 		rpc = nullptr;
 		soliciting = false;
 		should_close = false;
 		fees_low = false;
 		exempted_nodes.clear();
 		pending_complaints.clear();
+
+		/* Check if we are enabled.  */
+		bus.subscribe<Msg::Manifestation
+			     >([this](Msg::Manifestation const& _) {
+			return bus.raise(Msg::ManifestOption{
+				"clboss-auto-close", Msg::OptionType_Bool,
+				Json::Out::direct(default_enabled),
+				"Whether CLBOSS should automatically close "
+				"bad channels (EXPERIMENTAL).  "
+				"Set 'true' to enable, 'false' to disable."
+			});
+		});
+		bus.subscribe<Msg::Option
+			     >([this](Msg::Option const& o) {
+			if (o.name != "clboss-auto-close")
+				return Ev::lift();
+
+			enabled = bool(o.value);
+			if (enabled != default_enabled)
+				return Boss::log( bus, Info
+						, "PeerComplaintsDesk: "
+						  "Auto-close: %s."
+						, enabled ? "enabled" :
+							    "disabled"
+						);
+			return Ev::lift();
+		});
 
 		bus.subscribe<Msg::DbResource
 			     >([this](Msg::DbResource const& m) {
@@ -226,12 +263,18 @@ private:
 	}
 	Ev::Io<void> check_close() {
 		return Ev::lift().then([this]() {
-			if (!fees_low)
+			if (!fees_low) {
+				/* Do not spam logs if we are not enabled
+				 * anyway.  */
+				if (!enabled)
+					return Ev::lift();
+
 				return Boss::log( bus, Info
 						, "PeerComplaintsDesk: "
 						  "Fees are not known to be low, "
 						  "will not close high-complaints channels."
 						);
+			}
 			return actual_check_close();
 		});
 	}
@@ -245,7 +288,11 @@ private:
 			auto act = Ev::lift();
 			act += Boss::log( bus, Debug
 					, "PeerComplaintsDesk: "
-					  "Checking for channels to close."
+					  "Checking for channels to close.%s"
+					, enabled ? "" :
+						    "  (Auto-close is "
+						    "disabled, this is "
+						    "just practice)."
 					);
 
 			auto msg = std::string();
@@ -284,17 +331,28 @@ private:
 				else
 					msg += ", ";
 				msg += Util::stringify(p);
+
+				if (!enabled)
+					continue;
+
 				act += Boss::concurrent(close_channel(p));
 			}
 			if (!first)
-				act += Boss::log( bus, Info
-						, "PeerComplaintsDesk: Closing: %s"
+				act += Boss::log( bus
+						, enabled ? Info : Debug
+						, "PeerComplaintsDesk: %s: %s"
+						, enabled ? "Closing" :
+							    "Would have "
+							    "closed"
 						, msg.c_str()
 						);
 			return act;
 		});
 	}
 	Ev::Io<void> close_channel(Ln::NodeId const& p) {
+		if (!enabled)
+			return Ev::lift();
+
 		return Ev::lift().then([this, p]() {
 			auto parms = Json::Out()
 				.start_object()

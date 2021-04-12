@@ -149,16 +149,14 @@ int main() {
 	 * fails, the third with a cancellation of commands.  */
 	auto client_code = Ev::lift().then([&]() {
 		auto params = Json::Out();
-		auto arr = params
-			.start_object()
-				.start_array("arr")
-				;
-		for (auto i = size_t(0); i < 10000; ++i)
-			arr.entry((double)i);
-		arr
-				.end_array()
-			.end_object()
-			;
+		auto obj = params.start_object();
+		{
+			auto arr = params.start_array("arr");
+			for (auto i = size_t(0); i < 10000; ++i)
+				arr.entry((double)i);
+			arr.end_array();
+		}
+		obj.end_object();
 		return client.command("c1", params);
 	}).then([&](Jsmn::Object ignored_result) {
 		succeed_flag = true;

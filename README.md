@@ -263,3 +263,27 @@ to unilaterally close, so it is not recommended to set it to 0.
 The amount specified is a ballpark figure, and CLBOSS may leave
 slightly lower or slightly higher than this amount.
 
+### `--clboss-auto-close=<true|false>`
+
+This version of CLBOSS has ***EXPERIMENTAL*** code to monitor
+channels and close them if they are not good for your earnings.
+
+This monitoring can be seen in `clboss-status`, under the
+`peer_complaints` and `closed_peer_complaints` keys.
+
+As this feature is experimental, it is currently disabled by
+default.
+You can enable it by adding `clboss-auto-close=true` in your
+`lightningd` configuration.
+Even if it is disabled, this monitoring is still performed and
+reported in `clboss-status`, channels are simply not actually
+closed, but most of the algorithm is still running (so you can
+evaluate yourself if you agree with it and maybe enable it
+yourself later).
+
+Even if you have auto-closing enabled, you can use the
+`clboss-unmanage` command with key `close` to ensure that
+particular channels to particular nodes will not be auto-closed
+by CLBOSS (they may still be closed by `lightningd` due to an
+HTLC timeout, or by the peer for any reason, or by you; this
+just suppresses CLBOSS).

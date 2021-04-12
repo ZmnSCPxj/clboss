@@ -1,3 +1,4 @@
+- CLBOSS can now close bad channels.  Enable this ***EXPERIMENTAL*** feature by passing `--clboss-auto-close=true` option to `lightningd`.  If enabled, the `clboss-unmanage` command can disable this for particular peers using the `close` key.
 - Remove `libsodium` library, instead use SHA256 implementation from Bitcoin and our own code for basic securtiy issues.
 - Add `clboss-unmanage` command to suppress certain aspects of auto-management.
 - Fix `InitialRebalancer` bug (introduced in 0.11A) which completely disables it instead of throttling it.

@@ -1,0 +1,47 @@
+(use-modules (gnu packages autotools)
+             (gnu packages curl)
+             (gnu packages libevent)
+             (gnu packages pkg-config)
+             (gnu packages sqlite)
+             (guix build-system gnu)
+             (guix git-download)
+             ((guix licenses) #:prefix license:)
+             (guix packages)
+             (guix utils))
+
+(define clboss
+  (package
+    (name "clboss")
+    (version "@CLBOSS_COMMIT@")
+    (source
+      (origin
+        (method git-fetch)
+        (uri
+          (git-reference
+            (url "https://github.com/ZmnSCPxj/clboss.git")
+            (commit "@CLBOSS_COMMIT@")))
+        (file-name
+          (git-file-name name version))
+        (sha256
+          (base32 "@FILE_HASH@"))))
+    (build-system gnu-build-system)
+    (outputs '("out" "debug"))
+    (native-inputs
+      `(("autoconf" ,autoconf)
+        ("autoconf-archive" ,autoconf-archive)
+        ("automake" ,automake)
+        ("libtool" ,libtool)
+        ("pkg-config" ,pkg-config)))
+    (inputs
+      `(("libev" ,libev)
+        ("sqlite" ,sqlite)
+        ("curl" ,curl)))
+    (synopsis "Automated C-Lightning node manager")
+    (description "CLBOSS automatically manages a C-Lightning node for you,
+from connecting to the network to creating channels to setting channel fees.")
+    (home-page "https://github.com/ZmnSCPxj/clboss")
+    (license license:expat)))
+
+(packages->manifest
+  (list clboss
+        (list clboss "debug")))

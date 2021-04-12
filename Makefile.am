@@ -486,7 +486,10 @@ SUBDIRS = \
 	external/secp256k1/
 EXTRA_DIST = \
 	external/jsmn/LICENSE \
-	external/jsmn/jsmn.h
+	external/jsmn/jsmn.h \
+	reproducible/README.md \
+	reproducible/build.sh \
+	reproducible/manifest.scm.template 
 
 AM_CXXFLAGS = -Wall -Werror $(PTHREAD_CFLAGS) $(libev_CFLAGS) $(SQLITE3_CFLAGS) $(CURL_CFLAGS) $(CLBOSS_CXXFLAGS)
 LDADD = libclboss.la $(PTHREAD_LIBS) $(libev_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS)

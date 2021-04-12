@@ -151,7 +151,7 @@ int main() {
 		auto params = Json::Out();
 		auto obj = params.start_object();
 		{
-			auto arr = params.start_array("arr");
+			auto arr = obj.start_array("arr");
 			for (auto i = size_t(0); i < 10000; ++i)
 				arr.entry((double)i);
 			arr.end_array();

@@ -9,6 +9,7 @@
 #include"Boss/Signer.hpp"
 #include"Boss/log.hpp"
 #include"Ev/ThreadPool.hpp"
+#include"Ev/yield.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
 #include"Ln/NodeId.hpp"
@@ -76,6 +77,17 @@ private:
 				, comment.c_str()
 				, ps.c_str()
 				).then([]() {
+			/* Let other modules print the error before we abort.  */
+			return Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
+			     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
+			     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
+			     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
+			     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
+			     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
+			     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
+			     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
+			     ;
+		}).then([]() {
 			abort();
 			return Ev::lift();
 		});

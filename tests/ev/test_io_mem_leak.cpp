@@ -1,11 +1,12 @@
 #undef NDEBUG
 #include<new>
+#include<stddef.h>
 #include<stdlib.h>
 
 /* Memory leak detection.  */
 unsigned long count = 0;
 
-void* operator new(unsigned long size) {
+void* operator new(size_t size) {
 	++count;
 	return malloc(size);
 }
@@ -19,7 +20,7 @@ void operator delete(void* p) noexcept {
  * an error in valgrind).
  * It is not used on GCC 9 on -O0 though....
  */
-void operator delete(void* p, unsigned long) noexcept {
+void operator delete(void* p, size_t) noexcept {
 	--count;
 	free(p);
 }

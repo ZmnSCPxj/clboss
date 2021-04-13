@@ -21,7 +21,12 @@ cd ..
 FILE_HASH=`guix hash -r tmp`
 
 # Create manifest.
-cat manifest.scm.template | \
+if [ -e tmp/reproducible/manifest.scm.template ]; then
+	MANIFEST_TEMPLATE=tmp/reproducible/manifest.scm.template
+else
+	MANIFEST_TEMPLATE=./manifest.scm.template
+fi
+cat ${MANIFEST_TEMPLATE} | \
 	sed -e "s/@CLBOSS_COMMIT@/${CLBOSS_COMMIT}/g" \
 	    -e "s/@FILE_HASH@/${FILE_HASH}/" \
 	> manifest.scm

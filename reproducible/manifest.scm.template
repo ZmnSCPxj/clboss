@@ -3,6 +3,7 @@
              (gnu packages libevent)
              (gnu packages pkg-config)
              (gnu packages sqlite)
+             (gnu packages valgrind)
              (guix build-system gnu)
              (guix git-download)
              ((guix licenses) #:prefix license:)
@@ -31,7 +32,9 @@
         ("autoconf-archive" ,autoconf-archive)
         ("automake" ,automake)
         ("libtool" ,libtool)
-        ("pkg-config" ,pkg-config)))
+        ("pkg-config" ,pkg-config)
+        ; for testing.
+        ("valgrind" ,valgrind)))
     (inputs
       `(("libev" ,libev)
         ("sqlite" ,sqlite)

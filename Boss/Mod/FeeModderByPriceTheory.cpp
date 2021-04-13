@@ -14,7 +14,9 @@
 #include"Util/make_unique.hpp"
 #include<algorithm>
 #include<cstdint>
+#include<inttypes.h>
 #include<math.h>
+#include<sstream>
 #include<vector>
 
 /*
@@ -199,14 +201,33 @@ private:
 	}
 
 	Ev::Io<double> get_fee_mod(Ln::NodeId const& node) {
-		return db_transact().then([this, node](Sqlite3::Tx tx) {
-			auto price = get_price(tx, node);
+		auto mult = std::make_shared<double>();
+		return db_transact().then([ this, node, mult
+					  ](Sqlite3::Tx tx) {
+			auto os = std::ostringstream();
+
+			auto price = get_price(tx, node, os);
 			tx.commit();
-			return Ev::lift(price_to_multiplier(price));
+
+			*mult = price_to_multiplier(price);
+
+			return Boss::log( bus, Debug
+					, "FeeModderByPriceTheory: %s: "
+					  "level = %" PRIi64 ", mult = %f"
+					  "%s"
+					, std::string(node).c_str()
+					, price
+					, *mult
+					, os.str().c_str()
+					);
+		}).then([mult]() {
+			return Ev::lift(*mult);
 		});
 	}
 
-	std::int64_t get_price(Sqlite3::Tx& tx, Ln::NodeId const& node) {
+	std::int64_t get_price( Sqlite3::Tx& tx, Ln::NodeId const& node
+			      , std::ostringstream& msg
+			      ) {
 		auto fetch = tx.query(R"QRY(
 		SELECT price FROM "FeeModderByPriceTheory_cards"
 		 WHERE node = :node
@@ -223,10 +244,13 @@ private:
 		/* If we reached here, there is no in-play card, so
 		 * draw a card.
 		 */
-		draw_a_card(tx, node);
-		return get_price(tx, node);
+		msg << "; ";
+		draw_a_card(tx, node, msg);
+		return get_price(tx, node, msg);
 	}
-	void draw_a_card(Sqlite3::Tx& tx, Ln::NodeId const& node) {
+	void draw_a_card( Sqlite3::Tx& tx, Ln::NodeId const& node
+			, std::ostringstream& msg
+			) {
 		auto drew_a_card = false;
 		auto id = std::uint64_t();
 		/* Fetch a card from the deck.  */
@@ -248,6 +272,8 @@ private:
 		}
 
 		if (drew_a_card) {
+			/* Add message.  */
+			msg << "set to new level for this measurement round";
 			/* Set the card to its new position as in-play.  */
 			tx.query(R"QRY(
 			UPDATE "FeeModderByPriceTheory_cards"
@@ -262,15 +288,19 @@ private:
 		} else {
 			/* Out of cards!  End game round (which creates
 			 * new cards) and draw a card again.  */
-			end_game_round(tx, node);
-			draw_a_card(tx, node);
+			end_game_round(tx, node, msg);
+			draw_a_card(tx, node, msg);
 		}
 	}
-	void end_game_round(Sqlite3::Tx& tx, Ln::NodeId const& node) {
-		update_centerprice(tx, node);
+	void end_game_round( Sqlite3::Tx& tx, Ln::NodeId const& node
+			   , std::ostringstream& msg
+			   ) {
+		update_centerprice(tx, node, msg);
 		reshuffle_deck(tx, node);
 	}
-	void update_centerprice(Sqlite3::Tx& tx, Ln::NodeId const& node) {
+	void update_centerprice( Sqlite3::Tx& tx, Ln::NodeId const& node
+			       , std::ostringstream& msg
+			       ) {
 		/* Default to initial price, if we cannot find any discarded
 		 * cards (meaning we have not actually created a deck.
 		 */
@@ -294,13 +324,20 @@ private:
 			 * We will not enter this code if we have not
 			 * ever played the game, so this is fine.
 			 */
-			if (r.get<std::int64_t>(1) == 0)
+			if (r.get<std::int64_t>(1) == 0) {
+				msg << "earned nothing in previous "
+				    << "measurement round; "
+				    ;
 				return;
+			}
 
 			new_price = r.get<std::int64_t>(0);
 		}
 
 		/* Now update center price.  */
+		msg << "measuring around new level "
+		    << new_price << " for new mesurement round; "
+		    ;
 		tx.query(R"QRY(
 		INSERT OR REPLACE INTO "FeeModderByPriceTheory_centerprice"
 		VALUES( :node

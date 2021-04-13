@@ -4,15 +4,18 @@ CLBOSS Reproducible Build Binary
 This reproducible build for CLBOSS uses [Guix](https://guix.gnu.org)
 package manager.
 
-To use, first install Guix and git on your system.
+To use, first install Guix on your system; you will not need to install
+anything else (everything needed will be installed by Guix during
+build, in such a way that only the build environment can see them).
 Be warned that Guix can override your system-provided compile tools
 and libraries (and cause programs you compiled to fail to find the
 correct library versions), so if you are not ready to transition fully
-to Guix, do not install anything from within Guix, install *only*
-Guix and do not use it for anything other than reproducibly building
-CLBOSS via the script in this directory.
+to Guix, do not install anything using Guix, *only* install Guix and
+do not use it for anything other than reproducibly building CLBOSS via
+the script in this directory.
 Then you need to select a particular Guix commit hash, and a specific
-commit or tag of CLBOSS.
+tag of CLBOSS (or if you want to challenge a specific binary, get the
+Guix commit and the CLBOSS tag from that binary).
 
 Then, from a source directory (source tarball or git repo):
 

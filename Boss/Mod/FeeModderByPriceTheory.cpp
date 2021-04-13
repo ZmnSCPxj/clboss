@@ -277,7 +277,7 @@ private:
 		auto new_price = initial_price;
 		/* Look for best (i.e. highest-earning) discarded card.  */
 		auto fetch = tx.query(R"QRY(
-		SELECT price FROM "FeeModderByPriceTheory_cards"
+		SELECT price, earnings FROM "FeeModderByPriceTheory_cards"
 		 WHERE node = :node
 		   AND pos = :CardPos_Discarded
 		 ORDER BY earnings DESC
@@ -288,8 +288,17 @@ private:
 			.bind(":CardPos_Discarded", int(CardPos_Discarded))
 			.execute()
 			;
-		for (auto& r : fetch)
+		for (auto& r : fetch) {
+			/* If the best earner earned nothing, do not
+			 * change the center price.
+			 * We will not enter this code if we have not
+			 * ever played the game, so this is fine.
+			 */
+			if (r.get<std::int64_t>(1) == 0)
+				return;
+
 			new_price = r.get<std::int64_t>(0);
+		}
 
 		/* Now update center price.  */
 		tx.query(R"QRY(

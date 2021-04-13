@@ -26,6 +26,7 @@ TAR="$PROFILE"/bin/tar
 
 echo Git download done.
 
+rm -rf tmp/.git
 FILE_HASH=`guix hash -r tmp`
 
 # Create manifest.
@@ -65,10 +66,6 @@ cp tmp/reproducible/README.md "${PACK_NAME}" || true
 "${TAR}" --format=gnu --sort=name --mtime="@1" --owner=0 --group=0 --numeric-owner --check-links \
 	-czf "${PACK_NAME}".tar.gz "${PACK_NAME}"
 
-# Move the file and exit the directory.
+# Move the file and print.
 mv "${PACK_NAME}".tar.gz ..
-cd ..
-chmod -R +w clboss-build
-rm -rf clboss-build || true
-
 echo Output: "${PACK_NAME}".tar.gz

@@ -47,7 +47,6 @@ cd tmp
 "${GIT}" remote add origin https://github.com/ZmnSCPxj/clboss.git > /dev/null 2>&1
 "${GIT}" fetch --depth 1 origin "$CLBOSS_COMMIT" > /dev/null 2>&1
 "${GIT}" checkout FETCH_HEAD > /dev/null 2>&1
-rm -rf .git
 cd ..
 
 # Find the continue.sh file.
@@ -57,5 +56,10 @@ else
 	CONTINUE_SH=../continue.sh
 fi
 
-# And continue.
-exec /bin/sh "${CONTINUE_SH}" "${GUIX_COMMIT}" "${CLBOSS_COMMIT}" "$PROFILE"
+# Continue.
+/bin/sh "${CONTINUE_SH}" "${GUIX_COMMIT}" "${CLBOSS_COMMIT}" "$PROFILE"
+
+# Clean up.
+cd ..
+chmod -R +w clboss-build
+rm -rf clboss-build || true

@@ -25,6 +25,24 @@
 
 namespace {
 
+/* Set this preprocessor flag to use a more realistic
+ * simulation.
+ * Changes:
+ * - Sometimes we just do not earn fees.
+ * - Sometimes we earn fees even if we are far from
+ *   the best price.
+ * - We simulate longer time periods.
+ */
+#if TEST_FEEMODDERBYPRICETHEORY_REALISTIC
+auto constexpr probability_no_earn = double(0.5);
+auto constexpr probability_noise = double(0.08);
+auto constexpr num_iterations = 10'000;
+#else
+auto constexpr probability_no_earn = double(0.0);
+auto constexpr probability_noise = double(0.0);
+auto constexpr num_iterations = 2'500;
+#endif
+
 auto const A = Ln::NodeId("020000000000000000000000000000000000000000000000000000000000000001");
 auto const B = Ln::NodeId("020000000000000000000000000000000000000000000000000000000000000002");
 
@@ -89,12 +107,19 @@ private:
 	/* Given a particular node, whether to model earning a fee.  */
 	bool should_earn(Ln::NodeId n) {
 		/* LN nodes do not earn all that often.... */
-		if (dist(Boss::random_engine) < 0.5)
+		if ( (probability_no_earn != 0.0)
+		  && (dist(Boss::random_engine) < probability_no_earn)
+		   )
 			return false;
+		/* Sometimes noise just gets in.... */
+		if ( (probability_noise != 0.0)
+		  && (dist(Boss::random_engine) < probability_noise)
+		   )
+			return true;
 		auto mult = multiplier[n];
 		auto opt = optimum[n];
 		auto distance = fabs(mult - opt);
-		return (dist(Boss::random_engine) > (distance / 2.0));
+		return (dist(Boss::random_engine) > (distance / 1.5));
 	}
 
 	Ev::Io<void> iteration() {
@@ -172,7 +197,7 @@ private:
 public:
 	Tester(S::Bus& bus_) : bus(bus_), dist(0.0, 1.0) { }
 	Ev::Io<void> run() {
-		iterations_remaining = 20'000;
+		iterations_remaining = num_iterations;
 		first = true;
 		modder = nullptr;
 		optimum[A] = optimumA;
@@ -199,10 +224,18 @@ public:
 			 * we should be within some % of the optimum.
 			 */
 			auto within_reason = [](double actual, double expected) {
-				auto rel = fabs((actual / expected) - 1.0);
-				/* Within 50%.  Why so large?  Because of all the
-				 * randomness in our test...  */
-				return rel <= 0.5;
+				/* Well, very very roughly, if the expected
+				 * is less than 1, actual should be less
+				 * than 1, and so on.
+				 * This is very rough "within reason", we
+				 * are ultimately testing that our design
+				 * does not crash or do the opposite of
+				 * what we expect.
+				 */
+				if (expected < 1.0)
+					return actual < 1.0;
+				else
+					return actual > 1.0;
 			};
 			std::cout << "mean A = " << mean_multiplier[A].get() << std::endl;
 			std::cout << "optm A = " << optimum[A] << std::endl;

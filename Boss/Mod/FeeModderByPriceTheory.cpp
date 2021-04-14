@@ -3,7 +3,9 @@
 #include"Boss/Msg/ForwardFee.hpp"
 #include"Boss/Msg/ListpeersAnalyzedResult.hpp"
 #include"Boss/Msg/ProvideChannelFeeModifier.hpp"
+#include"Boss/Msg/ProvideStatus.hpp"
 #include"Boss/Msg/SolicitChannelFeeModifier.hpp"
+#include"Boss/Msg/SolicitStatus.hpp"
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
 #include"Ev/Io.hpp"
@@ -15,6 +17,7 @@
 #include<algorithm>
 #include<cstdint>
 #include<inttypes.h>
+#include<map>
 #include<math.h>
 #include<sstream>
 #include<vector>
@@ -101,6 +104,16 @@ private:
 	, CardPos_Discarded = 2		// Card is in discard pile
 	};
 
+	static
+	std::string card_pos_string(CardPos pos) {
+		switch (pos) {
+		case CardPos_Deck:	return "Deck";
+		case CardPos_InPlay:	return "InPlay";
+		case CardPos_Discarded:	return "Discarded";
+		}
+		return "invalid";
+	}
+
 	void start() {
 		bus.subscribe<Msg::DbResource
 			     >([this](Msg::DbResource const& m) {
@@ -136,6 +149,11 @@ private:
 		bus.subscribe<Msg::ForwardFee
 			     >([this](Msg::ForwardFee const& m) {
 			return forward_fee(m.out_id, m.fee);
+		});
+
+		bus.subscribe<Msg::SolicitStatus
+			     >([this](Msg::SolicitStatus const& _) {
+			return solicit_status();
 		});
 	}
 
@@ -462,6 +480,86 @@ private:
 
 			tx.commit();
 			return Ev::lift();
+		});
+	}
+
+	Ev::Io<void> solicit_status() {
+		struct Card {
+			CardPos pos;
+			std::int64_t price;
+			std::uint64_t lifetime;
+			Ln::Amount earnings;
+		};
+
+		return db.transact().then([this](Sqlite3::Tx tx) {
+			/* Gather cards.  */
+			auto cards = std::map<Ln::NodeId, std::vector<Card>>();
+			auto fetch = tx.query(R"QRY(
+			SELECT node, pos, price, lifetime, earnings
+			  FROM "FeeModderByPriceTheory_cards"
+			     ;
+			)QRY")
+				.execute()
+				;
+			for (auto& r : fetch) {
+				auto node = Ln::NodeId(r.get<std::string>(0));
+				auto card = Card();
+				card.pos = CardPos(r.get<int>(1));
+				card.price = r.get<std::int64_t>(2);
+				card.lifetime = r.get<std::uint64_t>(3);
+				card.earnings = Ln::Amount::msat(
+					r.get<std::uint64_t>(4)
+				);
+				cards[node].push_back(card);
+			}
+			tx.commit();
+
+			/* JSONize them.  */
+			auto out = Json::Out();
+			auto obj = out.start_object();
+			for (auto const& node_cards : cards) {
+				auto node = std::string(node_cards.first);
+				auto const& cards = node_cards.second;
+
+				auto msg = std::ostringstream();
+				auto first = true;
+				for (auto const& card : cards) {
+					if (first)
+						first = false;
+					else
+						msg << "; ";
+					switch (card.pos) {
+					case CardPos_Deck:
+						msg << "(" << card.price << ")";
+						break;
+					case CardPos_InPlay:
+						msg << "<"
+						    << card.price
+						    << ": "
+						    << card.earnings
+						    << ", "
+						    << card.lifetime
+						    << "blocks"
+						    << ">"
+						     ;
+						break;
+					case CardPos_Discarded:
+						msg << card.price
+						    << ": "
+						    << card.earnings
+						    ;
+						break;
+					}
+				}
+
+				obj.field(node, msg.str());
+			}
+			obj.end_object();
+
+			return bus.raise(Msg::ProvideStatus{
+				"price_theory_investigating",
+				std::move(out)
+			});
 		});
 	}
 

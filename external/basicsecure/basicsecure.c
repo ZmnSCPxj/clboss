@@ -132,6 +132,7 @@ int basicsecure_rand_core(void* p, unsigned long size) {
 #elif defined(HAVE_LINUX_GETRANDOM)
 #define HAVE_GETENTROPY 1
 #include<sys/syscall.h>
+#include<unistd.h>
 #define getentropy(buf, size) \
 	syscall(SYS_getrandom, (buf), (int) (size), 0)
 #elif defined(HAVE_BSD_GETRANDOM)

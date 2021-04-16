@@ -163,6 +163,7 @@ AC_MSG_CHECKING([for Linux getrandom])
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #define _DEFAULT_SOURCE
 #include<sys/syscall.h>
+#include<unistd.h>
 #ifndef SYS_getrandom
 # error "No Linux getrandom."
 #endif

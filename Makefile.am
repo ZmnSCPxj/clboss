@@ -492,6 +492,7 @@ EXTRA_DIST = \
 	external/jsmn/jsmn.h \
 	reproducible/README.md \
 	reproducible/build.sh \
+	reproducible/continue.sh \
 	reproducible/manifest.scm.template 
 
 AM_CXXFLAGS = -Wall -Werror $(PTHREAD_CFLAGS) $(libev_CFLAGS) $(SQLITE3_CFLAGS) $(CURL_CFLAGS) $(CLBOSS_CXXFLAGS)

@@ -470,6 +470,8 @@ libclboss_la_SOURCES = \
 	Util/Rw.hpp \
 	Util/Str.cpp \
 	Util/Str.hpp \
+	Util/date.cpp \
+	Util/date.hpp \
 	Util/make_unique.hpp \
 	Util/stringify.hpp \
 	Util/vector_emplace_back.hpp \
@@ -562,7 +564,8 @@ TESTS = \
 	tests/stats/test_reservoir_sampler \
 	tests/stats/test_running_mean \
 	tests/stats/test_weighted_median \
-	tests/test_uuid
+	tests/test_uuid \
+	tests/util/test_date
 check_PROGRAMS = $(TESTS)
 
 if USE_VALGRIND

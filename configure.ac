@@ -66,6 +66,22 @@ int fake_printf(void* dummy, char const* fmt, ...)
 ])
 
 # Checks for library functions.
+# Check for Posix gmtime_r.
+AC_MSG_CHECKING([for gmtime_r])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include<time.h>
+]], [[
+	time_t timeval = 0;
+	struct tm split;
+	struct tm* psplit;
+	psplit = gmtime_r (&timeval, &split);
+]])], [ #then
+	AC_DEFINE([HAVE_GMTIME_R], [1],
+		  [Define to 1 if you have a gmtime_r function.])
+	AC_MSG_RESULT([yes])
+], [ #else
+	AC_MSG_RESULT([no])
+])
 
 AC_CONFIG_FILES([Makefile
 		 external/bitcoin-ripemd160/Makefile

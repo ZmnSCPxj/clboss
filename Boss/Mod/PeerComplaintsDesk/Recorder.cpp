@@ -2,6 +2,7 @@
 #include"Ev/now.hpp"
 #include"Ln/NodeId.hpp"
 #include"Sqlite3.hpp"
+#include"Util/date.hpp"
 #include<sstream>
 
 #include<iostream>
@@ -227,8 +228,7 @@ std::map< Ln::NodeId
 			ignoredreason = r.get<std::string>(4);
 
 		auto os = std::ostringstream();
-		/* FIXME: Human-readable time.  */
-		os << time << ": " << complaint;
+		os << Util::date(time) << ": " << complaint;
 		if (ignored)
 			os << " [IGNORED: " << ignoredreason << "]";
 
@@ -304,9 +304,8 @@ std::map< Ln::NodeId
 		auto complaint = r.get<std::string>(3);
 
 		auto os = std::ostringstream();
-		/* FIXME: Human-readable time.  */
-		os << "Closed " << closedtime << ": "
-		   << time << ": " << complaint
+		os << "Closed " << Util::date(closedtime) << ": "
+		   << Util::date(time) << ": " << complaint
 		   ;
 
 		rv[peer].push_back(os.str());

@@ -15,6 +15,7 @@
 #include"Ev/now.hpp"
 #include"S/Bus.hpp"
 #include"Sqlite3.hpp"
+#include"Util/date.hpp"
 #include"Util/make_unique.hpp"
 #include<vector>
 
@@ -157,8 +158,16 @@ private:
 							"ignore" : "notice"
 						      )
 						.field("now", now)
+						.field( "now_human"
+						      , Util::date(now)
+						      )
 						.field( "disable_until"
 						      , disableuntil
+						      )
+						.field( "disable_until_human"
+						      , Util::date(
+								disableuntil
+							)
 						      )
 						.field("comment", comment)
 					.end_object()

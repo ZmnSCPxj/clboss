@@ -9,6 +9,7 @@
 #include"Ev/Io.hpp"
 #include"Ev/map.hpp"
 #include"Ev/now.hpp"
+#include"Util/duration.hpp"
 #include"Util/make_unique.hpp"
 #include<algorithm>
 #include<iterator>
@@ -173,6 +174,9 @@ private:
 			auto mets_o = mets_j.start_object();
 
 			mets_o.field("age", mets.age);
+			mets_o.field( "age_human"
+				    , Util::duration(mets.age)
+				    );
 			mets_o.field( "seconds_per_attempt"
 				    , mets.seconds_per_attempt
 				    );

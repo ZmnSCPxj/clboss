@@ -4,15 +4,18 @@ CLBOSS Reproducible Build Binary
 This reproducible build for CLBOSS uses [Guix](https://guix.gnu.org)
 package manager.
 
-To use, first install Guix on your system; you will not need to install
-anything else (everything needed will be installed by Guix during
-build, in such a way that only the build environment can see them).
+To reproducibly build, first install Guix on your system; you will not
+need to install anything else (everything needed will be installed by
+Guix during build, in such a way that only the build environment can
+see them).
+
 Be warned that Guix can override your system-provided compile tools
 and libraries (and cause programs you compiled to fail to find the
 correct library versions), so if you are not ready to transition fully
 to Guix, do not install anything using Guix, *only* install Guix and
 do not use it for anything other than reproducibly building CLBOSS via
 the script in this directory.
+
 Then you need to select a particular Guix commit hash, and a specific
 tag of CLBOSS (or if you want to challenge a specific binary, get the
 Guix commit and the CLBOSS tag from that binary).
@@ -42,12 +45,14 @@ The reproducible tarball will expand to a directory containing `bin/`,
 `gnu/`, and `lib/` directories.
 
 The tarball can be expanded anywhere in your file system, and the
-binary will execute correctly.
+binary will execute correctly no matter where it is located.
 
 All the binaries and libraries needed by CLBOSS are contained in the
 `gnu/` directory.
 It will not use any libraries from your system, i.e. it is a
 self-contained package.
+Nothing needs to be installed, not even GNU Guix, in order to use the
+prebuilt binary.
 
 The `bin/` directory will contain the `clboss` binary.
 Just pass the path to that binary as a `--plugin=` or

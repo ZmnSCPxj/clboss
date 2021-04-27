@@ -22,7 +22,7 @@
 namespace {
 
 /* Nodes with less than this success_per_day should be complained about.  */
-auto constexpr min_success_per_day = double(0.25);
+auto constexpr min_success_per_day = double(0.1);
 /* Nodes with less than or equal to this success_per_day should be actively
  * probed to try to boost that metric; maybe the metric is low only because
  * the random active probing rolled against it too often.
@@ -33,14 +33,17 @@ auto constexpr max_probes = std::size_t(10);
 
 /* If our own uptime in the past two weeks is below this, do not complain
  * about any peers.  */
-auto constexpr min_self_uptime = double(0.35);
+auto constexpr min_self_uptime = double(0.5);
 
 /* The minimum amount of time, in seconds, this module has been running
  * before it actually starts complaining.
  * This allows the module to trigger active probes to increase the metric
  * before it starts complaining about low-metric nodes.
+ * We also use this parameter to prevent new channels from being closed
+ * prematurely simply because they have not been able to get probed
+ * often.
  */
-auto constexpr min_module_lifetime = double(7 * 24 * 60 * 60.0); // 7 days
+auto constexpr min_lifetime = double(7 * 24 * 60 * 60.0); // 7 days
 
 }
 
@@ -144,16 +147,47 @@ private:
 						continue;
 					}
 					auto run_time = Ev::now() - start_time;
-					if (run_time < min_module_lifetime) {
+					if (run_time < min_lifetime) {
 						nonoperation( std::string()
 							    + "Module has been running for "
 							    + Util::stringify(run_time)
 							    + ", minimum is "
 							    + Util::stringify(
-								min_module_lifetime
+								min_lifetime
 							      )
 							    + "."
 							    );
+						continue;
+					}
+					if (m.second.age < min_lifetime) {
+						auto n = Util::stringify(
+							m.first
+						);
+						auto a = Util::stringify(
+							m.second.age
+						);
+						auto m = Util::stringify(
+							min_lifetime
+						);
+						act += Boss::log( bus, Debug
+								, "Complainer"
+								  "ByLow"
+								  "SuccessPer"
+								  "Day: "
+								  "Channel "
+								  "to node "
+								  "%s has "
+								  "been "
+								  "alive for "
+								  "%s only, "
+								  "minimum "
+								  "is %s, "
+								  "will not "
+								  "complain."
+								, n.c_str()
+								, a.c_str()
+								, m.c_str()
+								);
 						continue;
 					}
 

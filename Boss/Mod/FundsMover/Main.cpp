@@ -1,11 +1,12 @@
 #include"Boss/Mod/FundsMover/Claimer.hpp"
 #include"Boss/Mod/FundsMover/Main.hpp"
-#include"Boss/Mod/FundsMover/PaymentDeleter.hpp"
 #include"Boss/Mod/FundsMover/Runner.hpp"
+#include"Boss/Mod/FundsMover/create_label.hpp"
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/Msg/Init.hpp"
+#include"Boss/Msg/ProvideDeletablePaymentLabelFilter.hpp"
 #include"Boss/Msg/RequestMoveFunds.hpp"
-#include"Boss/Msg/TimerRandomDaily.hpp"
+#include"Boss/Msg/SolicitDeletablePaymentLabelFilter.hpp"
 #include"Boss/concurrent.hpp"
 #include"Ev/Io.hpp"
 #include"Ev/yield.hpp"
@@ -28,7 +29,7 @@ private:
 		bus.subscribe<Msg::Init>([this](Msg::Init const& init) {
 			rpc = &init.rpc;
 			self_id = init.self_id;
-			return Boss::concurrent(delpay_our_payments());
+			return Ev::lift();
 		});
 		bus.subscribe<Msg::RequestMoveFunds
 			     >([this](Msg::RequestMoveFunds const& m) {
@@ -43,9 +44,14 @@ private:
 				return Runner::start(runner);
 			});
 		});
-		bus.subscribe< Msg::TimerRandomDaily
-			     >([this](Msg::TimerRandomDaily const&) {
-			return wait_for_rpc() + delpay_our_payments();
+		using Msg::ProvideDeletablePaymentLabelFilter;
+		using Msg::SolicitDeletablePaymentLabelFilter;
+		bus.subscribe<SolicitDeletablePaymentLabelFilter
+			     >([this
+			       ](SolicitDeletablePaymentLabelFilter const& _) {
+			return bus.raise(ProvideDeletablePaymentLabelFilter{
+					&is_our_label
+			});
 		});
 	}
 	Ev::Io<void> wait_for_rpc() {
@@ -53,18 +59,6 @@ private:
 			if (!rpc)
 				return Ev::yield() + wait_for_rpc();
 			return Ev::lift();
-		});
-	}
-	Ev::Io<void> delpay_our_payments() {
-		return Ev::lift().then([this]() {
-			if (deleting_payments)
-				return Ev::lift();
-
-			deleting_payments = true;
-			return PaymentDeleter::run(bus, *rpc).then([this]() {
-				deleting_payments = false;
-				return Ev::lift();
-			});
 		});
 	}
 

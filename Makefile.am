@@ -201,6 +201,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/OnchainFundsAnnouncer.hpp \
 	Boss/Mod/OnchainFundsIgnorer.cpp \
 	Boss/Mod/OnchainFundsIgnorer.hpp \
+	Boss/Mod/PaymentDeleter.cpp \
+	Boss/Mod/PaymentDeleter.hpp \
 	Boss/Mod/PeerCompetitorFeeMonitor/Main.cpp \
 	Boss/Mod/PeerCompetitorFeeMonitor/Main.hpp \
 	Boss/Mod/PeerCompetitorFeeMonitor/Surveyor.cpp \
@@ -289,6 +291,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ProposeConnectCandidates.hpp \
 	Boss/Msg/ProposePatronlessChannelCandidate.hpp \
 	Boss/Msg/ProvideChannelFeeModifier.hpp \
+	Boss/Msg/ProvideDeletablePaymentLabelFilter.hpp \
 	Boss/Msg/ProvideHtlcAcceptedDeferrer.hpp \
 	Boss/Msg/ProvideStatus.hpp \
 	Boss/Msg/ProvideSwapQuotation.hpp \
@@ -322,6 +325,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/SolicitChannelCandidates.hpp \
 	Boss/Msg/SolicitChannelFeeModifier.hpp \
 	Boss/Msg/SolicitConnectCandidates.hpp \
+	Boss/Msg/SolicitDeletablePaymentLabelFilter.hpp \
 	Boss/Msg/SolicitHtlcAcceptedDeferrer.hpp \
 	Boss/Msg/SolicitPeerComplaints.hpp \
 	Boss/Msg/SolicitStatus.hpp \

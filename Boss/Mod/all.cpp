@@ -50,6 +50,7 @@
 #include"Boss/Mod/OnchainFeeMonitor.hpp"
 #include"Boss/Mod/OnchainFundsAnnouncer.hpp"
 #include"Boss/Mod/OnchainFundsIgnorer.hpp"
+#include"Boss/Mod/PaymentDeleter.hpp"
 #include"Boss/Mod/PeerCompetitorFeeMonitor/Main.hpp"
 #include"Boss/Mod/PeerComplaintsDesk/Main.hpp"
 #include"Boss/Mod/PeerMetrician.hpp"
@@ -160,6 +161,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	/* Invoice wrangling.  */
 	all->install<InvoicePayer>(bus);
 	all->install<ListpaysHandler>(bus);
+	all->install<PaymentDeleter>(bus);
 
 	/* Channel fees.  */
 	all->install<PeerCompetitorFeeMonitor::Main>(bus);

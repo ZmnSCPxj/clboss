@@ -3,6 +3,8 @@
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ProbeActively.hpp"
+#include"Boss/Msg/ProvideDeletablePaymentLabelFilter.hpp"
+#include"Boss/Msg/SolicitDeletablePaymentLabelFilter.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
@@ -16,6 +18,7 @@
 #include"Ln/Scid.hpp"
 #include"S/Bus.hpp"
 #include"Sha256/Hash.hpp"
+#include"Util/Str.hpp"
 #include"Util/stringify.hpp"
 #include<algorithm>
 #include<memory>
@@ -34,6 +37,26 @@ Ev::Io<void> wait_for_rpc(Boss::Mod::Rpc*& rpc) {
 			return wait_for_rpc(rpc);
 		return Ev::lift();
 	});
+}
+
+/* Prefix for all labels.  */
+auto const label_prefix = std::string( "CLBOSS ActiveProber "
+				       "payment, this will fail "
+				       "and should automatically "
+				       "get deleted. Hash: "
+				     );
+
+bool is_our_label(std::string const& label) {
+	if (label.length() != label_prefix.length() + 64)
+		return false;
+	if ( std::string(label.begin(), label.begin() + label_prefix.length())
+	  != label_prefix
+	   )
+		return false;
+	auto hash = std::string( label.begin() + label_prefix.length()
+			       , label.end()
+			       );
+	return Util::Str::ishex(hash);
 }
 
 }
@@ -396,13 +419,7 @@ private:
 				routearr.entry(step);
 			routearr.end_array();
 
-			auto label = std::string( "CLBOSS ActiveProber "
-						  "payment, this will fail "
-						  "and should automatically "
-						  "get deleted. Hash: "
-						)
-				   + std::string(hash)
-				   ;
+			auto label = label_prefix + std::string(hash);
 
 			auto parms = Json::Out()
 				.start_object()
@@ -482,6 +499,15 @@ void ActiveProber::start() {
 		return Boss::concurrent( wait_for_rpc(rpc)
 				       + run->run()
 				       );
+	});
+
+	using Msg::ProvideDeletablePaymentLabelFilter;
+	using Msg::SolicitDeletablePaymentLabelFilter;
+	bus.subscribe<SolicitDeletablePaymentLabelFilter
+		     >([this](SolicitDeletablePaymentLabelFilter const& _) {
+		return bus.raise(ProvideDeletablePaymentLabelFilter{
+			&is_our_label
+		});
 	});
 }
 

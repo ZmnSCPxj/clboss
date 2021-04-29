@@ -3,8 +3,27 @@
 #include<stddef.h>
 #include<stdlib.h>
 
-/* Memory leak detection.  */
 unsigned long count = 0;
+
+/* Memory leak detection.  */
+#if !USE_VALGRIND || TEST_IO_MEM_LEAK_ALLOW_VALGRIND
+/* In some systems (Ubuntu 18.04 maybe?), valgrind will override the
+ * operator new below, but will not override the operator delete,
+ * leading to allocating using valgrind's operator new() but freeing
+ * with free() due to the code below.
+ *
+ * So, we disable this code if USE_VALGRIND.
+ *
+ * On systems where we *know* valgrind works correctly, we can give
+ * `./configure CXXFLAGS="-DTEST_IO_MEM_LEAK_ALLOW_VALGRIND"` to
+ * still perform this counting test even with valgrind
+ *
+ * This test is stricter than what valgrind tests --- this test
+ * ensures we do not have "live" leaks, i.e. allocating more and more
+ * objects while keeping pointers to them, which valgrind will ignore
+ * since there are pointers to the memory, but which should not
+ * happen since semantically those objects are dead.
+ */
 
 void* operator new(size_t size) {
 	++count;
@@ -24,6 +43,7 @@ void operator delete(void* p, size_t) noexcept {
 	--count;
 	free(p);
 }
+#endif /* !USE_VALGRIND */
 
 #include<assert.h>
 #include"Ev/Io.hpp"

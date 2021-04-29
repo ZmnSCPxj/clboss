@@ -576,4 +576,5 @@ check_PROGRAMS = $(TESTS)
 if USE_VALGRIND
 LOG_COMPILER = valgrind
 AM_LOG_FLAGS = --leak-check=full --error-exitcode=1
+AM_CXXFLAGS += -DUSE_VALGRIND
 endif

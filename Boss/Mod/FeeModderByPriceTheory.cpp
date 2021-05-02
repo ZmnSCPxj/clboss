@@ -425,7 +425,7 @@ private:
 	}
 
 	Ev::Io<void> update_10_minutes(std::set<Ln::NodeId> const& connected) {
-		return db_transact().then([this, connected](Sqlite3::Tx tx) {
+		return db_transact().then([connected](Sqlite3::Tx tx) {
 			/* Decrement cards in play of nodes that are
 			 * connected.  */
 			for (auto const& node : connected)
@@ -463,7 +463,7 @@ private:
 	Ev::Io<void> forward_fee( Ln::NodeId const& node
 				, Ln::Amount fee
 				) {
-		return db_transact().then([this, node, fee](Sqlite3::Tx tx) {
+		return db_transact().then([node, fee](Sqlite3::Tx tx) {
 			/* Add fee to in-play card.  */
 			tx.query(R"QRY(
 			UPDATE "FeeModderByPriceTheory_cards"

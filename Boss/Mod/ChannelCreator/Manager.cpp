@@ -153,8 +153,7 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 		 * nodes with similar locations.
 		 */
 		return reprioritize(std::move(proposals));
-	}).then([ this
-		, num_chans
+	}).then([ num_chans
 		, amt
 		, dowser_func
 		](std::vector<std::pair<Ln::NodeId, Ln::NodeId>> proposals) {

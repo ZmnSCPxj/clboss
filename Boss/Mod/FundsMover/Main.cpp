@@ -23,8 +23,6 @@ private:
 	Boss::Mod::Rpc* rpc;
 	Ln::NodeId self_id;
 
-	bool deleting_payments;
-
 	void start() {
 		bus.subscribe<Msg::Init>([this](Msg::Init const& init) {
 			rpc = &init.rpc;
@@ -71,7 +69,6 @@ public:
 	Impl(S::Bus& bus_) : bus(bus_)
 			   , claimer(bus_)
 			   , rpc(nullptr)
-			   , deleting_payments(false)
 			   { start(); }
 };
 

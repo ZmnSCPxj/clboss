@@ -40,7 +40,7 @@ auto constexpr num_iterations = 10'000;
 #else
 auto constexpr probability_no_earn = double(0.0);
 auto constexpr probability_noise = double(0.0);
-auto constexpr num_iterations = 2'500;
+auto constexpr num_iterations = 3'000;
 #endif
 
 auto const A = Ln::NodeId("020000000000000000000000000000000000000000000000000000000000000001");

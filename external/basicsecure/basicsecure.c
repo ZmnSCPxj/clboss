@@ -126,6 +126,8 @@ int basicsecure_rand_core(void* p, unsigned long size) {
 }
 #else
 
+#include<errno.h>
+
 #if defined(HAVE_UNISTD_GETENTROPY)
 #include<unistd.h>
 #define HAVE_GETENTROPY 1
@@ -144,7 +146,6 @@ int basicsecure_rand_core(void* p, unsigned long size) {
 #endif
 
 #if defined(HAVE_GETENTROPY)
-#include<errno.h>
 static int getrandom_works = 1;
 /* Cannot reliably get more than 256 bytes at a time from
  * getentropy.

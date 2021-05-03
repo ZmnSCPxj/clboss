@@ -200,6 +200,12 @@ can redeem perfectly well.
 
 Suppose you have the following story:
 
+* You want to pay to some onchain address.
+* All your funds are locked in Lightning channels on an LN node
+  managed with CLBOSS.
+
+Here is another user story:
+
 * You have a popular C-Lightning forwarding node that you are
   happily not managing because you are using CLBOSS The Automated
   C-Lightning Node Manager.
@@ -216,7 +222,7 @@ Suppose you have the following story:
   * At this point you talk them into running C-Lightning and
     CLBOSS.
 
-To help with this user story, CLBOSS provides the
+To help with these user stories, CLBOSS provides the
 `clboss-ignore-onchain` command.
 After executing this command, CLBOSS will temporarily ignore
 onchain funds (with the side effect that it will not try to
@@ -229,11 +235,14 @@ new channel candidates, manage channel fees, and so on.
 
 Then, you can perform onchain actions manually, such as moving
 cold storage into your Lightning node and making a channel
-manually for a friend.
+manually for a friend, or closing some LN channels and withdrawing
+those funds to an onchain address.
 
 `clboss-ignore-onchain` accepts an optional `hours` argument, a
 number of hours that it will ignore onchain funds.
 If not specified, this defaults to 24 hours.
+You can specify this again at a later time to extend the ignore
+time if needed.
 
 Once you have completed any manual onchain funds management,
 you can run `clboss-notice-onchain` in order to let CLBOSS

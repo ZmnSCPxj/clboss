@@ -84,12 +84,38 @@ You can then add a `plugin=/path/to/clboss` or
 `important-plugin=/path/to/clboss` setting to your C-Lightning
 configuration file.
 
-__FreeBSD:_
+### FreeBSD
 
-You need to install `autoconf-archive` first before you can run `autoreconf-i` sucessfully.
+The following packages as of 12.2-RELEASE are necessary when
+building, whether from git clone or from official source
+release:
+
+    pkg install curl
+    pkg install gmake
+    pkg install libev
+    pkg install pkgconf
+    pkg install sqlite3
+
+In addition, you have to use `gmake` for building, not the
+system `make`, as the included `libsecp256k1` requires
+`gmake`.
+
+    ./configure && gmake
+    sudo gmake install # or su first, then gmake install
+
+You need to install the below first before you can run
+`autoreconf -i` sucessfully on a git clone.
 
     pkg install autoconf-archive
-    
+    pkg install autotools
+    pkg install git
+
+While releases and pre-releases will be tested for
+compileability in a FreeBSD VM, git `master` may
+transiently be in a state where the default CLANG may
+raise warnings that are not raised by GCC, or may refer to
+Linux-specific header files and functions.
+
 Operating
 ---------
 

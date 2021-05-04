@@ -18,6 +18,7 @@
 #include"Util/make_unique.hpp"
 #include"Util/stringify.hpp"
 #include<set>
+#include<sstream>
 
 namespace {
 
@@ -28,7 +29,8 @@ auto constexpr min_success_per_day = double(0.1);
  * the random active probing rolled against it too often.
  */
 auto constexpr warn_success_per_day = double(1.0);
-/* Maximum number of nodes we will actively probe.  */
+/* Maximum number of nodes we will actively probe at a time, about once per
+ * hour.  */
 auto constexpr max_probes = std::size_t(10);
 
 /* If our own uptime in the past two weeks is below this, do not complain
@@ -237,7 +239,15 @@ private:
 
 				/* Trigger the active probes.  */
 				auto act = Ev::lift();
+				auto msg = std::ostringstream();
+				auto first = true;
 				for (auto const& node : selected) {
+					if (first)
+						first = false;
+					else
+						msg << ", ";
+					msg << node;
+
 					/* Remove from pending.  */
 					auto it = pending_probe.find(node);
 					pending_probe.erase(it);
@@ -247,6 +257,26 @@ private:
 						node
 					}));
 				}
+				/* Log what we will probe.  */
+				if (!first)
+					act += Boss::log( bus, Debug
+							, "ComplainerByLow"
+							  "SuccessPerDay: "
+							  "Will actively "
+							  "probe: %s"
+							, msg.str().c_str()
+							);
+
+				/* Log if we still have remaining nodes
+				 * to probe.  */
+				if (!pending_probe.empty())
+					act += Boss::log( bus, Debug
+							, "ComplainerByLow"
+							  "SuccessPerDay: "
+							  "%zu remaining "
+							  "nodes to probe."
+							, pending_probe.size()
+							);
 
 				return act;
 			});

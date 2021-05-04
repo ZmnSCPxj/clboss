@@ -34,12 +34,12 @@ namespace {
 auto constexpr default_enabled = bool(false);
 
 /* Maximum age, in seconds, to retain complaints.  */
-auto constexpr max_complaint_age = double(14 * 24 * 60 * 60);
+auto constexpr max_complaint_age = double(7 * 24 * 60 * 60);
 /* Maximum age, in seconds, to retain complaints for closed channels.  */
 auto constexpr max_closed_complaint_age = double(90 * 24 * 60 * 60);
 
 /* Number of non-ignored complaints before we decide to close.  */
-auto constexpr max_acceptable_complaints = std::size_t(3);
+auto constexpr max_acceptable_complaints = std::size_t(5);
 
 /* Number of seconds we will request for unilateral closing timeout.  */
 auto constexpr channel_close_timeout = std::size_t(3 * 60);

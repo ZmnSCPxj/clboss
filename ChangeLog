@@ -1,3 +1,5 @@
+- Fix FreeBSD compile.
+
 0.11B
 - `ActiveProber` now also has a background cleaner of its payments.
 - `ChannelCreationDecider` now holds off on creating channels if the onchain amount is small relative to all your funds and is small for a "large" channel (~0.16777215 BTC).  This should prevent CLBOSS from making lots of 10mBTC channels when your node is well-funded.

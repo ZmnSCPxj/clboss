@@ -388,8 +388,10 @@ private:
 		return Ev::lift().then([this]() {
 			auto os = std::ostringstream();
 			os << chan0;
-			for (auto step : route)
+			for (auto step : route) {
 				os << " " << std::string(step["channel"]);
+				break;
+			}
 			return Boss::log( bus, Debug
 					, "ActiveProber: Probe %s by route %s."
 					, std::string(peer).c_str()
@@ -414,9 +416,28 @@ private:
 					.field("delay", delay0)
 					.field("style", "tlv")
 				.end_object();
-			/* Load the rest of the hops.  */
-			for (auto step : route)
+			/* Load the rest of the path.  */
+			for (auto step : route) {
 				routearr.entry(step);
+				/* Break after the first hop on the route,
+				 * so that we always probe with a short
+				 * two-hop route (hop 0 above, and the
+				 * first hop of the `route`).
+				 *
+				 * This gives the peer the "benefit of
+				 * the doubt", meaning we only probe the
+				 * peer and *its* direct peer for uptime
+				 * and capacity.
+				 *
+				 * Nevertheless, this is still somewhat
+				 * "realistic" since we are probing for
+				 * routes that go towards popular nodes
+				 * (or at least to nodes that CLBOSS
+				 * thinks are good to have capacity
+				 * towards).
+				 */
+				break;
+			}
 			routearr.end_array();
 
 			auto label = label_prefix + std::string(hash);

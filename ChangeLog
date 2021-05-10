@@ -1,3 +1,6 @@
+- `ActiveProber` now only does a 2-hop probe always.
+- `ChannelComplainerByLowSuccessPerDay` logs a little more on debug prints.
+- Tweak parameters for auto-close slightly, being more lenient.
 - Fix FreeBSD compile.
 
 0.11B

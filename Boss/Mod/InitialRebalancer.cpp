@@ -424,6 +424,8 @@ private:
 			       , Ln::Amount amount
 			       , std::shared_ptr<Impl> self
 			       ) {
+		auto moved = std::make_shared<Msg::ResponseMoveFunds>();
+
 		auto this_rebalance_fee = amount
 					* (rebalance_fee_percent / 100.0)
 					;
@@ -433,18 +435,33 @@ private:
 		return move_rr.execute(Msg::RequestMoveFunds{
 			nullptr, source, destination, amount,
 			this_rebalance_fee
-		}).then([this, source](Msg::ResponseMoveFunds _) {
+		}).then([this, source, moved
+			](Msg::ResponseMoveFunds move_result) {
+			*moved = move_result;
+
 			auto it = current_sources.find(source);
 			assert(it != current_sources.end());
 			current_sources.erase(it);
 			return Ev::lift();
 
-			/* This only exists in order to ensure that
+			/* `self` is used below in order to ensure that
 			 * we are still alive after requesting the
-			 * transfer fo funds.
+			 * transfer of funds.
 			 */
-		}).then([self]() {
-			return Ev::lift();
+		}).then([self, source, moved, destination
+			]() {
+			auto amount = moved->amount_moved;
+			auto fee = moved->fee_spent;
+			return Boss::log( self->bus, Debug
+					, "InitialRebalancer: "
+					  "Moved %s -> "
+					  "%s (fee: %s) -> "
+					  "%s"
+					, std::string(source).c_str()
+					, std::string(amount).c_str()
+					, std::string(fee).c_str()
+					, std::string(destination).c_str()
+					);
 		});
 	}
 

@@ -99,6 +99,10 @@ public:
 						  , std::function<
 						double(Ln::NodeId const&)
 						    > scorer) {
+				/* Nothing to do?  */
+				if (metrics.size() == 0)
+					return;
+
 				auto full_reason
 					= std::string("node is in top ")
 					+ Util::stringify(
@@ -108,14 +112,24 @@ public:
 					+ what
 					+ " earners"
 					;
-				auto peers = std::vector<Ln::NodeId>();
+
+				typedef std::pair< Ln::NodeId
+						 , double
+						 > PeerEntry;
+
+				/* Extract peers and their scores.  */
+				auto peers = std::vector<PeerEntry>();
 				for (auto& m : metrics)
-					peers.push_back(m.first);
+					peers.push_back(std::make_pair(
+						m.first,
+						scorer(m.first)
+					));
+				/* Sort from highest-scorers to lowest.  */
 				std::sort( peers.begin(), peers.end()
-					 , [&scorer]( Ln::NodeId const& a
-						    , Ln::NodeId const& b
-						    ) {
-					return scorer(b) < scorer(a);
+					 , []( PeerEntry const& a
+					     , PeerEntry const& b
+					     ) {
+					return b.second < a.second;
 				});
 
 				/* Find the the index of the percentile point.  */
@@ -126,12 +140,39 @@ public:
 					    / 100.0
 					    )
 				);
-				if (ind == 0)
-					ind = 1;
-				/* Delete everybody lower than that point.  */
-				peers.erase(peers.begin() + ind, peers.end());
-				for (auto& p : peers)
-					add_exempt(p, full_reason);
+				/* Could happen if high_earner_percentile >= 50%
+				 * and peers.size() == 1.  */
+				if (ind == peers.size())
+					ind = peers.size() - 1;
+				/* Find the minimum score.  */
+				auto min_score = peers[ind].second;
+				if (min_score == 0.0) {
+					/* Only exempt non-zero scorers.
+					 * This means that if the top
+					 * percentile includes nodes with
+					 * 0 score, the 0-scorers are still
+					 * not exempted.
+					 */
+					for (auto& p : peers) {
+						if (p.second <= 0.0)
+							continue;
+						add_exempt( p.first
+							  , full_reason
+							  );
+					}
+				} else {
+					/* Otherwise exempt only
+					 * those who have min
+					 * score or higher.
+					 */
+					for (auto& p : peers) {
+						if (p.second < min_score)
+							continue;
+						add_exempt( p.first
+							  , full_reason
+							  );
+					}
+				}
 			};
 			if (has_nonzero_in)
 				exempt_top_earner( "incoming fee"

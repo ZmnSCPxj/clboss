@@ -25,7 +25,7 @@ auto const min_age_description = std::string("two days");
  * i.e. the top `high_earner_percentile` percent of all peers are
  * exempted from complaints.
  */
-auto const high_earner_percentile = double(20);
+auto const high_earner_percentile = double(40);
 
 }
 

@@ -1,3 +1,4 @@
+- Adjust our judgment of "low onchain fee" downward (i.e. cheaper) slightly, from 25% +/-5% to 20% +/-3%.
 - `ActiveProber` now only does a 2-hop probe always.
 - `ChannelComplainerByLowSuccessPerDay` logs a little more on debug prints.
 - Tweak parameters for auto-close slightly, being more lenient.

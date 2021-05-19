@@ -305,9 +305,9 @@ static_assert( num_samples == ( sizeof(initial_sample_data)
  * `lo_to_hi_percentile` is used when we are currently in
  * "low fees" mode.
  */
-auto constexpr hi_to_lo_percentile = double(20);
-auto constexpr mid_percentile = double(25);
-auto constexpr lo_to_hi_percentile = double(30);
+auto constexpr hi_to_lo_percentile = double(17);
+auto constexpr mid_percentile = double(20);
+auto constexpr lo_to_hi_percentile = double(23);
 
 }
 

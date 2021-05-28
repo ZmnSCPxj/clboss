@@ -184,7 +184,9 @@ std::shared_ptr<void> all( std::ostream& cout
 	/* Peer complaints.  */
 	all->install<PeerComplaintsDesk::Main>(bus);
 	all->install<ComplainerByLowConnectRate>(bus);
+#ifdef ENABLE_COMPLAINER_BY_LOW_SUCCESS_PER_DAY
 	all->install<ComplainerByLowSuccessPerDay>(bus);
+#endif /* ENABLE_COMPLAINER_BY_LOW_SUCCESS_PER_DAY */
 
 	/* Channel balancing.  */
 	all->install<FundsMover::Main>(bus);

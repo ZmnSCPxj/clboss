@@ -58,13 +58,8 @@ The `bin/` directory will contain the `clboss` binary.
 Just pass the path to that binary as a `--plugin=` or
 `--important-plugin=` to `lightningd`.
 
-The binary itself has been stripped of debug information, but the
-tarball contains the debug data for CLBOSS as well.
-The debug data is in `lib/debug/`.
-If you want to debug CLBOSS using `gdb` from the reproducible
-tarball, then you have to give this command to `gdb`:
-
-    (gdb) set debug-file-directory /path/to/lib/debug
+The binary has been stripped of debug information, as the debug
+information takes about 90Mb.
 
 Removing
 --------

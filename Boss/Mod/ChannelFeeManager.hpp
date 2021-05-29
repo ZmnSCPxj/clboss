@@ -1,12 +1,13 @@
 #ifndef BOSS_MOD_CHANNELFEEMANAGER_HPP
 #define BOSS_MOD_CHANNELFEEMANAGER_HPP
 
+#include"Ln/NodeId.hpp"
 #include<cstdint>
 #include<functional>
+#include<map>
 #include<vector>
 
 namespace Ev { template<typename a> class Io; }
-namespace Ln { class NodeId; }
 namespace S { class Bus; }
 
 namespace Boss { namespace Mod {
@@ -36,6 +37,15 @@ private:
 			    , std::uint32_t median_proportional
 			    );
 	Ev::Io<void> solicit();
+
+	struct Info {
+		std::uint32_t median_base;
+		std::uint32_t median_proportional;
+		double multiplier;
+		std::uint32_t final_base;
+		std::uint32_t final_proportional;
+	};
+	std::map<Ln::NodeId, Info> infos;
 
 public:
 	ChannelFeeManager() =delete;

@@ -476,6 +476,8 @@ libclboss_la_SOURCES = \
 	Util/date.hpp \
 	Util/duration.cpp \
 	Util/duration.hpp \
+	Util/format.cpp \
+	Util/format.hpp \
 	Util/make_unique.hpp \
 	Util/stringify.hpp \
 	Util/vector_emplace_back.hpp \

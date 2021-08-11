@@ -1,6 +1,8 @@
 #ifndef BOSS_MSG_ONCHAINFEE_HPP
 #define BOSS_MSG_ONCHAINFEE_HPP
 
+#include<utility>
+
 namespace Boss { namespace Msg {
 
 /** struct Boss::Msg::OnchainFee
@@ -10,6 +12,9 @@ namespace Boss { namespace Msg {
  */
 struct OnchainFee {
 	bool fees_low;
+
+	/* nullptr if unknown, or pointer to some value if known.  */
+	std::unique_ptr<double> last_feerate;
 };
 
 }}

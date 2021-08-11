@@ -561,7 +561,17 @@ private:
 				, msg
 				, is_low_fee_flag ? "low" : "high"
 				).then([this]() {
-			return bus.raise(Msg::OnchainFee{is_low_fee_flag});
+			if (last_feerate) {
+				return bus.raise(Msg::OnchainFee{
+					is_low_fee_flag,
+					Util::make_unique<double>(*last_feerate)
+				});
+			} else {
+				return bus.raise(Msg::OnchainFee{
+					is_low_fee_flag,
+					nullptr
+				});
+			{
 		});
 	}
 

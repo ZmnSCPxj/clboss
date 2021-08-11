@@ -571,7 +571,7 @@ private:
 					is_low_fee_flag,
 					nullptr
 				});
-			{
+			}
 		});
 	}
 

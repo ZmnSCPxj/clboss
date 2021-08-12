@@ -213,6 +213,11 @@ libclboss_la_SOURCES = \
 	Boss/Mod/PeerComplaintsDesk/Recorder.hpp \
 	Boss/Mod/PeerComplaintsDesk/Unmanager.cpp \
 	Boss/Mod/PeerComplaintsDesk/Unmanager.hpp \
+	Boss/Mod/PeerJudge/Algo.cpp \
+	Boss/Mod/PeerJudge/Algo.hpp \
+	Boss/Mod/PeerJudge/Info.hpp \
+	Boss/Mod/PeerJudge/Unmanager.cpp \
+	Boss/Mod/PeerJudge/Unmanager.hpp \
 	Boss/Mod/PeerMetrician.cpp \
 	Boss/Mod/PeerMetrician.hpp \
 	Boss/Mod/PeerStatistician.cpp \
@@ -535,6 +540,7 @@ TESTS = \
 	tests/boss/test_initialrebalancer \
 	tests/boss/test_needsconnectsolicitor \
 	tests/boss/test_onchainfeemonitor_samples_init \
+	tests/boss/test_peerjudge_algo \
 	tests/boss/test_peerstatistician \
 	tests/boss/test_peercomplaintsdesk_recorder \
 	tests/boss/test_reqresp \

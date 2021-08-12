@@ -572,7 +572,8 @@ TESTS = \
 	tests/stats/test_weighted_median \
 	tests/test_uuid \
 	tests/util/test_date \
-	tests/util/test_duration
+	tests/util/test_duration \
+	tests/util/test_format
 check_PROGRAMS = $(TESTS)
 
 if USE_VALGRIND

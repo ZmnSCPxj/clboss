@@ -215,6 +215,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/PeerComplaintsDesk/Unmanager.hpp \
 	Boss/Mod/PeerJudge/Algo.cpp \
 	Boss/Mod/PeerJudge/Algo.hpp \
+	Boss/Mod/PeerJudge/DataGatherer.cpp \
+	Boss/Mod/PeerJudge/DataGatherer.hpp \
 	Boss/Mod/PeerJudge/Info.hpp \
 	Boss/Mod/PeerJudge/Unmanager.cpp \
 	Boss/Mod/PeerJudge/Unmanager.hpp \
@@ -541,6 +543,7 @@ TESTS = \
 	tests/boss/test_needsconnectsolicitor \
 	tests/boss/test_onchainfeemonitor_samples_init \
 	tests/boss/test_peerjudge_algo \
+	tests/boss/test_peerjudge_datagatherer \
 	tests/boss/test_peerstatistician \
 	tests/boss/test_peercomplaintsdesk_recorder \
 	tests/boss/test_reqresp \

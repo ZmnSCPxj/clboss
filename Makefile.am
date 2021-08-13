@@ -213,6 +213,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/PeerComplaintsDesk/Recorder.hpp \
 	Boss/Mod/PeerComplaintsDesk/Unmanager.cpp \
 	Boss/Mod/PeerComplaintsDesk/Unmanager.hpp \
+	Boss/Mod/PeerJudge/AgeTracker.cpp \
+	Boss/Mod/PeerJudge/AgeTracker.hpp \
 	Boss/Mod/PeerJudge/Algo.cpp \
 	Boss/Mod/PeerJudge/Algo.hpp \
 	Boss/Mod/PeerJudge/DataGatherer.cpp \
@@ -542,6 +544,7 @@ TESTS = \
 	tests/boss/test_initialrebalancer \
 	tests/boss/test_needsconnectsolicitor \
 	tests/boss/test_onchainfeemonitor_samples_init \
+	tests/boss/test_peerjudge_agetracker \
 	tests/boss/test_peerjudge_algo \
 	tests/boss/test_peerjudge_datagatherer \
 	tests/boss/test_peerstatistician \

@@ -219,6 +219,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/PeerJudge/Algo.hpp \
 	Boss/Mod/PeerJudge/DataGatherer.cpp \
 	Boss/Mod/PeerJudge/DataGatherer.hpp \
+	Boss/Mod/PeerJudge/Executioner.cpp \
+	Boss/Mod/PeerJudge/Executioner.hpp \
 	Boss/Mod/PeerJudge/Info.hpp \
 	Boss/Mod/PeerJudge/Unmanager.cpp \
 	Boss/Mod/PeerJudge/Unmanager.hpp \

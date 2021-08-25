@@ -7,7 +7,7 @@ namespace Boss { namespace Msg {
 
 /** struct Boss::Msg::ManifestHook
  *
- * @brief emitted in respone to Boss::Msg::Manifestation
+ * @brief emitted in response to Boss::Msg::Manifestation
  * to register a hook.
  * Multiple modules can register the same hook and listen
  * for Boss::Msg::CommandRequest for that hook, though

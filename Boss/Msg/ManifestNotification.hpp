@@ -7,7 +7,7 @@ namespace Boss { namespace Msg {
 
 /** struct Boss::Msg::ManifestNotification
  *
- * @brief emitted in respone to Boss::Msg::Manifestation
+ * @brief emitted in response to Boss::Msg::Manifestation
  * to register a notification.
  * Multiple modules can register the same notification
  * and listen for Boss::Msg::Notification.

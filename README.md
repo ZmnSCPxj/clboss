@@ -329,3 +329,28 @@ particular channels to particular nodes will not be auto-closed
 by CLBOSS (they may still be closed by `lightningd` due to an
 HTLC timeout, or by the peer for any reason, or by you; this
 just suppresses CLBOSS).
+
+### `--clboss-min-channel-size=<satoshis>`
+
+Pass this option to `lightningd` to configure the minimum
+channel size CLBOSS should consider creating.
+
+The amount specified must be an ordinary number, and must be
+in satoshis unit, without any trailing units or other strings.
+
+The default is "500000", or 0.005 BTC.
+
+### `--clboss-max-channel-size=<satoshis>`
+
+Pass this option to `lightningd` to configure the maximum
+channel size CLBOSS should consider creating.
+
+The amount specified must be an ordinary number, and must be
+in satoshis unit, without any trailing units or other strings.
+
+The default is "16777215", or 0.16777215 BTC.
+
+Anything larger than this default is considered a large (or
+"wumbo") channel.
+Using wumbo-sized channels will require passing `lightningd` 
+the `--large-channels|--wumbo` option.

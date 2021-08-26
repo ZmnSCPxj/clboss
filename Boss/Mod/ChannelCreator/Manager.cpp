@@ -5,6 +5,9 @@
 #include"Boss/Mod/ChannelCreator/RearrangerBySize.hpp"
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/Msg/Init.hpp"
+#include"Boss/Msg/ManifestOption.hpp"
+#include"Boss/Msg/Manifestation.hpp"
+#include"Boss/Msg/Option.hpp"
 #include"Boss/Msg/RequestChannelCreation.hpp"
 #include"Boss/Msg/SolicitChannelCandidates.hpp"
 #include"Boss/concurrent.hpp"
@@ -26,8 +29,8 @@
 namespace {
 
 /* Minimum and maximum channel size.  */
-auto const min_amount = Ln::Amount::btc(0.005);
-auto const max_amount = Ln::Amount::sat(16777215);
+auto const default_min_amount = Ln::Amount::btc(0.005);
+auto const default_max_amount = Ln::Amount::sat(16777215);
 /* If it is difficult to fit the amount among multiple
  * proposals, how much should we target leaving until
  * next time?
@@ -68,7 +71,55 @@ Ev::Io<void> report_proposals( S::Bus& bus, char const* prefix
 namespace Boss { namespace Mod { namespace ChannelCreator {
 
 void Manager::start() {
-	bus.subscribe<Msg::Init
+    min_amount = default_min_amount;
+    max_amount = default_max_amount;
+
+    bus.subscribe<Msg::Manifestation
+            >([this](Msg::Manifestation const& _) {
+        return bus.raise(Msg::ManifestOption{
+                "clboss-min-channel-size"
+                , Msg::OptionType_Int
+                , Json::Out::direct(min_amount.to_sat())
+                , "Minimum channel size CLBOSS will create. "
+                  "Set to an integer number of satoshis. "
+                  "default=500000"
+                });
+    });
+
+    bus.subscribe<Msg::Option
+            >([this](Msg::Option const& o) {
+        if (o.name != "clboss-min-channel-size")
+            return Ev::lift();
+        min_amount = Ln::Amount::sat(double(o.value));
+        return Boss::log( bus, Info
+                , "ChannelCreator: "
+                  "set min-channel-size: %s."
+                , std::string(min_amount).c_str()
+                );
+    });
+    bus.subscribe<Msg::Manifestation
+    >([this](Msg::Manifestation const& _) {
+        return bus.raise(Msg::ManifestOption{
+                "clboss-max-channel-size"
+                , Msg::OptionType_Int
+                , Json::Out::direct(max_amount.to_sat())
+                , "Maximum channel size CLBOSS will create. "
+                  "Set to an integer number of satoshis. "
+                  "default=16777215"
+                });
+    });
+    bus.subscribe<Msg::Option
+    >([this](Msg::Option const& o) {
+        if (o.name != "clboss-max-channel-size")
+            return Ev::lift();
+        max_amount = Ln::Amount::sat(double(o.value));
+        return Boss::log( bus, Info
+                , "ChannelCreator: "
+                  "set max-channel-size: %s."
+                , std::string(max_amount).c_str()
+                );
+    });
+    bus.subscribe<Msg::Init
 		     >([this](Msg::Init const& init) {
 		rpc = &init.rpc;
 		self = init.self_id;
@@ -153,7 +204,8 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 		 * nodes with similar locations.
 		 */
 		return reprioritize(std::move(proposals));
-	}).then([ num_chans
+	}).then([ this
+        , num_chans
 		, amt
 		, dowser_func
 		](std::vector<std::pair<Ln::NodeId, Ln::NodeId>> proposals) {

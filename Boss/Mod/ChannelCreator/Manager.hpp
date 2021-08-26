@@ -38,6 +38,8 @@ private:
 	Boss::Mod::ChannelCandidateInvestigator::Main& investigator;
 	Boss::Mod::ChannelCreator::Carpenter& carpenter;
 	Ln::NodeId self;
+    Ln::Amount min_amount;
+    Ln::Amount max_amount;
 
 	ModG::ReqResp<Msg::RequestDowser, Msg::ResponseDowser> dowser;
 

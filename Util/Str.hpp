@@ -6,6 +6,7 @@
  */
 
 #include<cstdint>
+#include<stdarg.h>
 #include<stdexcept>
 #include<string>
 #include<vector>
@@ -32,6 +33,14 @@ std::vector<std::uint8_t> hexread(std::string const&);
 bool ishex(std::string const&);
 
 std::string trim(std::string const& s);
+
+/* Like `sprintf`.  */
+std::string fmt(char const *tpl, ...)
+#if HAVE_ATTRIBUTE_FORMAT
+	__attribute__ ((format (printf, 1, 2)))
+#endif
+;
+std::string vfmt(char const *tpl, va_list ap);
 
 }}
 

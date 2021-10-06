@@ -2,7 +2,10 @@
 #include<cctype>
 #include<iomanip>
 #include<sstream>
+#include<stdarg.h>
+#include<stdio.h>
 #include"Util/Str.hpp"
+#include"Util/make_unique.hpp"
 
 namespace Util {
 namespace Str {
@@ -87,6 +90,36 @@ std::string trim(std::string const& s) {
 	auto end = rend.base();
 
 	return std::string(start, end);
+}
+
+std::string fmt(char const *tpl, ...) {
+	va_list ap;
+
+	auto rv = std::string();
+
+	va_start(ap, tpl);
+	rv = vfmt(tpl, ap);
+	va_end(ap);
+
+	return rv;
+}
+std::string vfmt(char const *tpl, va_list ap_orig) {
+	va_list ap;
+
+	auto written = size_t(0);
+	auto size = size_t(42);
+	auto buf = std::unique_ptr<char[]>();
+
+	do {
+		if (size <= written)
+			size = written + 1;
+		buf = Util::make_unique<char[]>(size);
+		va_copy(ap, ap_orig);
+		written = size_t(vsnprintf(buf.get(), size, tpl, ap));
+		va_end(ap);
+	} while (size <= written);
+
+	return std::string(buf.get());
 }
 
 }

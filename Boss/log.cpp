@@ -2,7 +2,7 @@
 #include"Boss/log.hpp"
 #include"Json/Out.hpp"
 #include"S/Bus.hpp"
-#include"Util/make_unique.hpp"
+#include"Util/Str.hpp"
 #include<stdarg.h>
 
 namespace Boss {
@@ -10,19 +10,11 @@ namespace Boss {
 Ev::Io<void> log(S::Bus& bus, LogLevel l, const char *fmt, ...) {
 	va_list ap;
 
-	auto written = size_t(0);
-	auto size = size_t(42);
-	auto buf = std::unique_ptr<char[]>();
-	do {
-		if (size <= written)
-			size = written + 1;
-		buf = Util::make_unique<char[]>(size);
-		va_start(ap, fmt);
-		written = size_t(vsnprintf(buf.get(), size, fmt, ap));
-		va_end(ap);
-	} while (size <= written);
+	auto msg = std::string();
 
-	auto msg = std::string(buf.get());
+	va_start(ap, fmt);
+	msg = Util::Str::vfmt(fmt, ap);
+	va_end(ap);
 
 	auto level_string = std::string();
 	switch (l) {

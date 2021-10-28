@@ -341,6 +341,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/SolicitSwapQuotation.hpp \
 	Boss/Msg/SolicitUnmanagement.hpp \
 	Boss/Msg/StatusListpays.hpp \
+	Boss/Msg/SwapCompleted.hpp \
 	Boss/Msg/SwapCreation.hpp \
 	Boss/Msg/SwapRequest.hpp \
 	Boss/Msg/SwapResponse.hpp \

@@ -12,6 +12,7 @@
 #include"Boss/Msg/ResponseNewaddr.hpp"
 #include"Boss/Msg/SolicitStatus.hpp"
 #include"Boss/Msg/SolicitSwapQuotation.hpp"
+#include"Boss/Msg/SwapCompleted.hpp"
 #include"Boss/Msg/SwapCreation.hpp"
 #include"Boss/Msg/SwapRequest.hpp"
 #include"Boss/Msg/SwapResponse.hpp"
@@ -173,6 +174,22 @@ private:
 			       ON DELETE CASCADE
 			       ON UPDATE RESTRICT
 			     , name TEXT NOT NULL
+			     );
+
+			-- Used to coordinate information on completion
+			-- of swaps.
+			-- This table is for swaps that have already been
+			-- seen onchain.
+			CREATE TABLE IF NOT EXISTS "SwapManager_comp_onchain"
+			     ( payment_hash TEXT UNIQUE
+			     , amount_received INTEGER NOT NULL
+			     , provider_name TEXT NOT NULL
+			     );
+			-- This table is for swaps that have already been
+			-- succeeded on-Lightning payment.
+			CREATE TABLE IF NOT EXISTS "SwapManager_comp_pay"
+			     ( payment_hash TEXT UNIQUE
+			     , amount_sent INTEGER NOT NULL
 			     );
 			)QRY");
 			tx.commit();
@@ -672,10 +689,13 @@ private:
 	/* Check response to RequestListpays.  */
 	Ev::Io<void> on_response_listpays(Msg::ResponseListpays const& r) {
 		auto status = r.status;
-		/* We only actually care if it failed.
-		 * For success, we only consider it if the money appears
-		 * onchain.
-		 */
+
+		/* If it succeeded, trigger on_pay_success.  */
+		if (status == Msg::StatusListpays_success)
+			return on_pay_success( r.payment_hash
+					     , r.amount_sent
+					     );
+
 		if (status != Msg::StatusListpays_failed)
 			return Ev::lift();
 		auto hash = r.payment_hash;
@@ -737,7 +757,7 @@ private:
 			onchain_funds.pop();
 
 			auto check = tx.query(R"QRY(
-			SELECT uuid
+			SELECT uuid, payment_hash
 			  FROM "SwapManager"
 			 WHERE address = :address
 			   AND state = :state
@@ -747,9 +767,11 @@ private:
 				.execute();
 			auto found = false;
 			auto uuid = Uuid();
+			auto hash = Sha256::Hash();
 			for (auto& r : check) {
 				found = true;
 				uuid = Uuid(r.get<std::string>(0));
+				hash = Sha256::Hash(r.get<std::string>(1));
 			}
 
 			auto act = Ev::lift();
@@ -768,6 +790,14 @@ private:
 					provider_name = r.get<std::string>(0);
 					break;
 				}
+
+				act += Boss::concurrent(
+					on_onchain_funds_seen( hash
+							     , fund.second
+							     , provider_name
+							     )
+				);
+
 				/* Remove it.  */
 				tx.query(R"QRY(
 				DELETE FROM "SwapManager"
@@ -958,6 +988,172 @@ private:
 			return bus.raise(Msg::ProvideStatus{
 				"swap_manager", std::move(out)
 			});
+		});
+	}
+
+	Ev::Io<void>
+	on_pay_success( Sha256::Hash const& hash
+		      , Ln::Amount amount_sent
+		      ) {
+		return db.transact().then([ this
+					  , hash
+					  , amount_sent
+					  ](Sqlite3::Tx tx) {
+			/* First, check if it was already seen onchain.  */
+			auto check_comp = tx.query(R"QRY(
+			SELECT amount_received, provider_name
+			  FROM "SwapManager_comp_onchain"
+			 WHERE payment_hash = :hash
+			     ;
+			)QRY")
+				.bind(":hash", std::string(hash))
+				.execute()
+				;
+			auto found_comp = false;
+			auto amount_received = Ln::Amount::sat(0);
+			auto provider_name = std::string();
+			for (auto& r : check_comp) {
+				found_comp = true;
+				amount_received = Ln::Amount::msat(
+					r.get<std::uint64_t>(0)
+				);
+				provider_name = r.get<std::string>(1);
+			}
+			if (found_comp) {
+				/* Delete the completion record.  */
+				tx.query(R"QRY(
+				DELETE FROM "SwapManager_comp_onchain"
+				 WHERE payment_hash = :hash
+				)QRY")
+					.bind(":hash", std::string(hash))
+					.execute()
+					;
+				/* Broadcast, handing over the database
+				 * transaction.  */
+				return broadcast_completed(
+					std::move(tx),
+					amount_sent,
+					amount_received,
+					provider_name
+				);
+			}
+
+			/* Otherwise create a record that it was seen
+			 * paid.  */
+			tx.query(R"QRY(
+			INSERT OR IGNORE
+			  INTO "SwapManager_comp_pay"
+			VALUES( :hash
+			      , :amount_sent
+			      );
+			)QRY")
+				.bind(":hash", std::string(hash))
+				.bind(":amount_sent", amount_sent.to_msat())
+				.execute()
+				;
+
+			tx.commit();
+			return Ev::lift();
+		});
+	}
+
+	Ev::Io<void>
+	on_onchain_funds_seen( Sha256::Hash const& hash
+			     , Ln::Amount amount_received
+			     , std::string const& provider_name
+			     ) {
+		return db.transact().then([ this
+					  , hash
+					  , amount_received
+					  , provider_name
+					  ](Sqlite3::Tx tx) {
+			/* First, check if it was already seen on outgoing
+			 * pay.
+			 */
+			auto check_comp = tx.query(R"QRY(
+			SELECT amount_sent
+			  FROM "SwapManager_comp_pay"
+			 WHERE payment_hash = :hash
+			     ;
+			)QRY")
+				.bind(":hash", std::string(hash))
+				.execute()
+				;
+			auto found_comp = false;
+			auto amount_sent = Ln::Amount::sat(0);
+			for (auto& r : check_comp) {
+				found_comp = true;
+				amount_sent = Ln::Amount::msat(
+					r.get<std::uint64_t>(0)
+				);
+			}
+			if (found_comp) {
+				/* Delete the completion record.  */
+				tx.query(R"QRY(
+				DELETE FROM "SwapManager_comp_pay"
+				 WHERE payment_hash = :hash
+				     ;
+				)QRY")
+					.bind(":hash", std::string(hash))
+					.execute()
+					;
+				/* Broadcast, handing over the database
+				 * transaction.
+				 */
+				return broadcast_completed(
+					std::move(tx),
+					amount_sent,
+					amount_received,
+					provider_name
+				);
+			}
+
+			/* Otherwise create a completion record that we
+			 * have seen it onchain.
+			 */
+			tx.query(R"QRY(
+			INSERT OR IGNORE INTO "SwapManager_comp_onchain"
+			VALUES( :hash
+			      , :amount_received
+			      , :provider_name
+			      );
+			)QRY")
+				.bind(":hash", std::string(hash))
+				.bind( ":amount_received"
+				     , amount_received.to_msat()
+				     )
+				.bind(":provider_name", provider_name)
+				.execute()
+				;
+
+			tx.commit();
+			return Ev::lift();
+		});
+	}
+
+	Ev::Io<void>
+	broadcast_completed( Sqlite3::Tx tx
+			   , Ln::Amount amount_sent
+			   , Ln::Amount amount_received
+			   , std::string const& provider_name
+			   ) {
+		auto sh_tx = std::make_shared<Sqlite3::Tx>(
+			std::move(tx)
+		);
+		auto act = Ev::lift();
+		act += Boss::log( bus, Info
+				, "SwapManager: Sent %s on Lightning, got %s onchain.  "
+				, std::string(amount_sent).c_str()
+				, std::string(amount_received).c_str()
+				);
+		act += bus.raise(Msg::SwapCompleted{
+			sh_tx, amount_sent, amount_received,
+			provider_name
+		});
+		return std::move(act).then([sh_tx]() {
+			if (*sh_tx)
+				sh_tx->commit();
+			return Ev::lift();
 		});
 	}
 };

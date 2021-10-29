@@ -242,6 +242,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/StatusCommand.hpp \
 	Boss/Mod/SwapManager.cpp \
 	Boss/Mod/SwapManager.hpp \
+	Boss/Mod/SwapReporter.cpp \
+	Boss/Mod/SwapReporter.hpp \
 	Boss/Mod/TimerTwiceDailyAnnouncer.cpp \
 	Boss/Mod/TimerTwiceDailyAnnouncer.hpp \
 	Boss/Mod/Timers.cpp \

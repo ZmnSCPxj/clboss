@@ -288,6 +288,25 @@ The possible unmanagement tags are:
 * `open` - Do not automatically open channels to this node.
 * `close` - Do not automatically close channels to this node.
 
+### `clboss-swaps`
+
+CLBOSS will sometimes swap Lightning funds for onchain funds,
+and *then* put the onchain funds into new channels.
+This is generally done to acquire incoming capacity for a new
+node, or if incoming capacity got closed.
+
+This swapping is done via various online swap providers.
+These providers charge for this swap service.
+
+The `clboss-swaps` command provides the list of offchain-to-onchain
+swaps, including how much was disbursed and how much got returned
+in the swap.
+
+This recording only started in 0.11D.
+Earlier versions do not record, so if you have been using CLBOSS
+before 0.11D, then historical offchain-to-onchain swaps are not
+reported.
+
 ### `--clboss-min-onchain=<satoshis>`
 
 Pass this option to `lightningd` in order to specify a target

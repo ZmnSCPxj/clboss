@@ -61,6 +61,7 @@
 #include"Boss/Mod/SendpayResultMonitor.hpp"
 #include"Boss/Mod/StatusCommand.hpp"
 #include"Boss/Mod/SwapManager.hpp"
+#include"Boss/Mod/SwapReporter.hpp"
 #include"Boss/Mod/TimerTwiceDailyAnnouncer.hpp"
 #include"Boss/Mod/Timers.hpp"
 #include"Boss/Mod/UnmanagedManager.hpp"
@@ -157,6 +158,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<SwapManager>(bus);
 	all->install<NeedsOnchainFundsSwapper>(bus);
 	all->install<NodeBalanceSwapper>(bus);
+	all->install<SwapReporter>(bus);
 
 	/* Invoice wrangling.  */
 	all->install<InvoicePayer>(bus);

@@ -1,3 +1,5 @@
+- Record offchain-to-onchain swaps, accessible via new `clboss-swaps` command.
+
 0.11C
 - Disable `ChannelComplainerByLowSuccessPerDay` for now.
 - Adjust our judgment of "low onchain fee" downward (i.e. cheaper) slightly, from 25% +/-5% to 20% +/-3%.

@@ -2,6 +2,7 @@
 #define BOSS_MSG_PROVIDESWAPQUOTATION_HPP
 
 #include"Ln/Amount.hpp"
+#include<string>
 
 namespace Boss { namespace Msg {
 
@@ -27,6 +28,8 @@ struct ProvideSwapQuotation {
 	void* solicitor;
 	/* Identify the module that is responding.  */
 	void* provider;
+	/* String identifier of the swap service.  */
+	std::string provider_name;
 };
 
 }}

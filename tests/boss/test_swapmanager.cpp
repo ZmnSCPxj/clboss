@@ -99,7 +99,8 @@ public:
 				messages.emplace_back(ProvideSwapQuotation{
 					set[i],
 					s.solicitor,
-					providers[i].get()
+					providers[i].get(),
+					"MockSwapQuotation"
 				});
 			}
 			/* Send them.  */

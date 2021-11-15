@@ -77,11 +77,13 @@ private:
 				report << ", ";
 			report << "Boltz::Service(\"" << instance.label << "\")";
 
+			auto label = instance.label;
+
 			return factory.create_service_detailed(
 				instance.label, instance.clearnet, instance.onion
-			).then([this](std::unique_ptr<Boltz::Service> core) {
+			).then([this, label](std::unique_ptr<Boltz::Service> core) {
 				auto wrapper = Util::make_unique<ServiceModule>
-					( bus, std::move(core) );
+					( bus, std::move(core), label );
 				services.push_back(std::move(wrapper));
 				return core_run();
 			});

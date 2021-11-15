@@ -17,6 +17,7 @@ class ServiceModule::Impl {
 private:
 	S::Bus& bus;
 	std::unique_ptr<Boltz::Service> service;
+	std::string label;
 
 	std::unique_ptr<std::uint32_t> blockheight;
 
@@ -47,7 +48,8 @@ private:
 					return Ev::lift();
 
 				return bus.raise(Msg::ProvideSwapQuotation{
-					*fee, solicitor, this
+					*fee, solicitor, this,
+					label
 				});
 			});
 		});
@@ -95,8 +97,10 @@ public:
 	explicit
 	Impl( S::Bus& bus_
 	    , std::unique_ptr<Boltz::Service> service_
+	    , std::string label_
 	    ) : bus(bus_)
 	      , service(std::move(service_))
+	      , label(std::string("Boltz::Service(\"") + label_ + "\")")
 	      { start(); }
 };
 
@@ -107,8 +111,10 @@ ServiceModule::~ServiceModule() =default;
 ServiceModule::ServiceModule
 	( S::Bus& bus
 	, std::unique_ptr<Boltz::Service> service
+	, std::string label
 	) : pimpl(Util::make_unique<Impl>( bus
 					 , std::move(service)
+					 , std::move(label)
 					 ))
 	  { }
 

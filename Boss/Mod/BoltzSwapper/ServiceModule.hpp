@@ -2,6 +2,7 @@
 #define BOSS_MOD_BOLTZSWAPPER_SERVICEMODULE_HPP
 
 #include<memory>
+#include<string>
 
 namespace Boltz { class Service; }
 namespace S { class Bus; }
@@ -23,6 +24,7 @@ public:
 	explicit
 	ServiceModule( S::Bus& bus
 		     , std::unique_ptr<Boltz::Service>
+		     , std::string label
 		     );
 };
 

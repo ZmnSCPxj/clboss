@@ -85,7 +85,9 @@ private:
 				return Ev::lift();
 			/* Not concurrent since the processing expects
 			 * synchronous response.  */
-			return on_provide_swap_quotation(q.fee, q.provider);
+			return on_provide_swap_quotation( q.fee, q.provider
+							, q.provider_name
+							);
 		});
 		bus.subscribe<Msg::SwapCreation
 			     >([this](Msg::SwapCreation const& s) {
@@ -161,6 +163,16 @@ private:
 			CREATE TABLE IF NOT EXISTS "SwapManager_addrcache"
 			     ( id INTEGER PRIMARY KEY -- ROWID
 			     , address TEXT NOT NULL
+			     );
+
+			-- A mapping of swaps and the name of the provider
+			-- of the swap service.
+			CREATE TABLE IF NOT EXISTS "SwapManager_provider"
+			     ( uuid TEXT UNIQUE
+			       REFERENCES "SwapManager"(uuid)
+			       ON DELETE CASCADE
+			       ON UPDATE RESTRICT
+			     , name TEXT NOT NULL
 			     );
 			)QRY");
 			tx.commit();
@@ -346,7 +358,20 @@ private:
 		return loop_needs_invoice();
 	}
 
-	std::vector<std::pair<std::uint64_t, void*>> quotations;
+	struct Quotation {
+		std::uint64_t score;
+		void* provider;
+		std::string provider_name;
+		Quotation( std::uint64_t score_
+			 , void* provider_
+			 , std::string provider_name_
+			 ) : score(score_)
+			   , provider(provider_)
+			   , provider_name(std::move(provider_name_))
+			   { }
+	};
+
+	std::vector<Quotation> quotations;
 	Ln::Amount amount;
 	std::string address;
 
@@ -391,17 +416,17 @@ private:
 			/* Randomize quotations.  */
 			for (auto& q : quotations) {
 				auto dist = std::uniform_int_distribution<std::uint64_t>(
-					0, q.first
+					0, q.score
 				);
-				q.first = dist(Boss::random_engine);
+				q.score = dist(Boss::random_engine);
 			}
 
 			/* Sort quotations, from highest-fee to lowest-fee.  */
 			std::sort( quotations.begin(), quotations.end()
-				 , []( std::pair<std::uint64_t, void*> const& a
-				     , std::pair<std::uint64_t, void*> const& b
+				 , []( Quotation const& a
+				     , Quotation const& b
 				     ) {
-				return a.first > b.first;
+				return a.score > b.score;
 			});
 
 			/* Enter the quotations loop.  */
@@ -410,8 +435,12 @@ private:
 	}
 	Ev::Io<void> on_provide_swap_quotation( Ln::Amount fee
 					      , void* provider
+					      , std::string provider_name
 					      ) {
-		quotations.push_back(std::make_pair(fee.to_msat(), provider));
+		quotations.emplace_back( fee.to_msat()
+				       , provider
+				       , std::move(provider_name)
+				       );
 		return Ev::lift();
 	}
 	/* Process the quotations.  */
@@ -431,7 +460,7 @@ private:
 		auto const& quotation = quotations[quotations.size() - 1];
 		return bus.raise(Msg::AcceptSwapQuotation{
 			amount, address,
-			this, quotation.second
+			this, quotation.provider
 		});
 	}
 	/* On swap creation.  */
@@ -444,10 +473,16 @@ private:
 			});
 		}
 
+		auto const& quotation = quotations[quotations.size() - 1];
+		auto const& provider_name = quotation.provider_name;
+
 		auto swap = std::make_shared<Msg::SwapCreation>(s);
 
 		/* Otherwise, set up the swap.  */
-		return db.transact().then([this, swap](Sqlite3::Tx tx) {
+		return db.transact().then([ this
+					  , swap
+					  , provider_name
+					  ](Sqlite3::Tx tx) {
 			auto uuid = needs_invoice.front();
 
 			tx.query(R"QRY(
@@ -466,6 +501,15 @@ private:
 				     , swap->timeout_blockheight
 				     )
 				.bind(":uuid", std::string(uuid))
+				.execute();
+			tx.query(R"QRY(
+			INSERT OR REPLACE INTO "SwapManager_provider"
+			     VALUES( :uuid
+				   , :provider
+				   );
+			)QRY")
+				.bind(":uuid", std::string(uuid))
+				.bind(":provider", provider_name)
 				.execute();
 			tx.commit();
 			/* Now send the PayInvoice message.  */
@@ -710,6 +754,20 @@ private:
 
 			auto act = Ev::lift();
 			if (found) {
+				/* Get provider name.  */
+				auto fetch_pn = tx.query(R"QRY(
+				SELECT name
+				  FROM "SwapManager_provider"
+				 WHERE uuid = :uuid
+				     ;
+				)QRY")
+					.bind(":uuid", std::string(uuid))
+					.execute();
+				auto provider_name = std::string("<Unknown>");
+				for (auto& r : fetch_pn) {
+					provider_name = r.get<std::string>(0);
+					break;
+				}
 				/* Remove it.  */
 				tx.query(R"QRY(
 				DELETE FROM "SwapManager"
@@ -728,11 +786,13 @@ private:
 				act += Boss::log( bus, Info
 						, "SwapManager: "
 						  "Swap %s completed "
-						  "with %s onchain."
+						  "with %s onchain.  "
+						  "Provider: %s"
 						, std::string(uuid)
 							.c_str()
 						, std::string(amount)
 							.c_str()
+						, provider_name.c_str()
 						);
 				act += bus.raise(Msg::SwapResponse{
 					sh_tx,

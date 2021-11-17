@@ -114,7 +114,7 @@ basicsecure_rand
 /* basicsecure_rand_core returns 0 if it fails, non-0 if it succeeds.  */
 
 #if defined(HAVE_WINDOWS_RTLGENRANDOM)
-#include<inwdows.h>
+#include<windows.h>
 #define RtlGenRandom SystemFunction036
 #ifdef __cplusplus
 extern "C"

@@ -69,11 +69,7 @@ Ev::Io<void> Runner::core_run() {
 }
 /* Gets information about us and the peers to transfer to/from.  */
 Ev::Io<void> Runner::gather_info() {
-	return Ev::lift().then([this]() {
-		first_scid = nullptr;
-		last_scid = nullptr;
-
-		/* Get first_scid.  */
+	auto get_first_scid = Ev::lift().then([this]() {
 		auto parms = Json::Out()
 			.start_object()
 				.field("source", std::string(self))
@@ -102,8 +98,9 @@ Ev::Io<void> Runner::gather_info() {
 					);
 		}
 		return Ev::lift();
-	}).then([this]() {
+	});
 
+	auto get_last_scid = Ev::lift().then([this]() {
 		/* Get last_scid.  */
 		auto parms = Json::Out()
 			.start_object()
@@ -142,8 +139,22 @@ Ev::Io<void> Runner::gather_info() {
 					);
 		}
 		return Ev::lift();
-	}).then([this]() {
+	});
 
+	return Ev::lift().then([ this
+			       , get_first_scid
+			       , get_last_scid
+			       ]() {
+		first_scid = nullptr;
+		last_scid = nullptr;
+
+		auto act = Ev::lift();
+
+		act += get_first_scid;
+		act += get_last_scid;
+
+		return act;
+	}).then([this]() {
 		/* Now check if we could complete all the information.  */
 		if (!last_scid && !first_scid)
 			return Boss::log( bus, Info

@@ -544,12 +544,16 @@ Attempter::run( S::Bus& bus
 	      , Ln::Amount amount
 	      , std::shared_ptr<Ln::Amount> fee_budget
 	      , std::shared_ptr<Ln::Amount> remaining_amount
-	      /* Details of the channel from destination to us.  */
+	      /* Details of the channel from destination to us.
+	       * Ignored if destination == self.
+	       */
 	      , Ln::Scid last_scid
 	      , Ln::Amount base_fee
 	      , std::uint32_t proportional_fee
 	      , std::uint32_t cltv_delta
-	      /* The channel from us to source.  */
+	      /* The channel from us to source.
+	       * Ignored if source == self.
+	       */
 	      , Ln::Scid first_scid
 	      ) {
 	auto impl = std::make_shared<Impl>( bus

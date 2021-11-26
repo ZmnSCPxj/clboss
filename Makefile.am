@@ -173,6 +173,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/JitRebalancer.hpp \
 	Boss/Mod/JsonOutputter.cpp \
 	Boss/Mod/JsonOutputter.hpp \
+	Boss/Mod/ListfundsAnalyzer.cpp \
+	Boss/Mod/ListfundsAnalyzer.hpp \
 	Boss/Mod/ListfundsAnnouncer.cpp \
 	Boss/Mod/ListfundsAnnouncer.hpp \
 	Boss/Mod/ListpaysHandler.cpp \
@@ -275,6 +277,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/InternetOnline.hpp \
 	Boss/Msg/JsonCin.hpp \
 	Boss/Msg/JsonCout.hpp \
+	Boss/Msg/ListfundsAnalyzedResult.hpp \
 	Boss/Msg/ListfundsResult.hpp \
 	Boss/Msg/ListpeersAnalyzedResult.hpp \
 	Boss/Msg/ListpeersResult.hpp \

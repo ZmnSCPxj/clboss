@@ -37,6 +37,7 @@
 #include"Boss/Mod/InvoicePayer.hpp"
 #include"Boss/Mod/JitRebalancer.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
+#include"Boss/Mod/ListfundsAnalyzer.hpp"
 #include"Boss/Mod/ListfundsAnnouncer.hpp"
 #include"Boss/Mod/ListpaysHandler.hpp"
 #include"Boss/Mod/ListpeersAnalyzer.hpp"
@@ -131,6 +132,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ListpeersAnalyzer>(bus);
 	all->install<OnchainFeeMonitor>(bus, *waiter);
 	all->install<ListfundsAnnouncer>(bus);
+	all->install<ListfundsAnalyzer>(bus);
 	all->install<OnchainFundsAnnouncer>(bus);
 	all->install<OnchainFundsIgnorer>(bus);
 	all->install<ChannelCreateDestroyMonitor>(bus);

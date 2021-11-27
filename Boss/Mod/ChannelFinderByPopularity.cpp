@@ -5,6 +5,7 @@
 #include"Boss/Msg/CommandRequest.hpp"
 #include"Boss/Msg/CommandResponse.hpp"
 #include"Boss/Msg/Init.hpp"
+#include"Boss/Msg/ListfundsAnalyzedResult.hpp"
 #include"Boss/Msg/ManifestCommand.hpp"
 #include"Boss/Msg/ManifestNotification.hpp"
 #include"Boss/Msg/Manifestation.hpp"
@@ -23,6 +24,7 @@
 #include"Ev/yield.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
+#include"Ln/Amount.hpp"
 #include"Ln/NodeId.hpp"
 #include"S/Bus.hpp"
 #include"Util/make_unique.hpp"
@@ -67,6 +69,24 @@ auto const min_nodes_to_process = size_t(800);
  */
 auto const seconds_after_connect = double(210);
 
+/** become_aggressive_percent
+ *
+ * @brief if we already have min_channels_to_backoff, but
+ * find we have increased our total owned funds by more
+ * than this percentage, we should ignore number of channels
+ * and become aggressive.
+ *
+ * This handles the case where the user experimentally gives
+ * small amount to CLBOSS in order to check if it is
+ * trustworthy, then later when CLBOSS gains the user trust
+ * the user gives more funds to CLBOSS.
+ * Without this become-aggressive percentage, CLBOSS will
+ * start giving channels to nodes that are not (necessarily)
+ * popular, but since it now has more funds to use it will
+ * give those nodes larger allocations.
+ */
+auto const become_aggressive_percent = double(25.0);
+
 }
 
 namespace Boss { namespace Mod {
@@ -91,10 +111,17 @@ private:
 	std::size_t count;
 	std::size_t all_nodes_count;
 
+	/* Set if we should not enter single-proposal mode yet.  */
+	bool become_aggressive;
+	/* Previous total_owend amount.  */
+	std::unique_ptr<Ln::Amount> total_owned;
+
 	void start() {
 		running = false;
 		try_later = false;
 		single_proposal_only = false;
+		become_aggressive = false;
+		total_owned = nullptr;
 		bus.subscribe<Msg::Init>([this](Msg::Init const& init) {
 			rpc = &init.rpc;
 			self = init.self_id;
@@ -157,6 +184,35 @@ private:
 				return on_solicit();
 			});
 		});
+
+		/* If we had a sudden jump in our owned funds, reactivate.  */
+		bus.subscribe< Msg::ListfundsAnalyzedResult
+			     >([this](Msg::ListfundsAnalyzedResult const& m) {
+			if (!total_owned) {
+				total_owned = Util::make_unique<Ln::Amount>(m.total_owned);
+				return Ev::lift();
+			}
+
+			auto prev_total_owned = *total_owned;
+			*total_owned = m.total_owned;
+
+			if (*total_owned == Ln::Amount::msat(0))
+				return Ev::lift();
+
+			/* If we owned nothing but now own something, or if we
+			 * jumped in value greater than become_aggressive_percent,
+			 * become aggressive!
+			 */
+			if ( (prev_total_owned == Ln::Amount::msat(0))
+			  || ( (*total_owned / prev_total_owned)
+			     > (1.0 + (become_aggressive_percent / 100.0))
+			     )) {
+				become_aggressive = true;
+				return on_solicit();
+			}
+
+			return Ev::lift();
+		});
 	}
 
 	Ev::Io<void> on_solicit() {
@@ -216,7 +272,11 @@ private:
 			if (!channels.is_array())
 				return self_disable();
 			auto msg = "";
-			if (channels.size() >= min_channels_to_backoff) {
+			if (become_aggressive) {
+				become_aggressive = false;
+				single_proposal_only = false;
+				msg = "We had a jump in total owned funds, will find popular nodes.";
+			} else if (channels.size() >= min_channels_to_backoff) {
 				single_proposal_only = true;
 				msg = "We seem to have many channels, "
 				      "will find one node only."

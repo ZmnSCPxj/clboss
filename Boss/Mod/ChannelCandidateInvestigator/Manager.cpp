@@ -320,7 +320,7 @@ void Manager::start() {
 						.field( "id"
 						      , std::string(p.first)
 						      )
-						.field( "score"
+						.field( "onlineness"
 						      , double(p.second)
 						      )
 					.end_object()

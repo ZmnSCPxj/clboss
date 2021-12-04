@@ -27,6 +27,7 @@
 #include"Ln/Amount.hpp"
 #include"Ln/NodeId.hpp"
 #include"S/Bus.hpp"
+#include"Sqlite3.hpp"
 #include"Util/make_unique.hpp"
 #include<algorithm>
 #include<iterator>
@@ -106,6 +107,11 @@ private:
 	/* Set if we are in single-proposal mode.  */
 	bool single_proposal_only;
 
+	/* Set if we have run in the past.  */
+	bool have_run;
+	/* Access to the database.  */
+	Sqlite3::Db db;
+
 	/* Progress tracking.  */
 	double prev_time;
 	std::size_t count;
@@ -120,12 +126,38 @@ private:
 		running = false;
 		try_later = false;
 		single_proposal_only = false;
+		have_run = false;
 		become_aggressive = false;
 		total_owned = nullptr;
+
 		bus.subscribe<Msg::Init>([this](Msg::Init const& init) {
 			rpc = &init.rpc;
 			self = init.self_id;
-			return Ev::lift();
+			db = init.db;
+			return db.transact().then([this](Sqlite3::Tx tx) {
+				/* Create the on-database have_run flag.  */
+				tx.query_execute(R"SQL(
+				CREATE TABLE IF NOT EXISTS "ChannelFinderByPopularity_ran"
+					( id INTEGER PRIMARY KEY
+					, flag INTEGER NOT NULL
+					);
+				INSERT OR IGNORE INTO "ChannelFinderByPopularity_ran"
+				 VALUES(0, 0);
+				)SQL");
+
+				/* Load the have_run flag.  */
+				auto fetch = tx.query(R"SQL(
+				SELECT flag FROM "ChannelFinderByPopularity_ran";
+				)SQL")
+					.execute();
+				for (auto& r : fetch) {
+					have_run = r.get<std::uint64_t>(0) != 0;
+					break;
+				}
+
+				tx.commit();
+				return Ev::lift();
+			});
 		});
 		bus.subscribe< Msg::SolicitChannelCandidates
 			     >([this](Msg::SolicitChannelCandidates const& _) {
@@ -271,11 +303,16 @@ private:
 			auto channels = res["channels"];
 			if (!channels.is_array())
 				return self_disable();
+
 			auto msg = "";
 			if (become_aggressive) {
 				become_aggressive = false;
 				single_proposal_only = false;
 				msg = "We had a jump in total owned funds, will find popular nodes.";
+			} else if (!have_run) {
+				single_proposal_only = false;
+				msg = "We have not set our already-ran flag; "
+				      "will find nodes.";
 			} else if (channels.size() >= min_channels_to_backoff) {
 				single_proposal_only = true;
 				msg = "We seem to have many channels, "
@@ -547,9 +584,35 @@ private:
 
 	Ev::Io<void> signal_task_completion(bool failed) {
 		running = false;
-		return bus.raise(Msg::TaskCompletion{
+
+		auto act = Ev::lift();
+
+		/* If we succesfully completed, set the on-db
+		 * have_run flag, unless it is already set.
+		 */
+		if (!failed && !have_run) {
+			act += Boss::log( bus, Debug
+					, "ChannelFinderByPopularity: "
+					  "Setting our already-ran flag."
+					);
+			act += db.transact().then([this](Sqlite3::Tx tx) {
+				tx.query_execute(R"SQL(
+				UPDATE "ChannelFinderByPopularity_ran"
+				   SET flag = 1;
+				)SQL");
+				tx.commit();
+
+				have_run = true;
+
+				return Ev::lift();
+			});
+		}
+
+		act += bus.raise(Msg::TaskCompletion{
 			"ChannelFinderByPopularity", this_ptr, failed
 		});
+
+		return act;
 	}
 
 public:

@@ -3,6 +3,7 @@
 #include"Boss/Msg/CommandRequest.hpp"
 #include"Boss/Msg/CommandResponse.hpp"
 #include"Boss/Msg/DbResource.hpp"
+#include"Boss/Msg/EndOfOptions.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ManifestOption.hpp"
 #include"Boss/Msg/Option.hpp"
@@ -166,6 +167,7 @@ public:
 			auto pre_act = Ev::lift();
 			if (params.has("options"))
 				pre_act += handle_options(params["options"]);
+			pre_act += bus.raise(Msg::EndOfOptions{});
 
 			auto configuration = params["configuration"];
 			if (!configuration.is_object())

@@ -107,6 +107,14 @@ public:
 	std::vector<std::pair<Ln::NodeId, std::int64_t>>
 	get_all(Sqlite3::Tx& tx);
 
+	/** Secretary::get_all_with_patrons
+	 *
+	 * @brief get all nodes under investigation and
+	 * their patrons.
+	 */
+	std::vector<std::pair<Ln::NodeId, Ln::NodeId>>
+	get_all_with_patrons(Sqlite3::Tx& tx);
+
 	/** Secretary::is_candidate
 	 *
 	 * @brief determine if the given node is already a

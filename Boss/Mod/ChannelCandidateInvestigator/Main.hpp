@@ -13,12 +13,14 @@ namespace S { class Bus; }
 namespace Boss { namespace Mod { namespace ChannelCandidateInvestigator {
 
 class Gumshoe;
-class Secretary;
+class Janitor;
 class Manager;
+class Secretary;
 
 class Main {
 private:
 	std::unique_ptr<Secretary> secretary;
+	std::unique_ptr<Janitor> janitor;
 	std::unique_ptr<Gumshoe> gumshoe;
 	std::unique_ptr<Manager> manager;
 

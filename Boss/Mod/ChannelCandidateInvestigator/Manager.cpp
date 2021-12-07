@@ -1,7 +1,9 @@
 #include"Boss/Mod/ChannelCandidateInvestigator/Gumshoe.hpp"
+#include"Boss/Mod/ChannelCandidateInvestigator/Janitor.hpp"
 #include"Boss/Mod/ChannelCandidateInvestigator/Manager.hpp"
 #include"Boss/Mod/ChannelCandidateInvestigator/Secretary.hpp"
 #include"Boss/Mod/InternetConnectionMonitor.hpp"
+#include"Boss/Msg/AmountSettings.hpp"
 #include"Boss/Msg/ChannelCreateResult.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ListpeersAnalyzedResult.hpp"
@@ -14,10 +16,12 @@
 #include"Boss/Msg/SolicitStatus.hpp"
 #include"Boss/Msg/SolicitUnmanagement.hpp"
 #include"Boss/Msg/TimerRandomHourly.hpp"
+#include"Boss/Msg/TimerTwiceDaily.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
 #include"Ev/map.hpp"
+#include"Ln/Amount.hpp"
 #include"S/Bus.hpp"
 #include"Sqlite3.hpp"
 #include<algorithm>
@@ -60,6 +64,12 @@ void Manager::start() {
 
 			return Ev::lift();
 		});
+	});
+
+	bus.subscribe< Msg::AmountSettings
+		     >([this](Msg::AmountSettings const& r) {
+		min_channel = r.min_channel;
+		return Ev::lift();
 	});
 
 	bus.subscribe<Msg::Init>([this](Msg::Init const& init) {
@@ -126,11 +136,24 @@ void Manager::start() {
 					  "by \"open\", will reject candidacy."
 					, std::string(c.proposal).c_str()
 					);
-		return db.transact().then([this, c](Sqlite3::Tx tx) {
-			secretary.add_candidate(tx, c);
-			tx.commit();
 
-			return Ev::lift();
+		/* Ask the janitor if this candidate is OK, if not,
+		 * reject it outright.
+		 */
+		return janitor.check_acceptable( c.proposal
+					       , c.patron
+					       , min_channel
+					       ).then([this, c](bool acceptable) {
+			if (!acceptable)
+				return Ev::lift();
+
+			/* Insert it into db.  */
+			return db.transact().then([this, c](Sqlite3::Tx tx) {
+				secretary.add_candidate(tx, c);
+				tx.commit();
+
+				return Ev::lift();
+			});
 		});
 	});
 	/* When a new candidate without a patron is proposed,
@@ -160,6 +183,21 @@ void Manager::start() {
 			/* Re-emit.  */
 			return bus.raise(Msg::PatronizeChannelCandidate{
 				node, std::move(guide)
+			});
+		});
+	});
+
+	/* Once a day, have janitor clean up our database.  */
+	bus.subscribe<Msg::TimerTwiceDaily
+		     >([this](Msg::TimerTwiceDaily const& _) {
+		if (!db)
+			return Ev::lift();
+		return db.transact().then([this](Sqlite3::Tx tx) {
+			auto ptx = std::make_shared<Sqlite3::Tx>(std::move(tx));
+			return janitor.clean_up(secretary, ptx, min_channel
+					       ).then([ptx]() {
+				ptx->commit();
+				return Ev::lift();
 			});
 		});
 	});

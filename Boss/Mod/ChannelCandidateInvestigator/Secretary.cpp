@@ -200,6 +200,23 @@ Secretary::get_all(Sqlite3::Tx& tx) {
 
 	return rv;
 }
+std::vector<std::pair<Ln::NodeId, Ln::NodeId>>
+Secretary::get_all_with_patrons(Sqlite3::Tx& tx) {
+	auto rv = std::vector<std::pair<Ln::NodeId, Ln::NodeId>>();
+	auto res = tx.query(R"QRY(
+		SELECT proposal, patron
+		  FROM "ChannelCandidateInvestigator"
+		 ORDER BY score DESC
+		     ;
+	)QRY").execute();
+	for (auto& r : res) {
+		rv.emplace_back( Ln::NodeId(r.get<std::string>(0))
+			       , Ln::NodeId(r.get<std::string>(1))
+			       );
+	}
+
+	return rv;
+}
 bool
 Secretary::is_candidate( Sqlite3::Tx& tx
 		       , Ln::NodeId const& node

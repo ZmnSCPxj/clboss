@@ -87,6 +87,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/CommandReceiver.hpp \
 	Boss/Mod/ChannelCandidateInvestigator/Gumshoe.cpp \
 	Boss/Mod/ChannelCandidateInvestigator/Gumshoe.hpp \
+	Boss/Mod/ChannelCandidateInvestigator/Janitor.cpp \
+	Boss/Mod/ChannelCandidateInvestigator/Janitor.hpp \
 	Boss/Mod/ChannelCandidateInvestigator/Main.cpp \
 	Boss/Mod/ChannelCandidateInvestigator/Main.hpp \
 	Boss/Mod/ChannelCandidateInvestigator/Manager.cpp \

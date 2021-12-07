@@ -2,6 +2,7 @@
 #define BOSS_MOD_CHANNELCANDIDATEMATCHMAKER_HPP
 
 #include"Boss/Msg/PatronizeChannelCandidate.hpp"
+#include"Ln/Amount.hpp"
 #include<queue>
 
 namespace Boss { namespace Mod { class Rpc; }}
@@ -31,6 +32,8 @@ private:
 
 	S::Bus& bus;
 	Boss::Mod::Rpc* rpc;
+
+	Ln::Amount min_channel;
 
 	void start();
 

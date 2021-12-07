@@ -1,5 +1,6 @@
 #include"Boss/Mod/ChannelCandidateMatchmaker.hpp"
 #include"Boss/Mod/Rpc.hpp"
+#include"Boss/Msg/AmountSettings.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/PatronizeChannelCandidate.hpp"
 #include"Boss/Msg/PreinvestigateChannelCandidates.hpp"
@@ -10,6 +11,7 @@
 #include"Ev/yield.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
+#include"Ln/Amount.hpp"
 #include"Ln/NodeId.hpp"
 #include"S/Bus.hpp"
 #include<memory>
@@ -27,15 +29,19 @@ private:
 	Ln::NodeId proposal;
 	std::queue<Ln::NodeId> guide;
 
+	Ln::Amount min_channel;
+
 	explicit
 	Run( S::Bus& bus_
 	   , Boss::Mod::Rpc& rpc_
 	   , Ln::NodeId proposal_
 	   , std::queue<Ln::NodeId> guide_
+	   , Ln::Amount min_channel_
 	   ) : bus(bus_)
 	     , rpc(rpc_)
 	     , proposal(std::move(proposal_))
 	     , guide(std::move(guide_))
+	     , min_channel(min_channel_)
 	     { }
 
 public:
@@ -49,12 +55,14 @@ public:
 	      , Boss::Mod::Rpc& rpc
 	      , Ln::NodeId proposal
 	      , std::queue<Ln::NodeId> guide
+	      , Ln::Amount min_channel
 	      ) {
 		return std::shared_ptr<Run>(
 			new Run( bus
 			       , rpc
 			       , std::move(proposal)
 			       , std::move(guide)
+			       , min_channel
 			       )
 		);
 	}
@@ -89,7 +97,10 @@ private:
 			.start_object()
 				.field("id", std::string(target))
 				.field("fromid", std::string(proposal))
-				.field("msatoshi", "1msat")
+				/* 2x because the dowser will halve the channel
+				 * capacity of the first hop.
+				 */
+				.field("msatoshi", std::string(2.0 * min_channel))
 				/* No real idea how to think about
 				 * riskfactor.
 				 */
@@ -143,6 +154,11 @@ private:
 };
 
 void ChannelCandidateMatchmaker::start() {
+	bus.subscribe<Msg::AmountSettings
+		     >([this](Msg::AmountSettings const& r) {
+		min_channel = r.min_channel;
+		return Ev::lift();
+	});
 	bus.subscribe<Msg::Init
 		     >([this](Msg::Init const& init) {
 		rpc = &init.rpc;
@@ -158,7 +174,9 @@ void ChannelCandidateMatchmaker::start() {
 		for (auto const& n : m.guide)
 			q.push(n);
 		/* Create run object.  */
-		auto run = Run::create(bus, *rpc, m.proposal, std::move(q));
+		auto run = Run::create( bus, *rpc, m.proposal, std::move(q)
+				      , min_channel
+				      );
 		return Boss::concurrent(run->run());
 	});
 }

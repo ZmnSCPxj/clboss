@@ -1,5 +1,6 @@
 #undef NDEBUG
 #include"Boss/Mod/ChannelCreationDecider.hpp"
+#include"Boss/Msg/AmountSettings.hpp"
 #include"Boss/Msg/ChannelFunds.hpp"
 #include"Boss/Msg/NeedsOnchainFunds.hpp"
 #include"Boss/Msg/OnchainFee.hpp"
@@ -57,6 +58,14 @@ int main() {
 	auto const HIGH_FEE = false;
 
 	auto code = Ev::lift().then([&]() {
+
+		/* Set up first.  */
+		auto msg = Boss::Msg::AmountSettings();
+		msg.reserve = Ln::Amount::sat(30000);
+		msg.min_amount = Ln::Amount::btc(0.010);
+		msg.min_remaining = Ln::Amount::btc(0.0105);
+		return bus.raise(msg);
+	}).then([&]() {
 
 		return onchain_funds(Ln::Amount::btc(1.0));;
 	}).then([&]() {

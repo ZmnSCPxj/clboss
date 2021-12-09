@@ -43,6 +43,10 @@ private:
 
 	std::unique_ptr<Boss::Mod::ChannelCreator::Reprioritizer> reprioritizer;
 
+	Ln::Amount min_amount;
+	Ln::Amount max_amount;
+	Ln::Amount min_remaining;
+
 	void start();
 	Ev::Io<void> on_request_channel_creation(Ln::Amount);
 

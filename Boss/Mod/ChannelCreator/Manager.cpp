@@ -4,6 +4,7 @@
 #include"Boss/Mod/ChannelCreator/Planner.hpp"
 #include"Boss/Mod/ChannelCreator/RearrangerBySize.hpp"
 #include"Boss/Mod/Rpc.hpp"
+#include"Boss/Msg/AmountSettings.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/RequestChannelCreation.hpp"
 #include"Boss/Msg/SolicitChannelCandidates.hpp"
@@ -24,15 +25,6 @@
 #include<sstream>
 
 namespace {
-
-/* Minimum and maximum channel size.  */
-auto const min_amount = Ln::Amount::btc(0.005);
-auto const max_amount = Ln::Amount::sat(16777215);
-/* If it is difficult to fit the amount among multiple
- * proposals, how much should we target leaving until
- * next time?
- */
-auto const min_remaining = Ln::Amount::btc(0.0105);
 
 /* If all the entries in the plan are 0, the plan is empty.  */
 bool plan_is_empty(std::map<Ln::NodeId, Ln::Amount> const& plan) {
@@ -68,6 +60,13 @@ Ev::Io<void> report_proposals( S::Bus& bus, char const* prefix
 namespace Boss { namespace Mod { namespace ChannelCreator {
 
 void Manager::start() {
+	bus.subscribe<Msg::AmountSettings
+		     >([this](Msg::AmountSettings const& m) {
+		min_amount = m.min_channel;
+		max_amount = m.max_channel;
+		min_remaining = m.min_remaining;
+		return Ev::lift();
+	});
 	bus.subscribe<Msg::Init
 		     >([this](Msg::Init const& init) {
 		rpc = &init.rpc;
@@ -156,6 +155,7 @@ Manager::on_request_channel_creation(Ln::Amount amt) {
 	}).then([ num_chans
 		, amt
 		, dowser_func
+		, this
 		](std::vector<std::pair<Ln::NodeId, Ln::NodeId>> proposals) {
 		auto planner = Planner( std::move(dowser_func)
 				      , amt

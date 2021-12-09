@@ -67,6 +67,8 @@ libclboss_la_SOURCES = \
 	Boss/Main.hpp \
 	Boss/Mod/ActiveProber.cpp \
 	Boss/Mod/ActiveProber.hpp \
+	Boss/Mod/AmountSettingsHandler.cpp \
+	Boss/Mod/AmountSettingsHandler.hpp \
 	Boss/Mod/AutoDisconnector.cpp \
 	Boss/Mod/AutoDisconnector.hpp \
 	Boss/Mod/BlockTracker.cpp \
@@ -262,6 +264,7 @@ libclboss_la_SOURCES = \
 	Boss/ModG/Swapper.cpp \
 	Boss/ModG/Swapper.hpp \
 	Boss/Msg/AcceptSwapQuotation.hpp \
+	Boss/Msg/AmountSettings.hpp \
 	Boss/Msg/Begin.hpp \
 	Boss/Msg/Block.hpp \
 	Boss/Msg/ChannelCreateResult.hpp \

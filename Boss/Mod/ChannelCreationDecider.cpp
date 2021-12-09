@@ -1,11 +1,9 @@
 #include"Boss/Mod/ChannelCreationDecider.hpp"
+#include"Boss/Msg/AmountSettings.hpp"
 #include"Boss/Msg/ChannelFunds.hpp"
-#include"Boss/Msg/ManifestOption.hpp"
-#include"Boss/Msg/Manifestation.hpp"
 #include"Boss/Msg/NeedsOnchainFunds.hpp"
 #include"Boss/Msg/OnchainFee.hpp"
 #include"Boss/Msg/OnchainFunds.hpp"
-#include"Boss/Msg/Option.hpp"
 #include"Boss/Msg/RequestChannelCreation.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
@@ -16,12 +14,8 @@
 
 namespace {
 
-/* How much onchain funds to reserve for anchor commitments.  */
-auto const default_reserve = Ln::Amount::sat(30000);
 /* How much onchain funds to add when emitting NeedsOnchainFunds.  */
 auto const needs_reserve = Ln::Amount::sat(30000);
-/* How much minimum funds to put in channels.  */
-auto const min_amount = Ln::Amount::btc(0.010);
 /* How much we are willing to emit as "needs onchain".  */
 auto const max_needs_onchain = Ln::Amount::btc(0.010);
 
@@ -55,11 +49,11 @@ private:
 	std::unique_ptr<bool> low_fee;
 	std::unique_ptr<Ln::Amount> channels;
 	std::unique_ptr<Ln::Amount> saved_onchain;
+
 	Ln::Amount reserve;
+	Ln::Amount min_amount;
 
 	void start() {
-		reserve = default_reserve;
-
 		bus.subscribe< Msg::ChannelFunds
 			     >([this](Msg::ChannelFunds const& m) {
 			if (!channels)
@@ -82,36 +76,11 @@ private:
 			return run();
 		});
 
-		/* Option --clboss-min-onchain.  */
-		bus.subscribe< Msg::Manifestation
-			     >([this](Msg::Manifestation const& _) {
-			return bus.raise(Msg::ManifestOption{
-				"clboss-min-onchain", Msg::OptionType_String,
-				Json::Out::direct(default_reserve.to_sat()),
-				"Target to leave this number of satoshis "
-				"onchain, putting the rest into channels."
-			});
-		});
-		bus.subscribe< Msg::Option
-			     >([this](Msg::Option const& o) {
-			if (o.name != "clboss-min-onchain")
-				return Ev::lift();
-			auto is = std::istringstream(std::string(o.value));
-			auto sats = std::uint64_t();
-			is >> sats;
-			reserve = Ln::Amount::sat(sats);
-
-			/* If same as default value, do not spam logs.  */
-			if (reserve == default_reserve)
-				return Ev::lift();
-
-			return Boss::log( bus, Info
-					, "ChannelCreationDecider: "
-					  "Onchain reserve set by "
-					  "--clboss-min-onchain to "
-					  "%s satoshis."
-					, std::string(o.value).c_str()
-					);
+		bus.subscribe<Msg::AmountSettings
+			     >([this](Msg::AmountSettings const& m) {
+			reserve = m.reserve;
+			min_amount = m.min_amount;
+			return Ev::lift();
 		});
 	}
 

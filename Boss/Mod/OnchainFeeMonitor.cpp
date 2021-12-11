@@ -592,12 +592,35 @@ private:
 						  ](Sqlite3::Tx tx) {
 				add_sample(tx, *saved_feerate);
 
-				/* Apply hysteresis.  */
+				/* Apply hysteresis.
+				 * It is possible for the lo_to_hi and
+				 * hi_to_lo to be equal, if the feerates
+				 * have been relatively flat for a long
+				 * time.
+				 * The point of this hysteresis is to
+				 * avoid waffling between "low" and "high"
+				 * fees too often, so the low-to-high
+				 * transition is compared with >, but the
+				 * high-to-low transition is compared with
+				 * <=, since it is possible that both
+				 * transition points are equal.
+				 *
+				 * One particular stable point is at the
+				 * minimum allowed feerate, which is why
+				 * it is the low-to-high transition that
+				 * is compared with > --- otherwise if
+				 * the blockchain stabilizes at the
+				 * minimum feerate for the past two weeks,
+				 * then the feerate will be at the minimum
+				 * and comparing with >= would cause us
+				 * to think "high fees" even though we are
+				 * at minimum.
+				 */
 				if (is_low_fee_flag) {
 					auto ref = get_feerate_at_percentile(
 						tx, lo_to_hi_percentile
 					);
-					if (*saved_feerate >= ref)
+					if (*saved_feerate > ref)
 						is_low_fee_flag = false;
 				} else {
 					auto ref = get_feerate_at_percentile(
@@ -635,7 +658,7 @@ private:
 					tx, mid_percentile
 				);
 				tx.commit();
-				is_low_fee_flag = *saved_feerate < mid;
+				is_low_fee_flag = *saved_feerate <= mid;
 				return report_fee("Init");
 			});
 		});

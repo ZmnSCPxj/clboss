@@ -468,8 +468,27 @@ private:
 				      , std::string(source_amount)
 				      )
 				.field("delay", source_delay)
-				/* Just to be sure.  */
-				.field("style", "legacy")
+				/* This used to be an explicit "style": "legacy",
+				 * since we did not want to have to parse listnodes
+				 * just to find out if the first peer supports
+				 * "tlv".
+				 * However, recent C-Lightning versions have
+				 * dropped support for legacy completely, so at
+				 * this point it is now safer to switch explicitly
+				 * to "style": "tlv".
+				 * 0.11.x C-Lightning has it optional and requires
+				 * it to be "tlv" if specified, but some older
+				 * versions have it optional and default to
+				 * "legacy".
+				 * Unfortunately, some new node software releases
+				 * *do not support* "legacy" *at all*, so if our
+				 * first peer runs such no-legacy-nope-nada
+				 * software, dropping "style" may lead to our
+				 * own node using "legacy"-by-default, which
+				 * would cause funds movement to fail.
+				 * So now we explicitly say "tlv" here.
+				 */
+				.field("style", "tlv")
 			.end_object()
 			;
 	}
@@ -485,6 +504,7 @@ private:
 				.field("msatoshi", amount.to_msat())
 				.field("amount_msat", std::string(amount))
 				.field("delay", 14)
+				/* We always support "tlv", at least for now... */
 				.field("style", "tlv")
 			.end_object()
 			;

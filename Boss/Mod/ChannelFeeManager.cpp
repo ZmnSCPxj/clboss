@@ -1,4 +1,7 @@
 #include"Boss/Mod/ChannelFeeManager.hpp"
+#include"Boss/Msg/ManifestOption.hpp"
+#include"Boss/Msg/Manifestation.hpp"
+#include"Boss/Msg/Option.hpp"
 #include"Boss/Msg/PeerMedianChannelFee.hpp"
 #include"Boss/Msg/ProvideChannelFeeModifier.hpp"
 #include"Boss/Msg/ProvideStatus.hpp"
@@ -6,6 +9,7 @@
 #include"Boss/Msg/SolicitChannelFeeModifier.hpp"
 #include"Boss/Msg/SolicitStatus.hpp"
 #include"Boss/concurrent.hpp"
+#include"Boss/log.hpp"
 #include"Ev/Io.hpp"
 #include"Ev/map.hpp"
 #include"Ev/yield.hpp"
@@ -17,6 +21,38 @@
 namespace Boss { namespace Mod {
 
 void ChannelFeeManager::start() {
+	bus.subscribe<Msg::Manifestation
+		     >([this](Msg::Manifestation const& _) {
+		return bus.raise(Msg::ManifestOption{
+			"clboss-zerobasefee", Msg::OptionType_String,
+			Json::Out::direct(std::string("allow")),
+			"Whether to require, allow, or disallow a "
+			"0 base fee."
+		});
+	});
+	bus.subscribe<Msg::Option
+		     >([this](Msg::Option const& o) {
+		if (o.name != "clboss-zerobasefee")
+			return Ev::lift();
+
+		auto svalue = std::string(o.value);
+		if (svalue == "require" || svalue == "required")
+			zero_base_fee = ZeroBaseFee_Require;
+		else if (svalue == "disallow" || svalue == "disallowed")
+			zero_base_fee = ZeroBaseFee_Disallow;
+		else	zero_base_fee = ZeroBaseFee_Allow;
+
+		auto comment =
+			(zero_base_fee == ZeroBaseFee_Require) ?	"require" :
+			(zero_base_fee == ZeroBaseFee_Allow) ?		"allow" :
+			(zero_base_fee == ZeroBaseFee_Disallow) ?	"disallow" :
+			/*otherwise*/					"?" ;
+		return Boss::log( bus, Boss::Info
+				, "ChannelFeeManager: zerobasefee: %s"
+				, comment
+				);
+	});
+
 	bus.subscribe<Msg::PeerMedianChannelFee
 		     >([this](Msg::PeerMedianChannelFee const& m) {
 		return Boss::concurrent(
@@ -123,9 +159,12 @@ ChannelFeeManager::perform( Ln::NodeId node
 		/* Round and convert back to uint32_t.  */
 		msg->base = std::uint32_t(round(b));
 		msg->proportional = std::uint32_t(round(p));
-		/* If 0, set to 1.  */
-		if (msg->base == 0)
+		/* Handle zerobasefee.  */
+		if (zero_base_fee == ZeroBaseFee_Disallow && msg->base == 0)
 			msg->base = 1;
+		if (zero_base_fee == ZeroBaseFee_Require)
+			msg->base = 0;
+		/* If 0, set to 1.  */
 		if (msg->proportional == 0)
 			msg->proportional = 1;
 

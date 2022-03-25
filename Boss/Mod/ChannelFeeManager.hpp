@@ -31,6 +31,13 @@ private:
 						 )
 				 >> modifiers;
 
+	enum ZeroBaseFee {
+		ZeroBaseFee_Require,
+		ZeroBaseFee_Allow,
+		ZeroBaseFee_Disallow
+	};
+	ZeroBaseFee zero_base_fee;
+
 	void start();
 	Ev::Io<void> perform( Ln::NodeId node
 			    , std::uint32_t median_base
@@ -57,6 +64,7 @@ public:
 			) : bus(bus_)
 			  , initted(false)
 			  , soliciting(false)
+			  , zero_base_fee(ZeroBaseFee_Allow)
 			  { start(); }
 };
 

@@ -122,7 +122,7 @@ Operating
 A goal of CLBOSS is that you never have to monitor or check your
 node, or CLBOSS, at all.
 
-Nevertheless, CLBOSS exposes a few commands as well.
+Nevertheless, CLBOSS exposes a few commands and options as well.
 Many of them are undocumented commands for internal testing, but
 some may be of interest to curious node operators, or those who
 have special use-cases.
@@ -348,3 +348,23 @@ particular channels to particular nodes will not be auto-closed
 by CLBOSS (they may still be closed by `lightningd` due to an
 HTLC timeout, or by the peer for any reason, or by you; this
 just suppresses CLBOSS).
+
+### `--clboss-zerobasefee=<require|allow|disallow>`
+
+Pass this option to `lightningd` to specify how this node will
+advertise its `base_fee`.
+
+* `require` - the `base_fee` must be always 0.
+* `allow` - if the heuristics of CLBOSS think it might be a
+  good idea to set `base_fee` to 0, let it be 0, but otherwise
+  set it to whatever value the heuristics want.
+* `disallow` - the `base_fee` must always be non-0.
+  If the heuristics think it might be good to set it to 0,
+  set it to 1 instead.
+
+On 0.11C and earlier, CLBOSS had the `disallow` behavior.
+In this version, the default is the `allow` behavior.
+
+Some pathfinding algorithms under development may strongly
+prefer 0 or low base fees, so you might want to set CLBOSS
+to 0 base fee, or to allow a 0 base fee.

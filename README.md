@@ -368,3 +368,18 @@ In this version, the default is the `allow` behavior.
 Some pathfinding algorithms under development may strongly
 prefer 0 or low base fees, so you might want to set CLBOSS
 to 0 base fee, or to allow a 0 base fee.
+
+### `--clboss-min-channel=<satoshis>` / `--clboss-max-channel=<satoshis>`
+
+Sets the minimum and maximum channel sizes that CLBOSS
+will make.
+
+The defaults are:
+
+* Minimum: 500000sats = 5mBTC
+* Maximum: 16777215sats = 167.77215mBTC
+
+Specify the value in satoshis without adding any unit
+suffix, e.g.
+
+    lightningd --clboss-min-channel=1000000

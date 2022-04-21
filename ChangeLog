@@ -1,3 +1,5 @@
+- Make sure `ChannelFinderByPopularity` becomes aggressive at least once, to handle the case where the node was previously (poorly?) managed by a human and might not have good liquidity to the network.
+- If our total funds is increased by +25% or more, have `ChannelFinderByPopularity` become more aggressive.
 - Support `--clboss-zerobasefee=<require|allow|disallow>`.
 - Fix incompatibility with C-Lightning 0.11.x by explicitly using "style": "tlv" instead of "legacy".
 - Record offchain-to-onchain swaps, accessible via new `clboss-swaps` command.

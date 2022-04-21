@@ -1,5 +1,6 @@
 #include"Boss/Mod/ChannelCandidatePreinvestigator.hpp"
 #include"Boss/ModG/ReqResp.hpp"
+#include"Boss/Msg/AmountSettings.hpp"
 #include"Boss/Msg/PreinvestigateChannelCandidates.hpp"
 #include"Boss/Msg/ProposeChannelCandidates.hpp"
 #include"Boss/Msg/RequestConnect.hpp"
@@ -15,18 +16,13 @@
 #include<map>
 #include<queue>
 
-namespace {
-
-auto const min_amount = Ln::Amount::btc(0.005);
-
-}
-
 namespace Boss { namespace Mod {
 
 class ChannelCandidatePreinvestigator::Impl {
 private:
 	S::Bus& bus;
 	ModG::ReqResp<Msg::RequestDowser, Msg::ResponseDowser> dowser;
+	Ln::Amount min_channel;
 
 	void start() {
 		using std::placeholders::_1;
@@ -34,6 +30,11 @@ private:
 			     >(std::bind(&Impl::on_preinv, this, _1));
 		bus.subscribe<Msg::ResponseConnect
 			     >(std::bind(&Impl::on_connect, this, _1));
+		bus.subscribe<Msg::AmountSettings
+			     >([this](Msg::AmountSettings const& m) {
+			min_channel = m.min_channel;
+			return Ev::lift();
+		});
 	}
 
 	/* A sequence of candidates that are being preinvestigated.  */
@@ -43,12 +44,15 @@ private:
 		Impl& impl;
 		std::queue<Msg::ProposeChannelCandidates> candidates;
 		std::size_t remaining;
+		Ln::Amount min_channel;
 
 		Case( S::Bus& bus_
 		    , Impl& impl_
 		    , Msg::PreinvestigateChannelCandidates const& p
+		    , Ln::Amount min_channel_
 		    ) : bus(bus_)
 		      , impl(impl_)
+		      , min_channel(min_channel_)
 		      {
 			remaining = p.max_candidates;
 			for (auto const& c : p.candidates)
@@ -61,11 +65,12 @@ private:
 		create( S::Bus& bus
 		      , Impl& impl
 		      , Msg::PreinvestigateChannelCandidates const& p
+		      , Ln::Amount min_channel
 		      ) {
 			/* Private constructor, cannot use
 			 * std::make_shared.  */
 			return std::shared_ptr<Case>(
-				new Case(bus, impl, p)
+				new Case(bus, impl, p, min_channel)
 			);
 		}
 
@@ -122,7 +127,7 @@ private:
 					msg
 				));
 			}).then([self, curr](Msg::ResponseDowser r) {
-				if (r.amount >= min_amount)
+				if (r.amount >= self->min_channel)
 					return self->on_success(*curr);
 
 				return Boss::log( self->bus, Debug
@@ -137,7 +142,7 @@ private:
 							.c_str()
 						, std::string(r.amount)
 							.c_str()
-						, std::string(min_amount)
+						, std::string(self->min_channel)
 							.c_str()
 						).then([self]() {
 					return self->loop();
@@ -168,7 +173,7 @@ private:
 	}
 
 	Ev::Io<void> on_preinv(Msg::PreinvestigateChannelCandidates const& p) {
-		auto c = Case::create(bus, *this, p);
+		auto c = Case::create(bus, *this, p, min_channel);
 		return Case::run(c);
 	}
 	Ev::Io<void> on_connect(Msg::ResponseConnect const& r) {

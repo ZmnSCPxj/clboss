@@ -1,3 +1,4 @@
+0.11D
 - We now check dowsed channel sizes during preinvestigation and investigation as well, making sure the minimum channel size is respected.
 - Add `--clboss-min-channel` and `--clboss-max-channel` settings.
 - Make sure `ChannelFinderByPopularity` becomes aggressive at least once, to handle the case where the node was previously (poorly?) managed by a human and might not have good liquidity to the network.

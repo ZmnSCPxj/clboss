@@ -62,14 +62,19 @@ int main() {
 	/* Check the result of getmanifest.  */
 	Jsmn::Parser parser;
 	auto output = parser.feed(cout.str());
-	/* Make sure there is exactly one object emitted.  */
-	assert(output.size() == 1);
-	/* Make sure it is an object.  */
-	auto& output0 = output[0];
-	assert(output0.is_object());
+	/* If `dnsutils` is not installed, there will be a
+	 * warning output before the response to "getmanifest".
+	 * So the number of outputs is either 1 (with `dnsutils`
+	 * installed) or 2 (without `dnsutils`, which causes a
+	 * warning message).
+	 */
+	assert(output.size() == 1 || output.size() == 2);
+	/* Make sure the response to "getmanifest" is an object.  */
+	auto& last_output = output[output.size() - 1];
+	assert(last_output.is_object());
 	/* Make sure it has a "result" key that is an object.  */
-	assert(output0.has("result"));
-	auto result = output0["result"];
+	assert(last_output.has("result"));
+	auto result = last_output["result"];
 	assert(result.is_object());
 	/* Make sure result has "rpcmethods" and "options" keys that
 	 * are arrays.  */

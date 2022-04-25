@@ -1,4 +1,5 @@
 #include"Boss/Mod/ActiveProber.hpp"
+#include"Boss/Mod/AmountSettingsHandler.hpp"
 #include"Boss/Mod/AutoDisconnector.hpp"
 #include"Boss/Mod/BlockTracker.hpp"
 #include"Boss/Mod/BoltzSwapper/Main.hpp"
@@ -111,6 +112,9 @@ std::shared_ptr<void> all( std::ostream& cout
 	/* Startup.  */
 	all->install<Manifester>(bus);
 	all->install<Initiator>(bus, threadpool, std::move(open_rpc_socket));
+
+	/* General settings.  */
+	all->install<AmountSettingsHandler>(bus);
 
 	/* Regular timers.  */
 	all->install<BlockTracker>(bus);

@@ -15,6 +15,7 @@ private:
 public:
 	AmountSettingsHandler() =delete;
 	AmountSettingsHandler(AmountSettingsHandler const&) =delete;
+	~AmountSettingsHandler();
 
 	AmountSettingsHandler(AmountSettingsHandler&&);
 

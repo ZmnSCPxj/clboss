@@ -175,4 +175,9 @@ public:
 	      { start(); }
 };
 
+AmountSettingsHandler::~AmountSettingsHandler() =default;
+AmountSettingsHandler::AmountSettingsHandler(AmountSettingsHandler&&) =default;
+
+AmountSettingsHandler::AmountSettingsHandler(S::Bus& bus) : pimpl(Util::make_unique<Impl>(bus)) {}
+
 }}

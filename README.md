@@ -27,6 +27,11 @@ So far CLBOSS can do the following automatically:
 * Rebalance open channels by self-payment (including JIT rebalancer).
 * Set forwarding fees so that they're competitive to other nodes
 
+You can read more information about CLBOSS here:
+https://zmnscpxj.github.io/clboss/index.html
+As of this release, this page is a work in progress, stay tuned
+for updates!
+
 Dependencies
 ------------
 

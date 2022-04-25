@@ -1,3 +1,5 @@
+- Fix a bug which *removed* `--clboss-min-onchain` instead of adding `--clboss-min-channel` and `--clboss-max-channel`.  LOL.
+
 0.11D
 - We now check dowsed channel sizes during preinvestigation and investigation as well, making sure the minimum channel size is respected.
 - Add `--clboss-min-channel` and `--clboss-max-channel` settings.

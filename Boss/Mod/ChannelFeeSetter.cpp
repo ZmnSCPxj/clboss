@@ -1,6 +1,7 @@
 #include"Boss/Mod/ChannelFeeSetter.hpp"
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/Msg/Init.hpp"
+#include"Boss/Msg/AvailableRpcCommands.hpp"
 #include"Boss/Msg/ProvideUnmanagement.hpp"
 #include"Boss/Msg/SolicitUnmanagement.hpp"
 #include"Boss/concurrent.hpp"
@@ -15,6 +16,13 @@
 namespace Boss { namespace Mod {
 
 void ChannelFeeSetter::start() {
+	have_setchannel = false;
+	bus.subscribe<Msg::AvailableRpcCommands
+		     >([this](Msg::AvailableRpcCommands const& m) {
+		have_setchannel = m.commands.count("setchannel") != 0;
+		return Ev::lift();
+	});
+
 	bus.subscribe<Msg::Init
 		     >([this](Msg::Init const& init) {
 		rpc = &init.rpc;
@@ -60,10 +68,10 @@ Ev::Io<void> ChannelFeeSetter::set(Msg::SetChannelFee const& m) {
 	auto parms = Json::Out()
 		.start_object()
 			.field("id", std::string(m.node))
-			.field("base", m.base)
-			.field("ppm", m.proportional)
+			.field(have_setchannel ? "feebase" : "base", m.base)
+			.field(have_setchannel ? "feeppm" : "ppm", m.proportional)
 		.end_object();
-	return rpc->command("setchannelfee", std::move(parms)
+	return rpc->command(have_setchannel ? "setchannel" : "setchannelfee", std::move(parms)
 			   ).then([](Jsmn::Object res) {
 		return Ev::lift();
 	}).catching<RpcError>([](RpcError const& _) {

@@ -25,6 +25,7 @@ private:
 	Ev::Io<void> on_block();
 	Ev::Io<void> announce();
 	Ev::Io<void> fail(std::string const&, Jsmn::Object res);
+	Ev::Io<Jsmn::Object> fundpsbt();
 
 public:
 	OnchainFundsAnnouncer(OnchainFundsAnnouncer const&) =delete;

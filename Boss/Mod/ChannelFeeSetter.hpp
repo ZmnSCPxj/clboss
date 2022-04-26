@@ -22,6 +22,8 @@ private:
 	S::Bus& bus;
 	Boss::Mod::Rpc* rpc;
 
+	bool have_setchannel;
+
 	std::vector<Boss::Msg::SetChannelFee> pending;
 
 	void start();

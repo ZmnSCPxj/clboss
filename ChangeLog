@@ -1,3 +1,5 @@
+- Make `PeerCompetitorFeeMonitor::Surveyor` more efficient by using a new parameter for `listchannels` that was introduced in C-Lightning 0.10.1.  Fall back to the old inefficient algo if the C-Lightning node is < 0.10.1.
+
 0.12 Not Completely Useless
 0.11E
 - Fix a bug which *removed* `--clboss-min-onchain` instead of adding `--clboss-min-channel` and `--clboss-max-channel`.  LOL.

@@ -1,13 +1,14 @@
 #ifndef BOSS_MOD_PEERCOMPETITORFEEMONITOR_SURVEYOR_HPP
 #define BOSS_MOD_PEERCOMPETITORFEEMONITOR_SURVEYOR_HPP
 
-#include"Stats/WeightedMedian.hpp"
+#include"Jsmn/Object.hpp"
 #include"Ln/Amount.hpp"
 #include"Ln/NodeId.hpp"
 #include"Ln/Scid.hpp"
+#include"Stats/WeightedMedian.hpp"
 #include<cstdint>
 #include<memory>
-#include<queue>
+#include<string>
 #include<utility>
 
 namespace Boss { namespace Mod { class Rpc; }}
@@ -27,12 +28,14 @@ private:
 	Boss::Mod::Rpc& rpc;
 	Ln::NodeId self_id;
 	Ln::NodeId peer_id;
-
-	std::queue<Ln::Scid> to_process;
+	bool have_listchannels_destination;
 
 	std::size_t samples;
 	Stats::WeightedMedian<std::uint32_t, Ln::Amount> bases;
 	Stats::WeightedMedian<std::uint32_t, Ln::Amount> proportionals;
+
+	Jsmn::Object channels;
+	Jsmn::Object::iterator it;
 
 	/* Progress reporting.  */
 	double prev_time;
@@ -43,10 +46,12 @@ private:
 		, Boss::Mod::Rpc& rpc_
 		, Ln::NodeId self_id_
 		, Ln::NodeId peer_id_
+		, bool have_listchannels_destination_
 		) : bus(bus_)
 		  , rpc(rpc_)
 		  , self_id(self_id_)
 		  , peer_id(peer_id_)
+		  , have_listchannels_destination(have_listchannels_destination_)
 		  , samples(0)
 		  { }
 
@@ -68,12 +73,16 @@ public:
 	      , Ln::NodeId self_id
 	      /* The node to survey.  */
 	      , Ln::NodeId peer_id
+	      /* Does the node have a `listchannels` command
+	       * with `destination` parameter?  */
+	      , bool have_listchannels_destination
 	      ) {
 		return std::shared_ptr<Surveyor>(
 			new Surveyor( bus
 				    , rpc
 				    , std::move(self_id)
 				    , std::move(peer_id)
+				    , have_listchannels_destination
 				    )
 		);
 	}
@@ -87,7 +96,11 @@ public:
 private:
 	Ev::Io<void> core_run();
 	Ev::Io<void> loop();
+	std::string one_channel(Jsmn::Object const&);
 	Ev::Io<std::unique_ptr<Result>> extract();
+
+	/* Back-compatibility mode.  */
+	Ev::Io<void> old_loop();
 };
 
 }}}

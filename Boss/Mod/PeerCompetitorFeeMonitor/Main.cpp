@@ -3,7 +3,7 @@
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ListpeersAnalyzedResult.hpp"
 #include"Boss/Msg/PeerMedianChannelFee.hpp"
-#include"Boss/Msg/TimerRandomHourly.hpp"
+#include"Boss/Msg/TimerTwiceDaily.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Ev/Io.hpp"
@@ -30,6 +30,8 @@ private:
 	bool have_channels;
 	/* Whether we have fired the initial channel fees.  */
 	bool fired_init;
+	/* Whether we are currently running a survey.  */
+	bool running;
 
 public:
 	Impl(S::Bus& bus_
@@ -37,6 +39,7 @@ public:
 	      , rpc(nullptr)
 	      , have_channels(false)
 	      , fired_init(false)
+	      , running(false)
 	      { start(); }
 private:
 	void start() {
@@ -70,15 +73,34 @@ private:
 			}
 			return Ev::lift();
 		});
-		bus.subscribe<Msg::TimerRandomHourly
-			     >([this](Msg::TimerRandomHourly const&) {
+		bus.subscribe<Msg::TimerTwiceDaily
+			     >([this](Msg::TimerTwiceDaily const&) {
 			if (!rpc || !have_channels)
 				return Ev::lift();
-			return on_periodic();
+			return Boss::concurrent(on_periodic());
 		});
 	}
 
 	Ev::Io<void> on_periodic() {
+		/* TimerTwiceDaily can trigger at our own startup
+		 * if it has been more than half-a-day realworld
+		 * time.
+		 */
+		return Ev::lift().then([this]() {
+			if (running)
+				return Ev::lift();
+			running = true;
+			return run().then([this]() {
+				running = false;
+				return Ev::lift();
+			}).catching<std::exception>([this](std::exception const&) {
+				running = false;
+				return Ev::lift();
+			});
+		});
+	}
+
+	Ev::Io<void> run() {
 		return Ev::lift().then([this]() {
 			auto f = [this](Ln::NodeId nid) {
 				auto surveyor = Surveyor::create

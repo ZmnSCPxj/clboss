@@ -70,20 +70,7 @@ Ev::Io<void> OnchainFundsAnnouncer::on_block() {
 
 Ev::Io<void> OnchainFundsAnnouncer::announce() {
 	return Ev::lift().then([this]() {
-		auto params = Json::Out()
-			.start_object()
-				/* Get all the funds.  */
-				.field("satoshi", std::string("all"))
-				.field("feerate", std::string("normal"))
-				.field("startweight", (double) startweight)
-				.field("minconf", (double) minconf)
-				/* Do not reserve; we just want to know
-				 * how much money could be spent.
-				 */
-				.field("reserve", false)
-			.end_object()
-			;
-		return rpc->command("fundpsbt", std::move(params));
+		return fundpsbt();
 	}).then([this](Jsmn::Object res) {
 		if (!res.is_object())
 			return fail("fundpsbt did not return object", res);
@@ -113,6 +100,51 @@ Ev::Io<void> OnchainFundsAnnouncer::announce() {
 				, "OnchainFundsAnnouncer: "
 				  "No onchain funds found."
 				);
+	});
+}
+
+Ev::Io<Jsmn::Object>
+OnchainFundsAnnouncer::fundpsbt() {
+	return Ev::lift().then([this]() {
+		/* On old C-Lightning, "reserve" is a bool.
+		 * Try that first.
+		 * If we get a parameter error -32602,
+		 * try with a number 0.
+		 */
+		auto params = Json::Out()
+			.start_object()
+				/* Get all the funds.  */
+				.field("satoshi", std::string("all"))
+				.field("feerate", std::string("normal"))
+				.field("startweight", (double) startweight)
+				.field("minconf", (double) minconf)
+				/* Do not reserve; we just want to know
+				 * how much money could be spent.
+				 */
+				.field("reserve", false)
+			.end_object()
+			;
+		return rpc->command("fundpsbt", std::move(params));
+	}).catching<RpcError>([this](RpcError const& e) {
+		/* If not a parameter error, throw.  */
+		if (int(double(e.error["code"])) != -32602) {
+			throw e;
+		}
+		/* Retry with "reserve" as a number.  */
+		auto params = Json::Out()
+			.start_object()
+				/* Get all the funds.  */
+				.field("satoshi", std::string("all"))
+				.field("feerate", std::string("normal"))
+				.field("startweight", (double) startweight)
+				.field("minconf", (double) minconf)
+				/* Do not reserve; we just want to know
+				 * how much money could be spent.
+				 */
+				.field("reserve", (double) 0)
+			.end_object()
+			;
+		return rpc->command("fundpsbt", std::move(params));
 	});
 }
 

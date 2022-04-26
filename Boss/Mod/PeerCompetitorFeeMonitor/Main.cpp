@@ -1,5 +1,6 @@
 #include"Boss/Mod/PeerCompetitorFeeMonitor/Main.hpp"
 #include"Boss/Mod/PeerCompetitorFeeMonitor/Surveyor.hpp"
+#include"Boss/Msg/AvailableRpcCommands.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ListpeersAnalyzedResult.hpp"
 #include"Boss/Msg/PeerMedianChannelFee.hpp"
@@ -22,6 +23,9 @@ private:
 	S::Bus& bus;
 	Boss::Mod::Rpc* rpc;
 
+	bool have_listchannels_destination;
+	bool got_available_commands;
+
 	Ln::NodeId self_id;
 
 	/* Current known peers with channels.  */
@@ -35,6 +39,7 @@ public:
 	Impl(S::Bus& bus_
 	    ) : bus(bus_)
 	      , rpc(nullptr)
+	      , got_available_commands(false)
 	      , have_channels(false)
 	      , fired_init(false)
 	      { start(); }
@@ -76,16 +81,50 @@ private:
 				return Ev::lift();
 			return on_periodic();
 		});
+		bus.subscribe<Msg::AvailableRpcCommands
+			     >([this](Msg::AvailableRpcCommands const& m) {
+			got_available_commands = true;
+			auto it = m.commands.find("listchannels");
+			if (it == m.commands.end()) {
+				/* No `listchannels` command...?  */
+				have_listchannels_destination = false;
+				return Ev::lift();
+			}
+			auto& desc = it->second;
+			auto& usage = desc.usage;
+
+			/* Look for [destination] in usage.  */
+			auto static const needle = std::string("[destination]");
+			auto result = std::search( usage.begin(), usage.end()
+						 , needle.begin(), needle.end()
+						 );
+			have_listchannels_destination = (result != usage.end());
+
+			return Boss::log( bus, Debug
+					, "PeerCompetitorFeeMonitor: "
+					  "have_listchannels_destination = %s"
+					, have_listchannels_destination ? "true" : "false"
+					);
+		});
+	}
+
+	Ev::Io<void> wait_available_commands() {
+		return Ev::lift().then([this]() {
+			if (got_available_commands)
+				return Ev::lift();
+			return Ev::yield() + wait_available_commands();
+		});
 	}
 
 	Ev::Io<void> on_periodic() {
-		return Ev::lift().then([this]() {
+		return wait_available_commands().then([this]() {
 			auto f = [this](Ln::NodeId nid) {
 				auto surveyor = Surveyor::create
 						( bus
 						, *rpc
 						, self_id
 						, std::move(nid)
+						, have_listchannels_destination
 						);
 				return surveyor->run();
 			};

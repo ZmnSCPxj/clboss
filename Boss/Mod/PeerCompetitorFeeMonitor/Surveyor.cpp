@@ -36,26 +36,22 @@ Ev::Io<void> Surveyor::core_run() {
 				, std::string(peer_id).c_str()
 				);
 	}).then([this]() {
+		/* Older C-Lightning does not have `destination`
+		 * parameter for `listchannels`.
+		 */
+		auto field = have_listchannels_destination ? "destination" : "source";
 		auto parms = Json::Out()
 			.start_object()
-				.field("source", std::string(peer_id))
+				.field(field, std::string(peer_id))
 			.end_object()
 			;
 		return rpc.command( "listchannels", std::move(parms));
 	}).then([this](Jsmn::Object result) {
 		try {
-			auto cs = result["channels"];
-			for (auto c : cs) {
-				auto dest = Ln::NodeId(std::string(
-					c["destination"]
-				));
-				/* Skip channels with us.  */
-				if (dest == self_id)
-					continue;
-				to_process.push(Ln::Scid(std::string(
-					c["short_channel_id"]
-				)));
-			}
+			channels = result["channels"];
+			if (!channels.is_array())
+				throw Jsmn::TypeError();
+			it = channels.begin();
 		} catch (Jsmn::TypeError const&) {
 			auto os = std::ostringstream();
 			os << result;
@@ -85,14 +81,14 @@ Ev::Io<void> Surveyor::core_run() {
 
 		prev_time = Ev::now();
 		count = 0;
-		total_count = to_process.size();
+		total_count = channels.size();
 
 		return loop();
 	});
 }
 
 Ev::Io<void> Surveyor::loop() {
-	if (to_process.empty())
+	if (it == channels.end())
 		return Ev::lift();
 	auto act = Ev::yield();
 	if (Ev::now() - prev_time >= 5.0) {
@@ -105,57 +101,116 @@ Ev::Io<void> Surveyor::loop() {
 				, double(count) / double(total_count)
 				);
 	}
+
+	/* Back-compatibility mode check.  */
+	if (!have_listchannels_destination)
+		return std::move(act) + old_loop();
+
 	return std::move(act).then([this]() {
-		auto scid = to_process.front();
-		to_process.pop();
-		++count;
-		auto parms = Json::Out()
-			.start_object()
-				.field("short_channel_id", std::string(scid))
-			.end_object()
-			;
-		return rpc.command("listchannels", std::move(parms));
-	}).then([this](Jsmn::Object result) {
-		try {
-			auto cs = result["channels"];
-			for (auto c : cs) {
-				auto dest = Ln::NodeId(std::string(
-					c["destination"]
-				));
-				/* We only care about the direction going
-				 * *to* the target, because that is what
-				 * we are competing against.
-				 */
-				if (dest != peer_id)
-					continue;
-
-				/* Sample the data.  */
-				++samples;
-				auto base = std::uint32_t(double(
-					c["base_fee_millisatoshi"]
-				));
-				auto proportional = std::uint32_t(double(
-					c["fee_per_millionth"]
-				));
-				auto weight = Ln::Amount(std::string(
-					c["amount_msat"]
-				));
-				bases.add(base, weight);
-				proportionals.add(proportional, weight);
-
-				break;
-			}
-		} catch (Jsmn::TypeError const&) {
-			auto os = std::ostringstream();
-			os << result;
-			return Boss::log( bus, Error
-					, "PeerCompetitorFeeMonitor: "
-					  "unexpected listchannels result: "
-					  "%s"
-					, os.str().c_str()
-					);
+		/* Process in batches for efficiency, then
+		 * at the end of the batch, yield so that
+		 * other greenthreads can run for a while.
+		 */
+		auto constexpr BATCH_SIZE = 50;
+		for (auto i = 0; i < BATCH_SIZE && it != channels.end(); ++i) {
+			auto c = *it;
+			++it;
+			auto err = one_channel(c);
+			if (err != "")
+				return Boss::log(bus, Error, "%s", err.c_str());
 		}
 
+		return loop();
+	});
+}
+
+std::string Surveyor::one_channel(Jsmn::Object const& c) {
+	++count;
+	try {
+		/* Skip our own channels with the
+		 * peer.  */
+		auto source = Ln::NodeId(std::string(
+			c["source"]
+		));
+		if (source == self_id)
+			return "";
+		/* Sample the data.  */
+		++samples;
+		auto base = std::uint32_t(double(
+			c["base_fee_millisatoshi"]
+		));
+		auto proportional = std::uint32_t(double(
+			c["fee_per_millionth"]
+		));
+		auto weight = Ln::Amount(std::string(
+			c["amount_msat"]
+		));
+		bases.add(base, weight);
+		proportionals.add(proportional, weight);
+	} catch (Jsmn::TypeError const&) {
+		auto os = std::ostringstream();
+		os << "PeerCompetitorFeeMonitor: "
+		      "unexpected listchannels result: "
+		   << c
+		   ;
+		return os.str();
+	}
+	return "";
+}
+
+Ev::Io<void> Surveyor::old_loop() {
+	return Ev::lift().then([this]() {
+		auto c =  *it;
+		/* Channels has the wrong information: it
+		 * specifies the fees *from* the peer node,
+		 * but we want the fees *to* the peer node.
+		 * So we need another listchannels command.
+		 */
+		auto scid = c["short_channel_id"];
+		auto params = Json::Out()
+			.start_object()
+				.field("short_channel_id", scid)
+			.end_object()
+			;
+		return rpc.command("listchannels", std::move(params));
+	}).then([this](Jsmn::Object result) {
+		/* This will return two channels, one in both
+		 * directions.
+		 * Get the one where destination is peer_id.
+		 */
+		for (auto c : result["channels"]) {
+			auto destination = Ln::NodeId(std::string(
+				c["destination"]
+			));
+			if (destination != peer_id)
+				continue;
+
+			auto err = one_channel(c);
+			if (err != "")
+				return Boss::log(bus, Error, "%s", err.c_str());
+
+			/* If we reahed here, no need to
+			 * check the other channel.
+			 */
+			break;
+		}
+		++it;
+		return Ev::lift();
+	}).catching<RpcError>([this](RpcError const& e) {
+		return Boss::log( bus, Error
+				, "PeerCompetitorFeeMonitor: "
+				  "`listchannels` failed: %s"
+				, e.error.direct_text().c_str()
+				);
+	}).catching<std::exception>([this](std::exception const& e) {
+		return Boss::log( bus, Error
+				, "PeerCompetitorFeeMonitor: "
+				  "Unexpected result from "
+				  "listchannels: %s: %s"
+				, e.what()
+				, (*it).direct_text().c_str()
+				);
+	}).then([this]() {
 		return loop();
 	});
 }

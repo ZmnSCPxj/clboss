@@ -59,6 +59,7 @@
 #include"Boss/Mod/PeerStatistician.hpp"
 #include"Boss/Mod/Reconnector.hpp"
 #include"Boss/Mod/RegularActiveProbe.hpp"
+#include"Boss/Mod/RpcWrapper.hpp"
 #include"Boss/Mod/SelfUptimeMonitor.hpp"
 #include"Boss/Mod/SendpayResultMonitor.hpp"
 #include"Boss/Mod/StatusCommand.hpp"
@@ -108,6 +109,7 @@ std::shared_ptr<void> all( std::ostream& cout
 							   );
 	all->install<JsonOutputter>(cout, bus);
 	all->install<CommandReceiver>(bus);
+	all->install<RpcWrapper>(bus);
 
 	/* Startup.  */
 	all->install<Manifester>(bus);

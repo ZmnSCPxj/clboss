@@ -240,6 +240,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/RegularActiveProbe.hpp \
 	Boss/Mod/Rpc.cpp \
 	Boss/Mod/Rpc.hpp \
+	Boss/Mod/RpcWrapper.cpp \
+	Boss/Mod/RpcWrapper.hpp \
 	Boss/Mod/SelfUptimeMonitor.cpp \
 	Boss/Mod/SelfUptimeMonitor.hpp \
 	Boss/Mod/SendpayResultMonitor.cpp \
@@ -328,6 +330,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/RequestNewaddr.hpp \
 	Boss/Msg/RequestPeerMetrics.hpp \
 	Boss/Msg/RequestPeerStatistics.hpp \
+	Boss/Msg/RequestRpcCommand.hpp \
 	Boss/Msg/RequestSelfUptime.hpp \
 	Boss/Msg/ResponseConnect.hpp \
 	Boss/Msg/ResponseDowser.hpp \
@@ -338,6 +341,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ResponseNewaddr.hpp \
 	Boss/Msg/ResponsePeerMetrics.hpp \
 	Boss/Msg/ResponsePeerStatistics.hpp \
+	Boss/Msg/ResponseRpcCommand.hpp \
 	Boss/Msg/ResponseSelfUptime.hpp \
 	Boss/Msg/RpcCommandHook.hpp \
 	Boss/Msg/SendpayResult.hpp \

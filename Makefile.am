@@ -11,6 +11,113 @@ noinst_PROGRAMS = \
 # clboss without having to put a lot of instrumentation
 # in the main file.
 noinst_LTLIBRARIES = libclboss.la
+
+# The source files for messages.
+# These are the messages that are available on the metaplugin
+# interface.
+BOSS_MSG_SOURCE_FILES = \
+	Boss/Msg/AcceptSwapQuotation.hpp \
+	Boss/Msg/AmountSettings.hpp \
+	Boss/Msg/Block.hpp \
+	Boss/Msg/ChannelCreateResult.hpp \
+	Boss/Msg/ChannelCreation.hpp \
+	Boss/Msg/ChannelDestruction.hpp \
+	Boss/Msg/ChannelFunds.hpp \
+	Boss/Msg/ForwardFee.hpp \
+	Boss/Msg/InternetOnline.hpp \
+	Boss/Msg/ListfundsAnalyzedResult.hpp \
+	Boss/Msg/ListfundsResult.hpp \
+	Boss/Msg/ListpeersAnalyzedResult.hpp \
+	Boss/Msg/ListpeersResult.hpp \
+	Boss/Msg/NeedsConnect.hpp \
+	Boss/Msg/NeedsOnchainFunds.hpp \
+	Boss/Msg/Notification.hpp \
+	Boss/Msg/OnchainFee.hpp \
+	Boss/Msg/OnchainFunds.hpp \
+	Boss/Msg/PatronizeChannelCandidate.hpp \
+	Boss/Msg/PayInvoice.hpp \
+	Boss/Msg/PeerMedianChannelFee.hpp \
+	Boss/Msg/PeerMetrics.hpp \
+	Boss/Msg/PeerStatistics.hpp \
+	Boss/Msg/PreinvestigateChannelCandidates.hpp \
+	Boss/Msg/ProbeActively.hpp \
+	Boss/Msg/ProposeChannelCandidates.hpp \
+	Boss/Msg/ProposeConnectCandidates.hpp \
+	Boss/Msg/ProposePatronlessChannelCandidate.hpp \
+	Boss/Msg/ProvideChannelFeeModifier.hpp \
+	Boss/Msg/ProvideDeletablePaymentLabelFilter.hpp \
+	Boss/Msg/ProvideHtlcAcceptedDeferrer.hpp \
+	Boss/Msg/ProvideStatus.hpp \
+	Boss/Msg/ProvideSwapQuotation.hpp \
+	Boss/Msg/ProvideUnmanagement.hpp \
+	Boss/Msg/RaisePeerComplaint.hpp \
+	Boss/Msg/ReleaseHtlcAccepted.hpp \
+	Boss/Msg/RequestChannelCreation.hpp \
+	Boss/Msg/RequestConnect.hpp \
+	Boss/Msg/RequestDowser.hpp \
+	Boss/Msg/RequestEarningsInfo.hpp \
+	Boss/Msg/RequestGetOnchainIgnoreFlag.hpp \
+	Boss/Msg/RequestListpays.hpp \
+	Boss/Msg/RequestMoveFunds.hpp \
+	Boss/Msg/RequestNewaddr.hpp \
+	Boss/Msg/RequestPeerMetrics.hpp \
+	Boss/Msg/RequestPeerStatistics.hpp \
+	Boss/Msg/RequestSelfUptime.hpp \
+	Boss/Msg/ResponseConnect.hpp \
+	Boss/Msg/ResponseDowser.hpp \
+	Boss/Msg/ResponseEarningsInfo.hpp \
+	Boss/Msg/ResponseGetOnchainIgnoreFlag.hpp \
+	Boss/Msg/ResponseListpays.hpp \
+	Boss/Msg/ResponseMoveFunds.hpp \
+	Boss/Msg/ResponseNewaddr.hpp \
+	Boss/Msg/ResponsePeerMetrics.hpp \
+	Boss/Msg/ResponsePeerStatistics.hpp \
+	Boss/Msg/ResponseSelfUptime.hpp \
+	Boss/Msg/RpcCommandHook.hpp \
+	Boss/Msg/SendpayResult.hpp \
+	Boss/Msg/SetChannelFee.hpp \
+	Boss/Msg/SolicitChannelCandidates.hpp \
+	Boss/Msg/SolicitChannelFeeModifier.hpp \
+	Boss/Msg/SolicitConnectCandidates.hpp \
+	Boss/Msg/SolicitDeletablePaymentLabelFilter.hpp \
+	Boss/Msg/SolicitHtlcAcceptedDeferrer.hpp \
+	Boss/Msg/SolicitPeerComplaints.hpp \
+	Boss/Msg/SolicitStatus.hpp \
+	Boss/Msg/SolicitSwapQuotation.hpp \
+	Boss/Msg/SolicitUnmanagement.hpp \
+	Boss/Msg/StatusListpays.hpp \
+	Boss/Msg/SwapCompleted.hpp \
+	Boss/Msg/SwapCreation.hpp \
+	Boss/Msg/SwapRequest.hpp \
+	Boss/Msg/SwapResponse.hpp \
+	Boss/Msg/TaskCompletion.hpp \
+	Boss/Msg/Timer10Minutes.hpp \
+	Boss/Msg/TimerRandomDaily.hpp \
+	Boss/Msg/TimerRandomHourly.hpp \
+	Boss/Msg/TimerTwiceDaily.hpp
+
+# These messages are special and are not available on the
+# metaplugin interface.
+BOSS_SPECIAL_MSG_SOURCE_FILES = \
+	Boss/Msg/Begin.hpp \
+	Boss/Msg/CommandFail.hpp \
+	Boss/Msg/CommandRequest.hpp \
+	Boss/Msg/CommandResponse.hpp \
+	Boss/Msg/EndOfOptions.hpp \
+	Boss/Msg/DbResource.hpp \
+	Boss/Msg/Init.hpp \
+	Boss/Msg/JsonCin.hpp \
+	Boss/Msg/JsonCout.hpp \
+	Boss/Msg/ManifestCommand.hpp \
+	Boss/Msg/ManifestHook.hpp \
+	Boss/Msg/ManifestNotification.hpp \
+	Boss/Msg/ManifestOption.hpp \
+	Boss/Msg/Manifestation.hpp \
+	Boss/Msg/Network.hpp \
+	Boss/Msg/Option.hpp \
+	Boss/Msg/OptionType.hpp
+
+# The actual source files.
 libclboss_la_SOURCES = \
 	Bitcoin/Tx.cpp \
 	Bitcoin/Tx.hpp \
@@ -265,102 +372,6 @@ libclboss_la_SOURCES = \
 	Boss/ModG/ReqResp.hpp \
 	Boss/ModG/Swapper.cpp \
 	Boss/ModG/Swapper.hpp \
-	Boss/Msg/AcceptSwapQuotation.hpp \
-	Boss/Msg/AmountSettings.hpp \
-	Boss/Msg/Begin.hpp \
-	Boss/Msg/Block.hpp \
-	Boss/Msg/ChannelCreateResult.hpp \
-	Boss/Msg/ChannelCreation.hpp \
-	Boss/Msg/ChannelDestruction.hpp \
-	Boss/Msg/ChannelFunds.hpp \
-	Boss/Msg/CommandFail.hpp \
-	Boss/Msg/CommandRequest.hpp \
-	Boss/Msg/CommandResponse.hpp \
-	Boss/Msg/DbResource.hpp \
-	Boss/Msg/EndOfOptions.hpp \
-	Boss/Msg/ForwardFee.hpp \
-	Boss/Msg/Init.hpp \
-	Boss/Msg/InternetOnline.hpp \
-	Boss/Msg/JsonCin.hpp \
-	Boss/Msg/JsonCout.hpp \
-	Boss/Msg/ListfundsAnalyzedResult.hpp \
-	Boss/Msg/ListfundsResult.hpp \
-	Boss/Msg/ListpeersAnalyzedResult.hpp \
-	Boss/Msg/ListpeersResult.hpp \
-	Boss/Msg/ManifestCommand.hpp \
-	Boss/Msg/ManifestHook.hpp \
-	Boss/Msg/ManifestNotification.hpp \
-	Boss/Msg/ManifestOption.hpp \
-	Boss/Msg/Manifestation.hpp \
-	Boss/Msg/NeedsConnect.hpp \
-	Boss/Msg/NeedsOnchainFunds.hpp \
-	Boss/Msg/Network.hpp \
-	Boss/Msg/Notification.hpp \
-	Boss/Msg/OnchainFee.hpp \
-	Boss/Msg/OnchainFunds.hpp \
-	Boss/Msg/Option.hpp \
-	Boss/Msg/OptionType.hpp \
-	Boss/Msg/PatronizeChannelCandidate.hpp \
-	Boss/Msg/PayInvoice.hpp \
-	Boss/Msg/PeerMedianChannelFee.hpp \
-	Boss/Msg/PeerMetrics.hpp \
-	Boss/Msg/PeerStatistics.hpp \
-	Boss/Msg/PreinvestigateChannelCandidates.hpp \
-	Boss/Msg/ProbeActively.hpp \
-	Boss/Msg/ProposeChannelCandidates.hpp \
-	Boss/Msg/ProposeConnectCandidates.hpp \
-	Boss/Msg/ProposePatronlessChannelCandidate.hpp \
-	Boss/Msg/ProvideChannelFeeModifier.hpp \
-	Boss/Msg/ProvideDeletablePaymentLabelFilter.hpp \
-	Boss/Msg/ProvideHtlcAcceptedDeferrer.hpp \
-	Boss/Msg/ProvideStatus.hpp \
-	Boss/Msg/ProvideSwapQuotation.hpp \
-	Boss/Msg/ProvideUnmanagement.hpp \
-	Boss/Msg/RaisePeerComplaint.hpp \
-	Boss/Msg/ReleaseHtlcAccepted.hpp \
-	Boss/Msg/RequestChannelCreation.hpp \
-	Boss/Msg/RequestConnect.hpp \
-	Boss/Msg/RequestDowser.hpp \
-	Boss/Msg/RequestEarningsInfo.hpp \
-	Boss/Msg/RequestGetOnchainIgnoreFlag.hpp \
-	Boss/Msg/RequestListpays.hpp \
-	Boss/Msg/RequestMoveFunds.hpp \
-	Boss/Msg/RequestNewaddr.hpp \
-	Boss/Msg/RequestPeerMetrics.hpp \
-	Boss/Msg/RequestPeerStatistics.hpp \
-	Boss/Msg/RequestSelfUptime.hpp \
-	Boss/Msg/ResponseConnect.hpp \
-	Boss/Msg/ResponseDowser.hpp \
-	Boss/Msg/ResponseEarningsInfo.hpp \
-	Boss/Msg/ResponseGetOnchainIgnoreFlag.hpp \
-	Boss/Msg/ResponseListpays.hpp \
-	Boss/Msg/ResponseMoveFunds.hpp \
-	Boss/Msg/ResponseNewaddr.hpp \
-	Boss/Msg/ResponsePeerMetrics.hpp \
-	Boss/Msg/ResponsePeerStatistics.hpp \
-	Boss/Msg/ResponseSelfUptime.hpp \
-	Boss/Msg/RpcCommandHook.hpp \
-	Boss/Msg/SendpayResult.hpp \
-	Boss/Msg/SetChannelFee.hpp \
-	Boss/Msg/SolicitChannelCandidates.hpp \
-	Boss/Msg/SolicitChannelFeeModifier.hpp \
-	Boss/Msg/SolicitConnectCandidates.hpp \
-	Boss/Msg/SolicitDeletablePaymentLabelFilter.hpp \
-	Boss/Msg/SolicitHtlcAcceptedDeferrer.hpp \
-	Boss/Msg/SolicitPeerComplaints.hpp \
-	Boss/Msg/SolicitStatus.hpp \
-	Boss/Msg/SolicitSwapQuotation.hpp \
-	Boss/Msg/SolicitUnmanagement.hpp \
-	Boss/Msg/StatusListpays.hpp \
-	Boss/Msg/SwapCompleted.hpp \
-	Boss/Msg/SwapCreation.hpp \
-	Boss/Msg/SwapRequest.hpp \
-	Boss/Msg/SwapResponse.hpp \
-	Boss/Msg/TaskCompletion.hpp \
-	Boss/Msg/Timer10Minutes.hpp \
-	Boss/Msg/TimerRandomDaily.hpp \
-	Boss/Msg/TimerRandomHourly.hpp \
-	Boss/Msg/TimerTwiceDaily.hpp \
 	Boss/Shutdown.hpp \
 	Boss/Signer.cpp \
 	Boss/Signer.hpp \
@@ -505,7 +516,44 @@ libclboss_la_SOURCES = \
 	Util/stringify.hpp \
 	Util/vector_emplace_back.hpp \
 	Uuid.cpp \
-	Uuid.hpp
+	Uuid.hpp \
+	$(BOSS_MSG_SOURCE_FILES) \
+	$(BOSS_SPECIAL_MSG_SOURCE_FILES)
+
+# This file is special and generated from our list
+# of source files for messages.
+nodist_libclboss_la_SOURCES = Boss/Msg/register_all.hpp
+BUILT_SOURCES = Boss/Msg/register_all.hpp 
+Boss/Msg/register_all.hpp : Makefile
+	@echo "GEN $@"
+	@rm -f "$@" tmp~ > /dev/null 2>&1 || true
+	@touch tmp~
+	@echo "/* This file is generated from the Makefile.am.  */" >> tmp~
+	@echo "#ifndef BOSS_MSG_REGISTER_ALL_HPP" >> tmp~
+	@echo "#define BOSS_MSG_REGISTER_ALL_HPP" >> tmp~
+	@echo "" >> tmp~
+	@list='$(BOSS_MSG_SOURCE_FILES)'; \
+	for p in $$list; do echo '#include"'"$$p"'"'; done >> tmp~
+	@echo "" >> tmp~
+	@echo "namespace Boss { namespace Msg {" >> tmp~
+	@echo "" >> tmp~
+	@echo "/** Boss::Msg::register_all" >> tmp~
+	@echo " *" >> tmp~
+	@echo ' * @brief Calls the `register_message` static member function of the' >> tmp~
+	@echo ' * given `Registry` template struct, for each of the messages CLBOSS' >> tmp~
+	@echo ' * has.' >> tmp~
+	@echo " */" >> tmp~
+	@echo "template<template<typename Msg> typename Registry, typename Arg>" >> tmp~
+	@echo "void register_all(Arg& arg) {" >> tmp~
+	@list='$(BOSS_MSG_SOURCE_FILES)';\
+	for p in $$list; do echo "$$p" | \
+		sed -e 's@/@::@g' -e 's@^@	Registry<@' -e 's@.hpp$$@>::register_message(arg);@'; done >> tmp~
+	@echo "}" >> tmp~
+	@echo "" >> tmp~
+	@echo "}}" >> tmp~
+	@echo "" >> tmp~
+	@echo "#endif" >> tmp~
+	@mv tmp~ "$@"
 
 libclboss_la_LIBADD = \
 	external/basicsecure/libbasicsecure.la \

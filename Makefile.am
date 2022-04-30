@@ -265,6 +265,8 @@ libclboss_la_SOURCES = \
 	Boss/ModG/Detail/ReqRespBase.cpp \
 	Boss/ModG/Detail/ReqRespBase.hpp \
 	Boss/ModG/ReqResp.hpp \
+	Boss/ModG/RpcProxy.cpp \
+	Boss/ModG/RpcProxy.hpp \
 	Boss/ModG/Swapper.cpp \
 	Boss/ModG/Swapper.hpp \
 	Boss/Msg/AcceptSwapQuotation.hpp \

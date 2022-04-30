@@ -1,5 +1,5 @@
 #include"Boss/Mod/ListpeersAnnouncer.hpp"
-#include"Boss/Mod/Rpc.hpp"
+#include"Boss/ModG/RpcProxy.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ListpeersResult.hpp"
 #include"Boss/Msg/Timer10Minutes.hpp"
@@ -9,6 +9,7 @@
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
 #include"S/Bus.hpp"
+#include"Util/make_unique.hpp"
 #include<assert.h>
 #include<sstream>
 
@@ -26,7 +27,6 @@ void ListpeersAnnouncer::start() {
 	auto do_listpeers = [ this
 			    , invalid_listpeers
 			    ](bool initial) {
-		assert(rpc);
 		return rpc->command("listpeers"
 				   , Json::Out::empty_object()
 				   ).then([ this
@@ -45,8 +45,7 @@ void ListpeersAnnouncer::start() {
 		});
 	};
 	bus.subscribe<Msg::Init
-		     >([this, do_listpeers](Msg::Init const& init) {
-		rpc = &init.rpc;
+		     >([do_listpeers](Msg::Init const& init) {
 		return Boss::concurrent(do_listpeers(true));
 	});
 	bus.subscribe<Msg::Timer10Minutes
@@ -54,5 +53,12 @@ void ListpeersAnnouncer::start() {
 		return Boss::concurrent(do_listpeers(false));
 	});
 }
+
+ListpeersAnnouncer::ListpeersAnnouncer(S::Bus& bus_)
+	: bus(bus_)
+	, rpc(Util::make_unique<ModG::RpcProxy>(bus))
+	{ start(); }
+
+ListpeersAnnouncer::~ListpeersAnnouncer() =default;
 
 }}

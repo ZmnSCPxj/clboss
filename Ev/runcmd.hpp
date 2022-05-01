@@ -18,10 +18,14 @@ namespace Ev {
  * normally happen when it terminates.
  * All output is returned in the string.
  * Its input is redirected from `/dev/null`.
- * stderr is preserved from this process.
+ *
+ * stderr may be captured in the same pipe as
+ * stdout, or may be preserved to be the same
+ * as in the current process.
  */
 Ev::Io<std::string> runcmd( std::string command
 			  , std::vector<std::string> argv
+			  , bool capture_stderr = false
 			  );
 
 }

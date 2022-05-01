@@ -22,6 +22,8 @@ private:
 	std::vector<std::string> argv;
 	std::unique_ptr<char const*[]> exec_argv;
 
+	bool capture_stderr;
+
 	std::function<void(std::string)> pass;
 	std::function<void(std::exception_ptr)> fail;
 
@@ -39,10 +41,12 @@ private:
 public:
 	RunCmd( std::string command_
 	      , std::vector<std::string> argv_
+	      , bool capture_stderr_
 	      , std::function<void(std::string)> pass_
 	      , std::function<void(std::exception_ptr)> fail_
 	      ) : command(std::move(command_))
 		, argv(std::move(argv_))
+		, capture_stderr(capture_stderr_)
 		, pass(std::move(pass_))
 		, fail(std::move(fail_))
 		{
@@ -190,7 +194,15 @@ public:
 				       );
 			if (res < 0)
 				return error_child(std::move(self));
+
 			self->child_output = nullptr;
+			if (self->capture_stderr) {
+				auto res2 = dup2( STDOUT_FILENO
+						, STDERR_FILENO
+						);
+				if (res2 < 0)
+					return error_child(std::move(self));
+			}
 
 			res = dup2(self->devnull.get(), STDIN_FILENO);
 			if (res < 0)
@@ -246,13 +258,15 @@ namespace Ev {
 
 Ev::Io<std::string> runcmd( std::string command
 			  , std::vector<std::string> argv
+			  , bool capture_stderr
 			  ) {
-	return Ev::Io<std::string>([command, argv
+	return Ev::Io<std::string>([command, argv, capture_stderr
 				   ]( std::function<void(std::string)> pass
 				    , std::function<void(std::exception_ptr)> fail
 				    ) {
 		auto obj = Util::make_unique<RunCmd>( std::move(command)
 						    , std::move(argv)
+						    , capture_stderr
 						    , std::move(pass)
 						    , std::move(fail)
 						    );

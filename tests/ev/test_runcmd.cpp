@@ -31,6 +31,13 @@ int main() {
 		assert(flag);
 		assert(result == "");
 
+		/* Test on capturing stderr.  */
+		return Ev::runcmd( "sh", {"-c", "echo 'foo' >&2"}
+				 , true
+				 );
+	}).then([](std::string result) {
+		assert(result == "foo\n");
+
 		return Ev::lift();
 	}).then([]() {
 		return Ev::lift(0);

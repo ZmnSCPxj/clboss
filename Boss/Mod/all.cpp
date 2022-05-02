@@ -1,6 +1,7 @@
 #include"Boss/Mod/ActiveProber.hpp"
 #include"Boss/Mod/AmountSettingsHandler.hpp"
 #include"Boss/Mod/AutoDisconnector.hpp"
+#include"Boss/Mod/AvailableRpcCommandsAnnouncer.hpp"
 #include"Boss/Mod/BlockTracker.hpp"
 #include"Boss/Mod/BoltzSwapper/Main.hpp"
 #include"Boss/Mod/ChannelCandidateInvestigator/Main.hpp"
@@ -110,6 +111,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<JsonOutputter>(cout, bus);
 	all->install<CommandReceiver>(bus);
 	all->install<RpcWrapper>(bus);
+	all->install<AvailableRpcCommandsAnnouncer>(bus);
 
 	/* Startup.  */
 	all->install<Manifester>(bus);

@@ -71,6 +71,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/AmountSettingsHandler.hpp \
 	Boss/Mod/AutoDisconnector.cpp \
 	Boss/Mod/AutoDisconnector.hpp \
+	Boss/Mod/AvailableRpcCommandsAnnouncer.cpp \
+	Boss/Mod/AvailableRpcCommandsAnnouncer.hpp \
 	Boss/Mod/BlockTracker.cpp \
 	Boss/Mod/BlockTracker.hpp \
 	Boss/Mod/BoltzSwapper/Env.cpp \
@@ -271,6 +273,7 @@ libclboss_la_SOURCES = \
 	Boss/ModG/Swapper.hpp \
 	Boss/Msg/AcceptSwapQuotation.hpp \
 	Boss/Msg/AmountSettings.hpp \
+	Boss/Msg/AvailableRpcCommands.hpp \
 	Boss/Msg/Begin.hpp \
 	Boss/Msg/Block.hpp \
 	Boss/Msg/ChannelCreateResult.hpp \
@@ -556,6 +559,7 @@ TESTS = \
 	tests/boltz/test_match_lockscript \
 	tests/boss/channelcandidateinvestigator/test_gumshoe \
 	tests/boss/channelcandidateinvestigator/test_secretary \
+	tests/boss/test_availablerpccommandsannouncer \
 	tests/boss/test_channelcreationdecider \
 	tests/boss/test_channelcreator_planner \
 	tests/boss/test_channelcreator_rearrangerbysize \

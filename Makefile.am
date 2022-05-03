@@ -388,6 +388,8 @@ libclboss_la_SOURCES = \
 	DnsSeed/get.cpp \
 	DnsSeed/get.hpp \
 	Ev/Io.hpp \
+	Ev/Semaphore.cpp \
+	Ev/Semaphore.hpp \
 	Ev/ThreadPool.cpp \
 	Ev/ThreadPool.hpp \
 	Ev/concurrent.cpp \
@@ -589,6 +591,7 @@ TESTS = \
 	tests/ev/test_memoize \
 	tests/ev/test_plus \
 	tests/ev/test_runcmd \
+	tests/ev/test_semaphore \
 	tests/ev/test_throw_in_then \
 	tests/graph/test_dijkstra \
 	tests/jsmn/test_iterator \

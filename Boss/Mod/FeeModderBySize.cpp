@@ -7,9 +7,12 @@
 #include"Boss/Msg/SolicitChannelFeeModifier.hpp"
 #include"Boss/Msg/TimerRandomDaily.hpp"
 #include"Boss/Shutdown.hpp"
+#include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Ev/Io.hpp"
+#include"Ev/Semaphore.hpp"
 #include"Ev/map.hpp"
+#include"Ev/now.hpp"
 #include"Ev/yield.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
@@ -89,6 +92,125 @@ calculate_multiplier( std::size_t worse
 	return x * x;
 }
 
+/** class NetworkCapacityTable
+ *
+ * @brief Keeps a table of the capacity of each node on
+ * the network.
+ */
+class NetworkCapacityTable {
+private:
+	S::Bus& bus;
+	Boss::Mod::Rpc& rpc;
+
+	/* Protects these private variables.  */
+	Ev::Semaphore sem;
+	std::unique_ptr<std::map<Ln::NodeId, Ln::Amount>> capacities;
+
+	Ev::Io<Ln::Amount> core_get_capacity(Ln::NodeId node) {
+		return Ev::yield().then([this, node]() {
+			if (!capacities) {
+				return load_capacities().then([this, node]() {
+					return core_get_capacity(node);
+				});
+			}
+			auto it = capacities->find(node);
+			if (it == capacities->end())
+				return Ev::lift(Ln::Amount::sat(0));
+			return Ev::lift(it->second);
+		});
+	}
+	Ev::Io<void> load_capacities() {
+		return Ev::lift().then([this]() {
+			return Boss::log( bus, Boss::Debug
+					, "FeeModderBySize: Will compute sizes "
+					  "of all nodes on network."
+					);
+		}).then([this]() {
+			capacities = Util::make_unique<std::map<Ln::NodeId, Ln::Amount>>();
+			return rpc.command( "listchannels"
+					  , Json::Out::empty_object()
+					  );
+		}).then([this](Jsmn::Object result) {
+			auto pchannels = std::make_shared<Jsmn::Object>(
+				result["channels"]
+			);
+			auto nchannels = pchannels->size();
+			auto pit = std::make_shared<Jsmn::Object::iterator>(
+				pchannels->begin()
+			);
+			return load_capacities_loop( std::move(pchannels)
+						   , std::move(pit)
+						   , Ev::now()
+						   , 0
+						   , nchannels
+						   );
+		});
+	}
+	Ev::Io<void> load_capacities_loop( std::shared_ptr<Jsmn::Object> pchannels
+					 , std::shared_ptr<Jsmn::Object::iterator> pit
+					 , double prev_time
+					 , std::size_t processed
+					 , std::size_t nchannels
+					 ) {
+		if (*pit == pchannels->end())
+			return Boss::log( bus, Boss::Debug
+					, "FeeModderBySize: Got sizes of all nodes on "
+					  "network."
+					);
+
+		auto act = Ev::yield();
+		if (prev_time + 5.0 < Ev::now()) {
+			prev_time = Ev::now();
+			act += Boss::log( bus, Boss::Info
+					, "FeeModderBySize: Computing node sizes "
+					  "for all network nodes: "
+					  "%zu / %zu"
+					, processed, nchannels
+					);
+		}
+
+		return std::move(act).then([=]() {
+			auto channel = **pit;
+			++(*pit);
+			auto source = Ln::NodeId(std::string(
+				channel["source"]
+			));
+			auto amount = Ln::Amount(std::string(
+				channel["amount_msat"]
+			));
+			(*capacities)[source] += amount;
+
+			return load_capacities_loop( pchannels
+						   , pit
+						   , prev_time
+						   , processed + 1
+						   , nchannels
+						   );
+		});
+	}
+
+public:
+	NetworkCapacityTable() =delete;
+	explicit
+	NetworkCapacityTable( S::Bus& bus_
+		            , Boss::Mod::Rpc& rpc_
+			    ) : bus(bus_)
+	       		      , rpc(rpc_)
+			      , sem(1)
+			      { }
+
+	Ev::Io<Ln::Amount> get_capacity(Ln::NodeId node) {
+		return sem.run(core_get_capacity(std::move(node)));
+	}
+	Ev::Io<void> reset() {
+		return sem.run(Ev::lift().then([this]() {
+			capacities = nullptr;
+			return Ev::lift();
+		}));
+	}
+};
+
+
 }
 
 namespace Boss { namespace Mod {
@@ -100,10 +222,7 @@ private:
 	Boss::Mod::Rpc* rpc;
 	Ln::NodeId self_id;
 
-	/* Total channel capacity of our node.  */
-	std::unique_ptr<Ln::Amount> my_capacity;
-	bool computing_my_capacity;
-	std::vector<std::function<void()>> my_capacity_waiters;
+	std::unique_ptr<NetworkCapacityTable> capacity_table;
 
 	/* Cache of multipliers.  */
 	std::map<Ln::NodeId, double> multipliers;
@@ -115,6 +234,9 @@ private:
 			     >([this](Msg::Init const& init) {
 			rpc = &init.rpc;
 			self_id = init.self_id;
+			capacity_table = Util::make_unique<NetworkCapacityTable>(
+				bus, *rpc
+			);
 			return Ev::lift();
 		});
 		bus.subscribe<Msg::SolicitChannelFeeModifier
@@ -150,24 +272,16 @@ private:
 
 		bus.subscribe<Shutdown>([this](Shutdown const& _) {
 			shutdown = true;
-			return awaken_waiters();
+			return Ev::lift();
 		});
 	}
 
 	Ev::Io<void> reset() {
 		multipliers.clear();
 
-		if (computing_my_capacity && !my_capacity) {
-			/* A long-running process is *still* computing
-			 * our capacity.
-			 * Do not touch the other data.
-			 */
+		if (!capacity_table)
 			return Ev::lift();
-		}
-
-		computing_my_capacity = false;
-		my_capacity = nullptr;
-		return awaken_waiters();
+		return Boss::concurrent(capacity_table->reset());
 	}
 
 	Ev::Io<void> wait_for_rpc() {
@@ -180,101 +294,8 @@ private:
 		});
 	}
 
-	/* Makes sure my_capacity is non-null.  */
-	Ev::Io<void> ensure_my_capacity() {
-		return Ev::lift().then([this]() {
-			if (shutdown)
-				throw Shutdown();
-			if (my_capacity)
-				return Ev::lift();
-			if (computing_my_capacity)
-				/* This can still awaken with
-				 * my_capacity==null, e.g. if
-				 * triggered by reset or shutdown.
-				 */
-				return wait_for_my_capacity()
-				     + ensure_my_capacity()
-				     ;
-			computing_my_capacity = true;
-
-			return wait_for_rpc().then([this]() {
-				return compute_my_capacity();
-			}).then([this](Ln::Amount n_capacity) {
-				my_capacity = Util::make_unique<Ln::Amount>(
-					n_capacity
-				);
-
-				return awaken_waiters();
-			});
-		});
-	}
-	Ev::Io<void> wait_for_my_capacity() {
-		return Ev::Io<void>([this
-				    ]( std::function<void()> pass
-				     , std::function<void(std::exception_ptr)
-						    > fail
-				     ) {
-			if (my_capacity)
-				return pass();
-			my_capacity_waiters.emplace_back(std::move(pass));
-		}) + Ev::yield();
-	}
-	Ev::Io<void> awaken_waiters() {
-		return Ev::Io<void>([this
-				    ]( std::function<void()> pass
-				     , std::function<void(std::exception_ptr)
-						    > fail
-				     ) {
-			auto waiters = std::move(my_capacity_waiters);
-			my_capacity_waiters.clear();
-			for (auto const& w : waiters)
-				w();
-			pass();
-		});
-	}
-
-	Ev::Io<Ln::Amount> compute_my_capacity() {
-		return compute_capacity(self_id);
-	}
-
 	Ev::Io<Ln::Amount> compute_capacity(Ln::NodeId const& node) {
-		auto parms = Json::Out()
-			.start_object()
-				.field("source", std::string(node))
-			.end_object()
-			;
-		return rpc->command( "listchannels"
-				   , std::move(parms)
-				   ).then([this](Jsmn::Object res) {
-			auto running_cap = Ln::Amount::sat(0);
-			try {
-				auto cs = res["channels"];
-				for (auto c : cs) {
-					/* Only care about public and
-					 * active channels.
-					 */
-					if (!c["public"])
-						continue;
-					if (!c["active"])
-						continue;
-					running_cap += Ln::Amount(std::string(
-						c["amount_msat"]
-					));
-				}
-			} catch (std::runtime_error const& _) {
-				return Boss::log( bus, Error
-						, "FeeModderBySize: "
-						  "compute_capacity: "
-						  "Unexpected result from "
-						  "listchannels: %s"
-						, Util::stringify(res)
-							.c_str()
-						).then([running_cap]() {
-					return Ev::lift(running_cap);
-				});
-			}
-			return Ev::lift(running_cap);
-		});
+		return capacity_table->get_capacity(node);
 	}
 
 	Ev::Io<double> get_cached_multiplier(Ln::NodeId peer) {
@@ -302,23 +323,18 @@ private:
 				      , std::move(competitors)
 				      );
 		}).then([this, caps](std::vector<Ln::Amount> n_caps) {
-			/* We were suspended while talking to RPC,
-			 * so make sure to ensure capacity *after*,
-			 * in case of a race condition where the
-			 * capacity was erased.
-			 */
 			*caps = std::move(n_caps);
-			return ensure_my_capacity();
-		}).then([this, caps, peer]() {
+			return compute_capacity(self_id);
+		}).then([this, caps, peer](Ln::Amount my_capacity) {
 			auto os = std::ostringstream();
 
 			auto worse = std::size_t(0);
 			auto better = std::size_t(0);
 			auto total = std::size_t(0);
 			for (auto const& c : *caps) {
-				if (c < *my_capacity)
+				if (c < my_capacity)
 					++worse;
-				else if (*my_capacity < c)
+				else if (my_capacity < c)
 					++better;
 				++total;
 			}
@@ -399,7 +415,6 @@ public:
 	explicit
 	Impl(S::Bus& bus_) : bus(bus_)
 			   , rpc(nullptr)
-			   , computing_my_capacity(false)
 			   , shutdown(false)
 			   {
 		start();

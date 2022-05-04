@@ -2,6 +2,7 @@
 #include"Boss/Shutdown.hpp"
 #include"Boss/log.hpp"
 #include"Ev/Io.hpp"
+#include"Ev/Semaphore.hpp"
 #include"Jsmn/Parser.hpp"
 #include"Json/Out.hpp"
 #include"Net/Fd.hpp"
@@ -21,6 +22,11 @@
 #include<unistd.h>
 
 namespace {
+
+/* Limit on the number of concurrent RPC calls to allow, to
+ * prevent hammering of the node.
+ */
+auto constexpr max_concurrent_rpcs = 100;
 
 std::string limited_enstring(Jsmn::Object const& val) {
 	char const* t;
@@ -67,6 +73,9 @@ private:
 	Jsmn::Parser parser;
 
 	bool is_shutting_down;
+
+	/* Limits the number of concurrent RPCs.  */
+	Ev::Semaphore sem;
 
 	/* Next id.  */
 	std::uint64_t next_id;
@@ -308,6 +317,7 @@ public:
 	    ) : bus(bus_)
 	      , socket(std::move(socket_))
 	      , is_shutting_down(false)
+	      , sem(max_concurrent_rpcs)
 	      , next_id(0)
 	      , write_event(nullptr)
 	      , read_buffer("")
@@ -385,9 +395,9 @@ public:
 			on_write();
 		});
 	}
-	Ev::Io<Jsmn::Object> command( std::string const& command
-				    , Json::Out params
-				    ) {
+	Ev::Io<Jsmn::Object> logging_command( std::string const& command
+					    , Json::Out params
+					    ) {
 		auto save = std::make_shared<Jsmn::Object>();
 		auto errsave = std::make_shared<RpcError>(
 			"", Jsmn::Object()
@@ -425,6 +435,11 @@ public:
 				return Ev::lift(errsave->error);
 			});
 		});
+	}
+	Ev::Io<Jsmn::Object> command( std::string const& command
+				    , Json::Out params
+				    ) {
+		return sem.run(logging_command(command, std::move(params)));
 	}
 };
 

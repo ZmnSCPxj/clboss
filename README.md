@@ -1,13 +1,13 @@
-CLBOSS The C-Lightning Node Manager
+CLBOSS The Core-Lightning Node Manager
 ===================================
 
-CLBOSS is an automated manager for C-Lightning forwarding nodes.
+CLBOSS is an automated manager for Core-Lightning forwarding nodes.
 
 CLBOSS is effectively a bunch of heuristics modules wired together
 to a regular clock to continuously monitor your node.
 
 Its design goal is to make it so that running a Lightning Network
-node is as simple as installing C-Lightning and CLBOSS, putting
+node is as simple as installing Core-Lightning and CLBOSS, putting
 some amount of funds of 0.1BTC or more, and making sure you have
 continuous Internet and power to the hardware running it.
 
@@ -86,7 +86,7 @@ From a git clone, you first need to execute:
 Then run the `./configure && make && sudo make install`.
 
 You can then add a `plugin=/path/to/clboss` or
-`important-plugin=/path/to/clboss` setting to your C-Lightning
+`important-plugin=/path/to/clboss` setting to your Core-Lightning
 configuration file.
 
 ### FreeBSD
@@ -211,20 +211,20 @@ Suppose you have the following story:
 
 Here is another user story:
 
-* You have a popular C-Lightning forwarding node that you are
+* You have a popular Core-Lightning forwarding node that you are
   happily not managing because you are using CLBOSS The Automated
-  C-Lightning Node Manager.
+  Core-Lightning Node Manager.
 * A friend asks a favor to get some incoming liquidity.
-  * You should really talk them into running C-Lightning and
+  * You should really talk them into running Core-Lightning and
     CLBOSS themselves to get incoming liquidity
 * You decide to help them out and give them some capacity.
 * You take some funds from cold storage and send it onchain to
-  your C-Lightning node.
+  your Core-Lightning node.
 * CLBOSS is so awesome, it takes those onchain funds and puts
   them into channels *it* has chosen rather than channels *you*
   wanted to choose.
 * You end up not being able to help your friend.
-  * At this point you talk them into running C-Lightning and
+  * At this point you talk them into running Core-Lightning and
     CLBOSS.
 
 To help with these user stories, CLBOSS provides the
@@ -270,7 +270,7 @@ which has two parameters, `nodeid` and `tags`.
     lightning-cli clboss-unmanage ${NODEID} lnfee
 
 After the above command, you can set the fee manually with
-the normal C-Lightning `setchannelfee` command.
+the normal Core-Lightning `setchannelfee` command.
 
 The second parameter, `tags`, is a string containing a
 comma-separated set of unmanagement tags.
@@ -321,7 +321,7 @@ in satoshis unit, without any trailing units or other strings.
 
 The default is "30000", or about 0.0003 BTC.
 The intent is that this minimal amount will be used in the
-future, by C-Lightning, to manage anchor-commitment channels,
+future, by Core-Lightning, to manage anchor-commitment channels,
 or post-Taproot Decker-Russell-Osuntokun channels.
 These channel types need some small amount of onchain funds
 to unilaterally close, so it is not recommended to set it to 0.

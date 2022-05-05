@@ -10,4 +10,4 @@ script:
   - echo "configure" && echo -en 'travis_fold:start:script.configure\\r'
   - ./configure
   - echo -en 'travis_fold:end:script.configure\\r'
-  - make distcheck
+  - make -j4 distcheck

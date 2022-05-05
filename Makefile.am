@@ -594,6 +594,7 @@ TESTS = \
 	tests/ev/test_throw_in_then \
 	tests/graph/test_dijkstra \
 	tests/jsmn/test_iterator \
+	tests/jsmn/test_parser \
 	tests/jsmn/test_performance \
 	tests/json/test_out_simple \
 	tests/ln/test_amount \

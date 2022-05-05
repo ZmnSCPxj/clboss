@@ -595,6 +595,7 @@ TESTS = \
 	tests/ev/test_throw_in_then \
 	tests/graph/test_dijkstra \
 	tests/jsmn/test_iterator \
+	tests/jsmn/test_performance \
 	tests/json/test_out_simple \
 	tests/ln/test_amount \
 	tests/ln/test_htlcaccepted \
@@ -615,6 +616,8 @@ TESTS = \
 	tests/util/test_duration \
 	tests/util/test_format
 check_PROGRAMS = $(TESTS)
+
+XFAIL_TESTS = tests/jsmn/test_performance
 
 if USE_VALGRIND
 LOG_COMPILER = valgrind

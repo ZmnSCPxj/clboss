@@ -407,8 +407,7 @@ libclboss_la_SOURCES = \
 	Ev/yield.hpp \
 	Graph/Dijkstra.hpp \
 	Graph/TreeNode.hpp \
-	Jsmn/Detail/EndAdvancer.cpp \
-	Jsmn/Detail/EndAdvancer.hpp \
+	Jsmn/Detail/DatumIdentifier.hpp \
 	Jsmn/Detail/Iterator.cpp \
 	Jsmn/Detail/Iterator.hpp \
 	Jsmn/Detail/ParseResult.hpp \
@@ -616,8 +615,6 @@ TESTS = \
 	tests/util/test_duration \
 	tests/util/test_format
 check_PROGRAMS = $(TESTS)
-
-XFAIL_TESTS = tests/jsmn/test_performance
 
 if USE_VALGRIND
 LOG_COMPILER = valgrind

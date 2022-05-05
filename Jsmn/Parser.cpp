@@ -1,5 +1,5 @@
 #include<assert.h>
-#include"Jsmn/Detail/EndAdvancer.hpp"
+#include"Jsmn/Detail/DatumIdentifier.hpp"
 #include"Jsmn/Detail/ParseResult.hpp"
 #include"Jsmn/Detail/Token.hpp"
 #include"Jsmn/Detail/Type.hpp"
@@ -39,32 +39,6 @@ Jsmn::Detail::Token token_convert(jsmntok_t const& tok) {
 	return ret;
 }
 
-/* A Jsmn::Detail::SourceReader which reads the JSON string
- * currently stored in the Jsmn::Parser implementation.
- */
-class ParserSourceReader : public Jsmn::Detail::SourceReader {
-private:
-	std::string const& input;
-	unsigned int i;
-public:
-	ParserSourceReader(std::string const& input_) : input(input_), i(0) { }
-	std::pair<bool, char> read() {
-		if (i >= input.size())
-			return std::make_pair(false, '0');
-		return std::make_pair(true, input[i++]);
-	}
-	/* Indicates that a number of characters have been removed
-	 * from the front of the input buffer.
-	 */
-	void reset(unsigned int to_consume) {
-		i -= to_consume;
-	}
-	/* Determine how much of the input to feed.  */
-	unsigned int input_size() const {
-		return i;
-	}
-};
-
 }
 
 namespace Jsmn {
@@ -82,18 +56,21 @@ std::string ParseError::enmessage(std::string const& input, unsigned int i) {
 class Parser::Impl {
 private:
 	std::string input;
-	ParserSourceReader psr;
 	std::vector<jsmntok_t> toks;
 	jsmn_parser base;
 
+	Jsmn::Detail::DatumIdentifier datum_ender;
+	std::size_t offset;
+
 	void reset(unsigned int to_consume) {
 		input.erase(0, to_consume);
-		psr.reset(to_consume);
+		offset -= to_consume;
 		jsmn_init(&base);
 	}
 
 public:
-	Impl() : psr(input) {
+	Impl() {
+		offset = 0;
 		toks.resize(4);
 		reset(0);
 	}
@@ -110,13 +87,16 @@ public:
 	 * into weirder systems, so ---
 	 */
 	std::unique_ptr<Object> try_parse() {
-		auto ender = Detail::EndAdvancer(psr);
+		/* Look for a datum.  */
+		while (offset < input.size()) {
+			if (datum_ender.feed(input[offset++]))
+				break;
+			if (offset == input.size())
+				return nullptr;
+		}
 		for (;;) {
-			/* Advance things.  */
-			ender.scan();
-
 			auto res = jsmn_parse( &base
-					     , input.data(), psr.input_size()
+					     , input.data(), offset
 					     , &toks[0], toks.size()
 					     );
 			if (res > 0) {
@@ -150,10 +130,8 @@ public:
 			case JSMN_ERROR_INVAL:
 				throw ParseError(input, base.pos);
 			case JSMN_ERROR_PART:
-				if (psr.input_size() == input.size())
-					return nullptr;
-				/* Let the end advancer continue.  */
-				continue;
+				assert(offset == input.size());
+				return nullptr;
 			}
 		}
 	}
@@ -164,9 +142,11 @@ Parser::Parser()
 Parser::~Parser() { }
 
 std::vector<Jsmn::Object> Parser::feed(std::string const& s) {
+	auto ret = std::vector<Jsmn::Object>();
+	if (s.size() == 0)
+		return ret;
 	pimpl->append(s);
 
-	auto ret = std::vector<Jsmn::Object>();
 	auto tmp = std::unique_ptr<Jsmn::Object>();
 	do {
 		tmp = pimpl->try_parse();

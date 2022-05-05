@@ -1,6 +1,5 @@
 #include<assert.h>
 #include<sstream>
-#include"Jsmn/Detail/EndAdvancer.hpp"
 #include"Jsmn/Detail/ParseResult.hpp"
 #include"Jsmn/Detail/Str.hpp"
 #include"Jsmn/Detail/Token.hpp"
@@ -374,57 +373,24 @@ std::ostream& operator<<(std::ostream& os, Jsmn::Object const& o) {
 	return os;
 }
 
-namespace {
-
-/* Reads characters from an input stream, saving them in a buffer that
- * will later be fed into a Jsmn::Parser.
- */
-class StreamSourceReader : public Detail::SourceReader {
-private:
-	std::istream& is;
-	std::string buffer;
-public:
-	explicit
-	StreamSourceReader(std::istream& is_)
-		: is(is_), buffer("") { }
-
-	std::pair<bool, char> read() {
-		auto c = char('0');
-		if (!is || is.eof())
-			return std::make_pair(false, '0');
-		is.read(&c, 1);
-		buffer.push_back(c);
-		return std::make_pair(true, c);
-	}
-
-	std::string get_buffer() {
-		auto ret = std::move(buffer);
-		buffer = "";
-		return ret;
-	}
-};
-
-}
-
 std::istream& operator>>(std::istream& is, Jsmn::Object& o) {
 	auto started = false;
 
-	StreamSourceReader ssr(is);
-	Detail::EndAdvancer ender(ssr);
 	Jsmn::Parser parser;
 
 	is >> std::ws;
 
+	auto buf = std::string(" ");
+
 	for(;;) {
-		if (!is || is.eof()) {
+		if (!is || is.eof() || !is.get(buf[0])) {
 			if (!started)
 				return is;
 			throw std::runtime_error("Unexpected end-of-file.");
 		}
 		started = true;
-		ender.scan();
 
-		auto ret = parser.feed(ssr.get_buffer());
+		auto ret = parser.feed(buf);
 		assert(ret.size() < 2);
 
 		if (ret.size() != 0) {

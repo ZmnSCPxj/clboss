@@ -28,6 +28,7 @@ int main() {
 	for (auto const& v: vectors) {
 		Jsmn::Parser p;
 		auto jv = p.feed(v);
+		assert(jv.size() == 1);
 		auto js = jv[0];
 
 		auto i = std::size_t(0);

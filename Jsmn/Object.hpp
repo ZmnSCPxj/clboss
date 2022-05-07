@@ -11,7 +11,7 @@
 #include<vector>
 
 namespace Jsmn { namespace Detail { struct ParseResult; }}
-namespace Jsmn { class Parser; }
+namespace Jsmn { class ParserExposedBuffer; }
 
 namespace Jsmn {
 
@@ -28,7 +28,7 @@ private:
 	class Impl;
 	std::shared_ptr<Impl> pimpl;
 
-	/* Used by class Parser to construct.  */
+	/* Used by class ParserExposedBuffer to construct.  */
 	Object( std::shared_ptr<Detail::ParseResult>
 	      , unsigned int
 	      );
@@ -70,7 +70,7 @@ public:
 	/* TODO: Iterator.  */
 
 	/* Formal factory.  */
-	friend class Parser;
+	friend class ParserExposedBuffer;
 	/* Iterator type.  */
 	friend class Jsmn::Detail::Iterator;
 

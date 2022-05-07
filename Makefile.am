@@ -420,8 +420,9 @@ libclboss_la_SOURCES = \
 	Jsmn/Object.hpp \
 	Jsmn/ParseError.cpp \
 	Jsmn/ParseError.hpp \
-	Jsmn/Parser.cpp \
 	Jsmn/Parser.hpp \
+	Jsmn/ParserExposedBuffer.cpp \
+	Jsmn/ParserExposedBuffer.hpp \
 	Jsmn/jsonify_string.cpp \
 	Jsmn/jsonify_string.hpp \
 	Json/Out.hpp \

@@ -1,11 +1,8 @@
 #ifndef JSMN_PARSER_HPP
 #define JSMN_PARSER_HPP
 
-#include<memory>
-#include<string>
-#include<utility>
-#include<vector>
-#include"Jsmn/ParseError.hpp"
+#include"Jsmn/ParserExposedBuffer.hpp"
+#include<algorithm>
 
 namespace Jsmn { class Object; }
 
@@ -22,19 +19,24 @@ namespace Jsmn {
  */
 class Parser {
 private:
-	class Impl;
-	std::unique_ptr<Impl> pimpl;
+	Jsmn::ParserExposedBuffer base;
 
 public:
-	Parser();
-	~Parser();
+	Parser() =default;
+	~Parser() =default;
 
 	/* No expected use for these... Disable for now.  */
 	Parser(Parser const&) =delete;
 	Parser(Parser&&) =delete;
 
 	/* Feeds a string into this parser.*/
-	std::vector<Jsmn::Object> feed(std::string const&);
+	std::vector<Jsmn::Object> feed(std::string const& s) {
+		base.load_buffer(s.size(), [&s](char* p) {
+			std::copy(s.begin(), s.end(), p);
+			return s.size();
+		});
+		return base.parse_buffer();
+	}
 };
 
 }

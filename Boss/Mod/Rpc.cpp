@@ -3,7 +3,7 @@
 #include"Boss/log.hpp"
 #include"Ev/Io.hpp"
 #include"Ev/Semaphore.hpp"
-#include"Jsmn/Parser.hpp"
+#include"Jsmn/ParserExposedBuffer.hpp"
 #include"Json/Out.hpp"
 #include"Net/Fd.hpp"
 #include"S/Bus.hpp"
@@ -70,7 +70,7 @@ private:
 	S::Bus& bus;
 
 	Net::Fd socket;
-	Jsmn::Parser parser;
+	Jsmn::ParserExposedBuffer parser;
 
 	bool is_shutting_down;
 
@@ -182,35 +182,36 @@ private:
 	/* Call when read end is ready.  */
 	void on_read() {
 		auto static constexpr chunk_size = std::size_t(4096);
+		auto eagain_flag = false;
 
-		while (is_ready(socket.get(), POLLIN)) {
-			auto offset = read_buffer.size();
-			read_buffer.resize(offset + chunk_size);
-			auto ptr = &*(read_buffer.begin() + offset);
-
-			auto res = ssize_t();
-			do {
-				res = read(socket.get(), ptr, chunk_size);
-			} while (res < 0 && errno == EINTR);
-			if (res < 0 && ( errno == EWOULDBLOCK
-				      || errno == EAGAIN
-				       )) {
-				read_buffer.resize(offset);
-				break;
-			}
-			if (res < 0)
-				throw std::runtime_error(
-					std::string("Rpc: read: ") +
-					strerror(errno)
-				);
-			if (res == 0)
-				/* Unexpected end of file!  */
-				throw std::runtime_error(
-					"Rpc: read: unexpected end-of-file "
-					"in RPC socket."
-				);
-			if (std::size_t(res) < chunk_size)
-				read_buffer.resize(offset + res);
+		while (!eagain_flag && is_ready(socket.get(), POLLIN)) {
+			parser.load_buffer( chunk_size
+					  , [ this
+					    , &eagain_flag
+					    ](char* ptr) {
+				auto res = ssize_t();
+				do {
+					res = read(socket.get(), ptr, chunk_size);
+				} while (res < 0 && errno == EINTR);
+				if (res < 0 && ( errno == EWOULDBLOCK
+					      || errno == EAGAIN
+					       )) {
+					eagain_flag = true;
+					return std::size_t(0);
+				}
+				if (res < 0)
+					throw std::runtime_error(
+						std::string("Rpc: read: ") +
+						strerror(errno)
+					);
+				if (res == 0)
+					/* Unexpected end of file!  */
+					throw std::runtime_error(
+						"Rpc: read: unexpected end-of-file "
+						"in RPC socket."
+					);
+				return std::size_t(res);
+			});
 		}
 	}
 	/* Wrapper of above for libev.  */
@@ -222,7 +223,7 @@ private:
 		ev_io_start(EV_A_ e);
 		/* Trigger read parse event.  */
 		if ( !self->read_parse_active
-		  && self->read_buffer.size() != 0
+		  && self->parser.can_parse_buffer()
 		   ) {
 			self->read_parse_active = true;
 			ev_idle_start(EV_A_ &self->read_parse_event);
@@ -231,21 +232,9 @@ private:
 
 	/* Call when read event took some data.  */
 	void on_read_parse() {
-		auto static constexpr batch_size = std::size_t(65536);
-		if (read_buffer.size() < batch_size) {
-			auto responses = parser.feed(read_buffer);
-			read_buffer.resize(0);
-			for (auto const& r : responses)
-				process_response(r);
-		} else {
-			auto b_it = read_buffer.begin();
-			auto e_it = read_buffer.begin() + batch_size;
-			auto batch = std::string(b_it, e_it);
-			read_buffer.erase(b_it, e_it);
-			auto responses = parser.feed(batch);
-			for (auto const& r : responses)
-				process_response(r);
-		}
+		auto responses = parser.parse_buffer();
+		for (auto const& r : responses)
+			process_response(r);
 	}
 	static
 	void on_read_parse_static(EV_P_ ev_idle* e, int _) {
@@ -253,8 +242,6 @@ private:
 		ev_idle_stop(EV_A_ e);
 		self->read_parse_active = false;
 		self->on_read_parse();
-		if (self->read_buffer.size() > 0)
-			ev_idle_start(EV_A_ e);
 	}
 
 	/* Call when write end is ready.  */

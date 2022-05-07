@@ -2,36 +2,14 @@
 #define JSMN_PARSER_HPP
 
 #include<memory>
-#include<stdexcept>
 #include<string>
 #include<utility>
 #include<vector>
+#include"Jsmn/ParseError.hpp"
 
 namespace Jsmn { class Object; }
 
 namespace Jsmn {
-
-/* Thrown on JSON parsing failure.  */
-class ParseError : public std::runtime_error {
-private:
-	std::string input;
-	unsigned int i;
-
-	static
-	std::string enmessage(std::string const& input, unsigned int i);
-
-public:
-	ParseError() =delete;
-	ParseError( std::string input_
-		  , unsigned int i_
-		  ) : std::runtime_error(enmessage(input_, i_))
-		    , input(std::move(input_))
-		    , i(i_)
-		    {
-		input = std::move(input_);
-		i = i_;
-	}
-};
 
 /* A stateful jsmn-based parser.
  *

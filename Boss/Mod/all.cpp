@@ -58,6 +58,7 @@
 #include"Boss/Mod/PeerComplaintsDesk/Main.hpp"
 #include"Boss/Mod/PeerMetrician.hpp"
 #include"Boss/Mod/PeerStatistician.hpp"
+#include"Boss/Mod/RebalanceUnmanager.hpp"
 #include"Boss/Mod/Reconnector.hpp"
 #include"Boss/Mod/RegularActiveProbe.hpp"
 #include"Boss/Mod/RpcWrapper.hpp"
@@ -207,6 +208,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<JitRebalancer>(bus);
 	all->install<InitialRebalancer>(bus);
 	all->install<EarningsRebalancer>(bus);
+	all->install<RebalanceUnmanager>(bus);
 
 	/* Unmanaged nodes.  */
 	all->install<UnmanagedManager>(bus);

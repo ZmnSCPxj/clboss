@@ -1,6 +1,6 @@
 #include"Boss/Mod/JitRebalancer.hpp"
-#include"Boss/Mod/Rpc.hpp"
 #include"Boss/ModG/ReqResp.hpp"
+#include"Boss/ModG/RpcProxy.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ListpeersResult.hpp"
 #include"Boss/Msg/ReleaseHtlcAccepted.hpp"
@@ -73,7 +73,7 @@ namespace Boss { namespace Mod {
 class JitRebalancer::Impl {
 private:
 	S::Bus& bus;
-	Boss::Mod::Rpc* rpc;
+	Boss::ModG::RpcProxy rpc;
 
 	/* Maps channels to nodes, as we need node information.  */
 	std::map<Ln::Scid, Ln::NodeId> nodemap;
@@ -90,11 +90,6 @@ private:
 	MoveFundsRR move_funds_rr;
 
 	void start() {
-		bus.subscribe<Msg::Init
-			     >([this](Msg::Init const& init) {
-			rpc = &init.rpc;
-			return Ev::lift();
-		});
 		bus.subscribe<Msg::ListpeersResult
 			     >([this](Msg::ListpeersResult const& r) {
 			return listpeers_result(r.peers);
@@ -108,13 +103,6 @@ private:
 			return bus.raise(Msg::ProvideHtlcAcceptedDeferrer{
 				std::move(f)
 			});
-		});
-	}
-	Ev::Io<void> wait_for_rpc() {
-		return Ev::lift().then([this]() {
-			if (rpc)
-				return Ev::lift();
-			return Ev::yield() + wait_for_rpc();
 		});
 	}
 
@@ -175,7 +163,7 @@ private:
 	public:
 		Run() =delete;
 
-		Run(S::Bus& bus, Boss::Mod::Rpc& rpc
+		Run(S::Bus& bus, Boss::ModG::RpcProxy& rpc
 		   , Ln::NodeId const& node
 		   , Ln::Amount amount
 		   , std::uint64_t id
@@ -194,8 +182,8 @@ private:
 		      , Ln::Amount amount
 		      , std::uint64_t id
 		      ) {
-		return wait_for_rpc().then([this, node, amount, id]() {
-			auto r = Run( bus, *rpc, node, amount, id
+		return Ev::lift().then([this, node, amount, id]() {
+			auto r = Run( bus, rpc, node, amount, id
 				    , earnings_info_rr, move_funds_rr
 				    );
 			return r.execute();
@@ -205,6 +193,7 @@ private:
 public:
 	Impl( S::Bus& bus_
 	    ) : bus(bus_)
+	      , rpc(bus_)
 	      , earnings_info_rr( bus
 				, [](Msg::RequestEarningsInfo& msg, void* p) {
 					msg.requester = p;
@@ -228,7 +217,7 @@ public:
 class JitRebalancer::Impl::Run::Impl {
 private:
 	S::Bus& bus;
-	Boss::Mod::Rpc& rpc;
+	Boss::ModG::RpcProxy& rpc;
 	Ln::NodeId out_node;
 	Ln::Amount amount;
 	std::uint64_t id;
@@ -501,7 +490,7 @@ private:
 
 public:
 	Impl( S::Bus& bus_
-	    , Boss::Mod::Rpc& rpc_
+	    , Boss::ModG::RpcProxy& rpc_
 	    , Ln::NodeId const& out_node_
 	    , Ln::Amount amount_
 	    , std::uint64_t id_
@@ -532,7 +521,7 @@ public:
 	}
 };
 JitRebalancer::Impl::Run::Run( S::Bus& bus
-			     , Boss::Mod::Rpc& rpc
+			     , Boss::ModG::RpcProxy& rpc
 			     , Ln::NodeId const& node
 			     , Ln::Amount amount
 			     , std::uint64_t id

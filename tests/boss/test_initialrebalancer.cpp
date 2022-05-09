@@ -1,5 +1,6 @@
 #undef NDEBUG
 #include"Boss/Mod/InitialRebalancer.hpp"
+#include"Boss/Mod/RebalanceUnmanager.hpp"
 #include"Boss/Msg/JsonCout.hpp"
 #include"Boss/Msg/ListpeersResult.hpp"
 #include"Boss/Msg/RequestEarningsInfo.hpp"
@@ -44,7 +45,12 @@ public:
 			    ) : bus(bus_) { start(); }
 };
 
-/* First is source, second is destination.  */
+/* First is source, second is destination.
+ *
+ * Third and fourth are dummy and are added to the unmanaged
+ * list to check if InitialRebalancer respects the unmanaged
+ * set.
+ */
 auto const peers = std::string(R"JSON(
 [ { "id" : "020000000000000000000000000000000000000000000000000000000000000000"
   , "channels" : [ { "private" : false
@@ -59,6 +65,26 @@ auto const peers = std::string(R"JSON(
   , "channels" : [ { "private" : false
                    , "state" : "CHANNELD_NORMAL"
                    , "to_us_msat" : "0msat"
+                   , "total_msat" : "1000000000msat"
+                   , "htlcs" : []
+                   }
+                 ]
+  }
+
+
+, { "id" : "020000000000000000000000000000000000000000000000000000000000000003"
+  , "channels" : [ { "private" : false
+                   , "state" : "CHANNELD_NORMAL"
+                   , "to_us_msat" : "0msat"
+                   , "total_msat" : "1000000000msat"
+                   , "htlcs" : []
+                   }
+                 ]
+  }
+, { "id" : "020000000000000000000000000000000000000000000000000000000000000004"
+  , "channels" : [ { "private" : false
+                   , "state" : "CHANNELD_NORMAL"
+                   , "to_us_msat" : "1000000000msat"
                    , "total_msat" : "1000000000msat"
                    , "htlcs" : []
                    }
@@ -105,6 +131,12 @@ int main() {
 	using Boss::Msg::ResponseMoveFunds;
 
 	auto bus = S::Bus();
+
+	/* Unmanager mock.  */
+	Boss::Mod::RebalanceUnmanager unmanager(bus, {
+		"020000000000000000000000000000000000000000000000000000000000000003",
+		"020000000000000000000000000000000000000000000000000000000000000004"
+	});
 
 	DummyEarningsManager dummy1(bus);
 	Cout cout(bus);

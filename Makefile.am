@@ -571,6 +571,7 @@ TESTS = \
 	tests/boss/test_feemodderbypricetheory \
 	tests/boss/test_getmanifest \
 	tests/boss/test_initialrebalancer \
+	tests/boss/test_jitrebalancer \
 	tests/boss/test_needsconnectsolicitor \
 	tests/boss/test_onchainfeemonitor_samples_init \
 	tests/boss/test_peerjudge_agetracker \

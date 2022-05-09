@@ -1,4 +1,5 @@
 #include"Boss/Mod/InitialRebalancer.hpp"
+#include"Boss/ModG/RebalanceUnmanagerProxy.hpp"
 #include"Boss/ModG/ReqResp.hpp"
 #include"Boss/Msg/ListpeersResult.hpp"
 #include"Boss/Msg/RequestEarningsInfo.hpp"
@@ -60,6 +61,8 @@ private:
 		     , Msg::ResponseEarningsInfo
 		     > ExpenseRR;
 	ExpenseRR expense_rr;
+	/* Interface to the rebalance unmanager.  */
+	ModG::RebalanceUnmanagerProxy unmanager;
 
 	/* Peers currently being rebalanced.  */
 	std::set<Ln::NodeId> current_sources;
@@ -92,17 +95,28 @@ private:
 		Run( S::Bus& bus, Jsmn::Object const& peers
 		   , MoveRR& move_rr, ExpenseRR& expense_rr
 		   , std::set<Ln::NodeId>& current_sources
+		   , std::set<Ln::NodeId> const& unmanaged
 		   );
 		Ev::Io<void> run();
 	};
 
 	Ev::Io<void>
 	run(Jsmn::Object const& peers) {
-		return Boss::concurrent( Run( bus, peers
-					    , move_rr, expense_rr
-					    , current_sources
-					    ).run()
-				       );
+		auto ppeers = std::make_shared<Jsmn::Object>(peers);
+		return Ev::lift().then([this]() {
+			return unmanager.get_unmanaged();
+		}).then([ this
+			, ppeers
+			](std::set<Ln::NodeId> const* unmanagedp) {
+			return Boss::concurrent( Run( bus
+						    , *ppeers
+						    , move_rr
+						    , expense_rr
+						    , current_sources
+						    , *unmanagedp
+						    ).run()
+					       );
+		});
 	}
 
 public:
@@ -129,6 +143,7 @@ public:
 				return msg.requester;
 			    }
 			  )
+	      , unmanager(bus_)
 	      { start(); }
 };
 
@@ -162,6 +177,9 @@ private:
 		     >& expense_rr;
 	std::set<Ln::NodeId>& current_sources;
 
+	/* Set of unmanaged nodes.  */
+	std::set<Ln::NodeId> const& unmanaged;
+
 	Ev::Io<void> core_run() {
 		return Ev::lift().then([this]() {
 			try {
@@ -173,6 +191,8 @@ private:
 					auto id = Ln::NodeId(std::string(
 						p["id"]
 					));
+					if (unmanaged.count(id) != 0)
+						continue;
 
 					auto cs = p["channels"];
 					for (auto c : cs) {
@@ -471,10 +491,12 @@ public:
 	    , MoveRR& move_rr_
 	    , ExpenseRR& expense_rr_
 	    , std::set<Ln::NodeId>& current_sources_
+	    , std::set<Ln::NodeId> const& unmanaged_
 	    ) : bus(bus_), peers(peers_)
 	      , move_rr(move_rr_)
 	      , expense_rr(expense_rr_)
 	      , current_sources(current_sources_)
+	      , unmanaged(unmanaged_)
 	      { }
 	/* Make sure a shared pointer exists, since core_run uses
 	 * shared_from_this.
@@ -491,9 +513,11 @@ InitialRebalancer::Impl::Run::Run( S::Bus& bus
 				 , Jsmn::Object const& peers
 				 , MoveRR& move_rr, ExpenseRR& expense_rr
 				 , std::set<Ln::NodeId>& current_sources
+				 , std::set<Ln::NodeId> const& unmanaged
 				 ) : pimpl(std::make_shared<Impl>( bus, peers
 								 , move_rr, expense_rr
 								 , current_sources
+								 , unmanaged
 								 ))
 				   { }
 Ev::Io<void> InitialRebalancer::Impl::Run::run() {

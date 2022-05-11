@@ -1,3 +1,4 @@
+- Disable `InitialRebalancer`, as it is not based on economic rationality.
 - You can now disable rebalancing to or from specific peers by using `clboss-unmanage` with the key `balance`.
 - Use a single giant `listchannels` call in `FeeModderBySize`.  This should now make CLBOSS usable on nodes with >100 channels.
 - Limit the number of concurrent RPC calls we make, to prevent overloading the poor Core Lightning daemon.

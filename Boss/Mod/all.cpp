@@ -206,7 +206,9 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<MoveFundsCommand>(bus);
 	all->install<EarningsTracker>(bus);
 	all->install<JitRebalancer>(bus);
+#ifdef ENABLE_INITIAL_REBALANCER
 	all->install<InitialRebalancer>(bus);
+#endif /* ENABLE_INITIAL_REBALANCER */
 	all->install<EarningsRebalancer>(bus);
 	all->install<RebalanceUnmanager>(bus);
 

@@ -1,4 +1,5 @@
 #include"Boss/Mod/EarningsRebalancer.hpp"
+#include"Boss/ModG/RebalanceUnmanagerProxy.hpp"
 #include"Boss/ModG/ReqResp.hpp"
 #include"Boss/Msg/CommandRequest.hpp"
 #include"Boss/Msg/CommandResponse.hpp"
@@ -77,6 +78,9 @@ private:
 		std::int64_t out_net_earnings;
 	};
 	std::map<Ln::NodeId, EarningsInfo> earnings;
+
+	ModG::RebalanceUnmanagerProxy unmanager;
+	std::set<Ln::NodeId> const* unmanaged;
 
 	void start() {
 		struct SelfTrigger { };
@@ -202,6 +206,9 @@ private:
 
 	Ev::Io<void> run() {
 		return Ev::lift().then([this]() {
+			return unmanager.get_unmanaged();
+		}).then([this](std::set<Ln::NodeId> const* unmanaged_) {
+			unmanaged = unmanaged_;
 			/* Copy the cached balances.  */
 			balances = cached_balances;
 			/* Generate vector of peers.  */
@@ -238,6 +245,9 @@ private:
 
 			for (auto& pb : balances) {
 				auto peer = pb.first;
+				/* Skip unmanaged nodes.  */
+				if (unmanaged->count(peer) != 0)
+					continue;
 				auto balance = pb.second;
 				auto percent = (balance.spendable / balance.total) * 100.0;
 				if (percent < max_spendable_percent)
@@ -375,6 +385,7 @@ public:
 				return m.requester;
 			     }
 			   )
+	      , unmanager(bus_)
 	      { start(); }
 };
 

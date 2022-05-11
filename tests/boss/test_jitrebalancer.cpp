@@ -1,5 +1,6 @@
 #undef NDEBUG
 #include"Boss/Mod/JitRebalancer.hpp"
+#include"Boss/Mod/RebalanceUnmanager.hpp"
 #include"Boss/Msg/JsonCout.hpp"
 #include"Boss/Msg/ListpeersResult.hpp"
 #include"Boss/Msg/ProvideHtlcAcceptedDeferrer.hpp"
@@ -62,6 +63,23 @@ auto const listpeers_result = R"JSON(
                              , "to_us_msat":      "80000msat"
                              , "total_msat": "1000000000msat"
                              , "short_channel_id": "1000x1x2"
+                             }
+                           ]
+             }
+
+           , { "id": "02000000000000000000000000000000000000000000000000000000000000FF00"
+             , "channels": [ { "state": "CHANNELD_NORMAL"
+                             , "to_us_msat":  "900000000msat"
+                             , "total_msat": "1000000000msat"
+                             , "short_channel_id": "9999x1x0"
+                             }
+                           ]
+             }
+           , { "id": "02000000000000000000000000000000000000000000000000000000000000FF01"
+             , "channels": [ { "state": "CHANNELD_NORMAL"
+                             , "to_us_msat":  "900000000msat"
+                             , "total_msat": "1000000000msat"
+                             , "short_channel_id": "9999x1x1"
                              }
                            ]
              }
@@ -223,6 +241,10 @@ int main() {
 	DummyRpc rpc(bus);
 	DummyEarningsManager earnings_manager(bus);
 	ReleaseMonitor release_monitor(bus);
+	Boss::Mod::RebalanceUnmanager unmanager(bus, {
+		"02000000000000000000000000000000000000000000000000000000000000FF00",
+		"02000000000000000000000000000000000000000000000000000000000000FF01"
+	});
 
 	/* Simple facility to check for deferrer function.  */
 	auto deferrer = std::function<Ev::Io<bool>(Ln::HtlcAccepted::Request const&)>();
@@ -323,6 +345,14 @@ int main() {
 		/* We should then release.  */
 		return release_monitor.wait_release(6);
 	}).then([&]() {
+
+		/* Check for a forward to an unmanaged
+		 * node.
+		 */
+		num_move_funds = 0;
+		return deferrer(htlc("9999x1x0", Ln::Amount::msat(900000000), 7));
+	}).then([&](bool flag) {
+		assert(flag == false);
 
 		return Ev::lift(0);
 	});

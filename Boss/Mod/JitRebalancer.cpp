@@ -1,4 +1,5 @@
 #include"Boss/Mod/JitRebalancer.hpp"
+#include"Boss/ModG/RebalanceUnmanagerProxy.hpp"
 #include"Boss/ModG/ReqResp.hpp"
 #include"Boss/ModG/RpcProxy.hpp"
 #include"Boss/Msg/Init.hpp"
@@ -89,6 +90,8 @@ private:
 	EarningsInfoRR earnings_info_rr;
 	MoveFundsRR move_funds_rr;
 
+	ModG::RebalanceUnmanagerProxy unmanager;
+
 	void start() {
 		bus.subscribe<Msg::ListpeersResult
 			     >([this](Msg::ListpeersResult const& r) {
@@ -150,10 +153,28 @@ private:
 		auto id = req.id;
 		auto amount = req.next_amount;
 
-		return Boss::concurrent( check_and_move(node, amount, id)
-				       ).then([]() {
-			return Ev::lift(true);
+		return unmanager.get_unmanaged().then([ this
+						      , node
+						      , amount
+						      , id
+						      ](std::set<Ln::NodeId> const* unmanaged) {
+			if (unmanaged->count(node) != 0) {
+				return Boss::log( bus, Debug
+						, "JitRebalancer: HTLC %s to "
+						  "unmanaged node %s, will "
+						  "ignore."
+						, Util::stringify(id).c_str()
+						, Util::stringify(node).c_str()
+						).then([]() {
+					return Ev::lift(false);
+				});
+			}
+			return Boss::concurrent( check_and_move(node, amount, id)
+					       ).then([]() {
+				return Ev::lift(true);
+			});
 		});
+
 	}
 
 	class Run {
@@ -169,6 +190,7 @@ private:
 		   , std::uint64_t id
 		   , EarningsInfoRR& earnings_info_rr
 		   , MoveFundsRR& move_funds_rr
+		   , ModG::RebalanceUnmanagerProxy& unmanager
 		   );
 		Run(Run&&) =default;
 		Run(Run const&) =default;
@@ -185,6 +207,7 @@ private:
 		return Ev::lift().then([this, node, amount, id]() {
 			auto r = Run( bus, rpc, node, amount, id
 				    , earnings_info_rr, move_funds_rr
+				    , unmanager
 				    );
 			return r.execute();
 		});
@@ -210,6 +233,7 @@ public:
 					return msg.requester;
 			       }
 			     )
+	      , unmanager(bus)
 	      { start(); }
 };
 
@@ -239,6 +263,10 @@ private:
 	EarningsInfoRR& earnings_info_rr;
 	/* ReqResp to `Boss::Mod::FundsMover`.  */
 	MoveFundsRR& move_funds_rr;
+	/* Unmanager proxy.  */
+	ModG::RebalanceUnmanagerProxy& unmanager;
+
+	std::set<Ln::NodeId> const* unmanaged;
 
 	/* Thrown to signal that we should release the HTLC.  */
 	struct Continue {};
@@ -259,6 +287,9 @@ private:
 
 	Ev::Io<void> core_execute() {
 		return Ev::lift().then([this]() {
+			return unmanager.get_unmanaged();
+		}).then([this](std::set<Ln::NodeId> const* unmanaged_) {
+			unmanaged = unmanaged_;
 
 			/* Get the unilateral close feerate.  */
 			auto parms = Json::Out()
@@ -304,6 +335,11 @@ private:
 					auto peer = Ln::NodeId(std::string(
 						p["id"]
 					));
+
+					/* Skip peers in the unmanaged
+					 * list.  */
+					if (unmanaged->count(peer) != 0)
+						continue;
 
 					auto cs = p["channels"];
 					for (auto c : cs) {
@@ -496,10 +532,12 @@ public:
 	    , std::uint64_t id_
 	    , EarningsInfoRR& earnings_info_rr_
 	    , MoveFundsRR& move_funds_rr_
+	    , ModG::RebalanceUnmanagerProxy& unmanager_
 	    ) : bus(bus_), rpc(rpc_)
 	      , out_node(out_node_), amount(amount_), id(id_)
 	      , earnings_info_rr(earnings_info_rr_)
 	      , move_funds_rr(move_funds_rr_)
+	      , unmanager(unmanager_)
 	      { }
 
 	static
@@ -527,9 +565,11 @@ JitRebalancer::Impl::Run::Run( S::Bus& bus
 			     , std::uint64_t id
 			     , EarningsInfoRR& earnings_info_rr
 			     , MoveFundsRR& move_funds_rr
+			     , ModG::RebalanceUnmanagerProxy& unmanager
 			     )
 	: pimpl(std::make_shared<Impl>( bus, rpc, node, amount, id
 				      , earnings_info_rr, move_funds_rr
+				      , unmanager
 				      )) { }
 Ev::Io<void> JitRebalancer::Impl::Run::execute() {
 	return Impl::execute(pimpl);

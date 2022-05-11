@@ -292,6 +292,8 @@ The possible unmanagement tags are:
   node.
 * `open` - Do not automatically open channels to this node.
 * `close` - Do not automatically close channels to this node.
+* `balance` - Do not automatically move funds (rebalance) to or
+  from this node.
 
 ### `clboss-swaps`
 

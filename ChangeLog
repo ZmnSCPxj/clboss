@@ -1,3 +1,4 @@
+- You can now disable rebalancing to or from specific peers by using `clboss-unmanage` with the key `balance`.
 - Use a single giant `listchannels` call in `FeeModderBySize`.  This should now make CLBOSS usable on nodes with >100 channels.
 - Limit the number of concurrent RPC calls we make, to prevent overloading the poor Core Lightning daemon.
 - Make `PeerCompetitorFeeMonitor::Surveyor` more efficient by using a new parameter for `listchannels` that was introduced in C-Lightning 0.10.1.  Fall back to the old inefficient algo if the C-Lightning node is < 0.10.1.

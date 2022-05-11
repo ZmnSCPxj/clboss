@@ -1,6 +1,7 @@
 #undef NDEBUG
 #include"Boss/Mod/JsonOutputter.hpp"
 #include"Boss/Mod/EarningsRebalancer.hpp"
+#include"Boss/Mod/RebalanceUnmanager.hpp"
 #include"Boss/Msg/CommandRequest.hpp"
 #include"Boss/Msg/ListpeersResult.hpp"
 #include"Boss/Msg/RequestEarningsInfo.hpp"
@@ -112,6 +113,9 @@ auto const A = Ln::NodeId("02000000000000000000000000000000000000000000000000000
 auto const B = Ln::NodeId("020000000000000000000000000000000000000000000000000000000000000001");
 auto const C = Ln::NodeId("020000000000000000000000000000000000000000000000000000000000000002");
 auto const D = Ln::NodeId("020000000000000000000000000000000000000000000000000000000000000003");
+/* Unmanaged node IDs.  */
+auto const Y = Ln::NodeId("0200000000000000000000000000000000000000000000000000000000000000FE");
+auto const Z = Ln::NodeId("0200000000000000000000000000000000000000000000000000000000000000FF");
 
 }
 
@@ -120,6 +124,11 @@ int main() {
 
 	/* Utility outputter.  */
 	Boss::Mod::JsonOutputter cout(std::cout, bus);
+	/* Unmanager.  */
+	Boss::Mod::RebalanceUnmanager unmanager(bus, {
+		"0200000000000000000000000000000000000000000000000000000000000000FE",
+		"0200000000000000000000000000000000000000000000000000000000000000FF"
+	});
 
 	/* Testing model.  */
 	Model model(bus);
@@ -153,6 +162,26 @@ int main() {
 		/* Start with an empty set of peers.  */
 		funds_moved = false;
 		peers.clear();
+		return model.listpeers() + trigger();
+	}).then([&]() {
+		/* Nothing for it to do...   */
+		assert(funds_moved == false);
+
+		/* Give it some unmanaged peers.  */
+		funds_moved = false;
+		peers.clear();
+		peers[Y].to_us = Ln::Amount::msat(0);
+		peers[Y].total = Ln::Amount::msat(10000000);
+		peers[Y].in_earnings = Ln::Amount::msat(100000);
+		peers[Y].in_expenditures = Ln::Amount::msat(1);
+		peers[Y].out_earnings = Ln::Amount::msat(100000);
+		peers[Y].out_expenditures = Ln::Amount::msat(1);
+		peers[Z].to_us = Ln::Amount::msat(10000000);
+		peers[Z].total = Ln::Amount::msat(10000000);
+		peers[Z].in_earnings = Ln::Amount::msat(100000);
+		peers[Z].in_expenditures = Ln::Amount::msat(1);
+		peers[Z].out_earnings = Ln::Amount::msat(100000);
+		peers[Z].out_expenditures = Ln::Amount::msat(1);
 		return model.listpeers() + trigger();
 	}).then([&]() {
 		/* Nothing for it to do...   */
@@ -196,6 +225,11 @@ int main() {
 		peers[D].total = Ln::Amount::msat(1100000);
 		peers[D].in_earnings = Ln::Amount::msat(1000);
 		peers[D].in_expenditures = Ln::Amount::msat(10000);
+		/* Add an unmanaged node.  */
+		peers[Z].to_us = Ln::Amount::msat(100);
+		peers[Z].total = Ln::Amount::msat(1000000);
+		peers[Z].out_earnings = Ln::Amount::msat(10000);
+		peers[Z].in_earnings = Ln::Amount::msat(10000);
 		return model.listpeers() + trigger();
 	}).then([&]() {
 		/* Should trigger move from C to A.  */

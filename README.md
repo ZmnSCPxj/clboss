@@ -141,7 +141,7 @@ Possibly the most interesting are these:
 * `channel_candidates` - An array of nodes that we plan to
   eventually build channels to in the future, if we ever get
   onchain funds.
-  `score` only reaches up to 24 and saturates.
+  `onlineness` only reaches up to 24 and saturates.
   Candidates are generally scored by the uptime they appear to
   have (CLBOSS tries to `connect` to them).
 * `internet` - Whether CLBOSS thinks we are online or offline

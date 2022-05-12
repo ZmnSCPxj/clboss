@@ -43,4 +43,12 @@ Io<void> yield() {
 	});
 }
 
+Io<void> yield(std::size_t num_yields) {
+	if (num_yields == 0)
+		return Ev::lift();
+	return yield().then([num_yields]() {
+		return yield(num_yields - 1);
+	});
+}
+
 }

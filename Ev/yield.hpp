@@ -1,6 +1,8 @@
 #ifndef EV_YIELD_HPP
 #define EV_YIELD_HPP
 
+#include<cstddef>
+
 namespace Ev { template<typename a> class Io; }
 
 namespace Ev {
@@ -20,8 +22,14 @@ namespace Ev {
  * This warning applies to all yield points, and other functions
  * should mention whether they are yield points and have this
  * property as well.
+ *
+ * @param num_yields - How many times to yield.
+ * Usually omitted (meaning just yield once); this is generally
+ * only used in testcases to allow modules to operate.
  */
 Ev::Io<void> yield();
+
+Ev::Io<void> yield(std::size_t num_yields);
 
 }
 

@@ -96,16 +96,8 @@ public:
 	}
 };
 
-Ev::Io<void> multiyield_loop(std::size_t n) {
-	return Ev::yield().then([n]() {
-		if (n == 0)
-			return Ev::lift();
-		return multiyield_loop(n - 1);
-	});
-}
-
 Ev::Io<void> multiyield() {
-	return multiyield_loop(100);
+	return Ev::yield(100);
 }
 
 /* Node IDs.  */

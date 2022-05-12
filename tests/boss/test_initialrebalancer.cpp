@@ -104,10 +104,7 @@ Ev::Io<void> listpeers_result(S::Bus& bus, std::string const& json) {
 }
 
 Ev::Io<void> multiyield() {
-	auto act = Ev::yield();
-	for (auto i = 0; i < 200; ++i)
-		act += Ev::yield();
-	return act;
+	return Ev::yield(200);
 }
 
 class Cout {

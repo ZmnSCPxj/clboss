@@ -101,13 +101,7 @@ int main() {
 	}).then([]() {
 		return wait_for_completion();
 	}).then([]() {
-		return Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
-		     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
-		     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
-		     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
-		     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
-		     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
-		     ;
+		return Ev::yield(25);
 	}).then([&]() {
 		assert(hit_max);
 

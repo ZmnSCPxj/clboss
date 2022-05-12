@@ -81,13 +81,7 @@ int main() {
 		return bus.raise(Boss::Msg::Begin{});
 	}).then([&]() {
 		/* Let the module execute.  */
-		return Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
-		     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
-		     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
-		     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
-		     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
-		     + Ev::yield() + Ev::yield() + Ev::yield() + Ev::yield()
-		     ;
+		return Ev::yield(25);
 	}).then([&]() {
 		assert(help_flag);
 		assert(available_flag);

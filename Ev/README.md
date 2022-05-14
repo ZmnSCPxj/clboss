@@ -300,6 +300,80 @@ Still, as a rule, if you ensure that you never end a particular
 If you have to end a `then`, then it is safest to assume that
 other greenthreads may or may not run during the break.
 
+### `Ev::Semaphore`
+
+We also have an existing semaphore implementation, which you can
+use for locks.
+A semaphore allows up to N greenthreads to run simultaneously
+within the semaphore, with the number N selected at construction
+of the semaphore.
+The semaphore can be used as a mutex by configuring it with N=1.
+
+The interface does not have explicit "increment" or "decrement"
+interfaces like typical semaphores.
+Instead, you hand over any action `Ev::Io<a>` where `a` is any
+type to its `run` member function, and get back an action of
+the same type.
+The semaphore will then ensure that only up to `N` such actions
+will run simultaneously even across `Ev::concurrent`.
+
+The semaphore is designed so that any extra greenthreads that
+are blocked on the semaphore will not consume CPU.
+
+`Ev::ThreadPool`
+----------------
+
+Some POSIX interfaces are really atrocious.
+
+For example, `gethostbyname` blocks the calling thread on a
+network interface, without exposing a file descriptor you can
+wait on or anything useful like that so you can handle other
+network things in the meantime.
+You should avoid similar interfaces in `Ev::Io` code, because
+it will block *all* greenthreads.
+
+However, sometimes you do need to actually use such interfaces.
+Typically, most frameworks that need to wrap such atrocious
+blocking interfaces work by executing in a background thread.
+`Ev::Io` provides the `Ev::ThreadPool` object, a generalization
+of this technique.
+
+Construct a single `Ev::ThreadPool` for your entire program,
+and pass in a reference to it to all parts of your program
+that need to run lengthy blocking functions.
+Then you can just use the `background` member function to run a
+function in the background.
+
+```C++
+Ev::Io<struct hostent*> io_gethostbyname( Ev::ThreadPool& tp
+					, std::string const& name
+					) {
+	return tp.background<struct hostent*>([name]() {
+		return gethostbyname(name);
+	});
+}
+```
+
+The above returns a "normal" `Ev::Io` action.
+As long as the core `gethostbyname` is blocked in one of the
+background threads, the main OS thread will keep running and
+other greenthreads have an opportunity to execute on the main
+OS thread.
+If no other greenthreads are pending, no CPU will be consumed
+by the main OS thread, only the background thread running the
+task.
+
+Notice that the function you pass to `background` returns a
+"plain" C++ object, not one wrapped in `Ev::Io<a>`.
+
+`Ev::ThreadPool` is not intended for compute-heavy tasks; in
+particular, it launches a fixed number of threads without
+checking how many processors are actually available, or
+considering the CPU load of the entire system.
+It is really intended only to make blocking interfaces safely
+non-blocking on the main OS thread to allow the greenthread
+system to work correctly.
+
 Starting
 --------
 

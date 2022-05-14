@@ -127,6 +127,14 @@ private:
 			if (result.empty())
 				return Ev::lift();
 
+			/* Leave funds onchain if remaining is greater than
+			 * the minimum remaining that is too small to
+			 * matter.
+			 */
+			if (remaining >= min_remaining)
+				/* Just leave it for a rainy day.  */
+				return Ev::lift();
+
 			/* Can we divide it among everyone?  */
 			auto remaining_ms = remaining.to_msat();
 			auto divided_ms = remaining_ms / result.size();
@@ -153,10 +161,6 @@ private:
 				result = std::move(result_copy);
 				return Ev::lift();
 			}
-
-			if (remaining >= min_remaining)
-				/* Just leave it for a rainy day.  */
-				return Ev::lift();
 
 			/* If we reached this point, logically it means
 			 * at least one of the results is very close to

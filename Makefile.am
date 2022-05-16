@@ -632,3 +632,14 @@ LOG_COMPILER = valgrind
 AM_LOG_FLAGS = --leak-check=full --error-exitcode=1
 AM_CXXFLAGS += -DUSE_VALGRIND
 endif
+
+# Reproducible tarball
+# NOTE: this still requires us to nail down the
+# version of `autoconf-archive`, `automake`,
+# `autoconf`, and `libtool`.
+my__tar = tar --format=ustar --mtime='1970-01-01 00:00Z' --sort=name --owner=0 --group=0 --numeric-owner -chf - "$$tardir"
+dist-gzip: distdir
+	tardir=$(distdir) && $(my__tar) | eval GZIP= gzip $(GZIP_ENV) -c >$(distdir).tar.gz
+	@sha256sum $(distdir).tar.gz || true
+	$(am__post_remove_distdir)
+

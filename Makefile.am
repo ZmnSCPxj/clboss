@@ -547,6 +547,7 @@ SUBDIRS = \
 	external/bitcoin-sha256 \
 	external/secp256k1/
 EXTRA_DIST = \
+	create-tarball.in \
 	external/jsmn/LICENSE \
 	external/jsmn/jsmn.h \
 	reproducible/README.md \

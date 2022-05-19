@@ -1,0 +1,16 @@
+#! /bin/sh
+
+PACKAGE_VERSION="@PACKAGE_VERSION@"
+
+if test $# '==' 0 || test 'x'"$1" '==' x--help; then
+	echo Usage: $0 name [id]
+	exit 0
+fi
+NAME="$1"
+ID="${2:+-}${2}"
+
+make distdir
+mv clboss-$PACKAGE_VERSION clboss-"$NAME$ID"
+tar czf clboss-$NAME$ID.tar.gz clboss-"$NAME$ID"
+rm -rf clboss-"$NAME$ID"
+echo clboss-"$NAME$ID".tar.gz

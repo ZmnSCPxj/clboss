@@ -643,3 +643,9 @@ dist-gzip: distdir
 	@sha256sum $(distdir).tar.gz || true
 	$(am__post_remove_distdir)
 
+# Utility script
+noinst_SCRIPTS = \
+	create-tarball
+create-tarball: create-tarball.in Makefile
+	sed -e 's/[@]PACKAGE_VERSION[@]/$(PACKAGE_VERSION)/' < $(srcdir)/create-tarball.in > create-tarball
+	chmod +x create-tarball

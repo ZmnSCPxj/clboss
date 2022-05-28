@@ -1,10 +1,12 @@
 #ifndef BOSS_MOD_FORWARDFEEMONITOR_HPP
 #define BOSS_MOD_FORWARDFEEMONITOR_HPP
 
-#include"Ln/NodeId.hpp"
-#include"Ln/Scid.hpp"
-#include<map>
+#include"Boss/ModG/ReqResp.hpp"
+#include"Boss/Msg/RequestPeerFromScid.hpp"
+#include"Boss/Msg/ResponsePeerFromScid.hpp"
 
+namespace Ln { class Amount; }
+namespace Ln { class NodeId; }
 namespace S { class Bus; }
 
 namespace Boss { namespace Mod {
@@ -17,10 +19,17 @@ namespace Boss { namespace Mod {
 class ForwardFeeMonitor {
 private:
 	S::Bus& bus;
-	/* Mapping from SCIDs to the peer IDs that have those channels.  */
-	std::map<Ln::Scid, Ln::NodeId> peers;
+
+	Boss::ModG::ReqResp< Msg::RequestPeerFromScid
+			   , Msg::ResponsePeerFromScid
+			   > peer_from_scid_rr;
 
 	void start();
+	Ev::Io<void> cont( Ln::NodeId in_id
+			 , Ln::NodeId out_id
+			 , Ln::Amount fee
+			 , double resolution_time
+			 );
 
 public:
 	ForwardFeeMonitor() =delete;
@@ -28,7 +37,17 @@ public:
 	ForwardFeeMonitor(ForwardFeeMonitor const&) =delete;
 
 	explicit
-	ForwardFeeMonitor(S::Bus& bus_) : bus(bus_) { start(); }
+	ForwardFeeMonitor(S::Bus& bus_
+			 ) : bus(bus_)
+			   , peer_from_scid_rr( bus_
+					      , [](Msg::RequestPeerFromScid& m, void* p) {
+							m.requester = p;
+						}
+					      , [](Msg::ResponsePeerFromScid& m) {
+							return m.requester;
+						}
+					      )
+			   { start(); }
 };
 
 }}

@@ -1,6 +1,7 @@
 #undef NDEBUG
 #include"Boss/Mod/ForwardFeeMonitor.hpp"
 #include"Boss/Mod/JsonOutputter.hpp"
+#include"Boss/Mod/PeerFromScidMapper.hpp"
 #include"Boss/Msg/ForwardFee.hpp"
 #include"Boss/Msg/ListpeersResult.hpp"
 #include"Boss/Msg/ManifestNotification.hpp"
@@ -68,6 +69,9 @@ int main() {
 
 	/* Module under test.  */
 	Boss::Mod::ForwardFeeMonitor mut(bus);
+
+	/* Utility.  */
+	Boss::Mod::PeerFromScidMapper mapper(bus);
 
 	/* Should occur once.  */
 	auto got_manifest_notification = false;

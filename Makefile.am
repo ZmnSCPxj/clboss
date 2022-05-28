@@ -581,6 +581,7 @@ TESTS = \
 	tests/boss/test_channelcreator_reprioritizer \
 	tests/boss/test_earningsrebalancer \
 	tests/boss/test_feemodderbypricetheory \
+	tests/boss/test_forwardfeemonitor \
 	tests/boss/test_getmanifest \
 	tests/boss/test_initialrebalancer \
 	tests/boss/test_jitrebalancer \

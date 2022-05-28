@@ -1,5 +1,6 @@
 #undef NDEBUG
 #include"Boss/Mod/JitRebalancer.hpp"
+#include"Boss/Mod/PeerFromScidMapper.hpp"
 #include"Boss/Mod/RebalanceUnmanager.hpp"
 #include"Boss/Msg/JsonCout.hpp"
 #include"Boss/Msg/ListpeersResult.hpp"
@@ -233,6 +234,8 @@ int main() {
 	auto bus = S::Bus();
 
 	Cout cout(bus);
+	/* Needed utility module.  */
+	auto mapper = Boss::Mod::PeerFromScidMapper(bus);
 
 	/* Instantiate the various mocks.  */
 	DummyRpc rpc(bus);

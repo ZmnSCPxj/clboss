@@ -7,8 +7,10 @@
 #include"Boss/Msg/ReleaseHtlcAccepted.hpp"
 #include"Boss/Msg/RequestEarningsInfo.hpp"
 #include"Boss/Msg/RequestMoveFunds.hpp"
+#include"Boss/Msg/RequestPeerFromScid.hpp"
 #include"Boss/Msg/ResponseEarningsInfo.hpp"
 #include"Boss/Msg/ResponseMoveFunds.hpp"
+#include"Boss/Msg/ResponsePeerFromScid.hpp"
 #include"Boss/Msg/ProvideHtlcAcceptedDeferrer.hpp"
 #include"Boss/Msg/SolicitHtlcAcceptedDeferrer.hpp"
 #include"Boss/concurrent.hpp"
@@ -76,9 +78,6 @@ private:
 	S::Bus& bus;
 	Boss::ModG::RpcProxy rpc;
 
-	/* Maps channels to nodes, as we need node information.  */
-	std::map<Ln::Scid, Ln::NodeId> nodemap;
-
 	typedef
 	Boss::ModG::ReqResp< Msg::RequestEarningsInfo
 			   , Msg::ResponseEarningsInfo
@@ -87,16 +86,17 @@ private:
 	Boss::ModG::ReqResp< Msg::RequestMoveFunds
 			   , Msg::ResponseMoveFunds
 			   > MoveFundsRR;
+	typedef
+	Boss::ModG::ReqResp< Msg::RequestPeerFromScid
+			   , Msg::ResponsePeerFromScid
+			   > PeerFromScidRR;
 	EarningsInfoRR earnings_info_rr;
 	MoveFundsRR move_funds_rr;
+	PeerFromScidRR peer_from_scid_rr;
 
 	ModG::RebalanceUnmanagerProxy unmanager;
 
 	void start() {
-		bus.subscribe<Msg::ListpeersResult
-			     >([this](Msg::ListpeersResult const& r) {
-			return listpeers_result(r.peers);
-		});
 		bus.subscribe<Msg::SolicitHtlcAcceptedDeferrer
 			     >([this
 			       ](Msg::SolicitHtlcAcceptedDeferrer const&) {
@@ -109,50 +109,31 @@ private:
 		});
 	}
 
-	Ev::Io<void>
-	listpeers_result(Jsmn::Object ps) {
-		for (auto p : ps) {
-			if (!p.has("id"))
-				continue;
-			auto node_j = p["id"];
-			if (!node_j.is_string())
-				continue;
-			auto node_s = std::string(node_j);
-			if (!Ln::NodeId::valid_string(node_s))
-				continue;
-			auto node = Ln::NodeId(node_s);
-			auto cs = p["channels"];
-			for (auto c : cs) {
-				if (!c.has("short_channel_id"))
-					continue;
-				auto scid_j = c["short_channel_id"];
-				if (!scid_j.is_string())
-					continue;
-				auto scid_s = std::string(scid_j);
-				if (!Ln::Scid::valid_string(scid_s))
-					continue;
-				auto scid = Ln::Scid(scid_s);
-				nodemap[scid] = node;
-			}
-		}
-		return Ev::lift();
-	}
-
 	Ev::Io<bool>
 	htlc_accepted(Ln::HtlcAccepted::Request const& req) {
 		/* Is it a forward?  */
 		if (!req.next_channel)
 			return Ev::lift(false);
 
-		/* Is it in the table?  */
-		auto it = nodemap.find(req.next_channel);
-		if (it == nodemap.end())
-			return Ev::lift(false);
-
-		auto& node = it->second;
-		auto id = req.id;
-		auto amount = req.next_amount;
-
+		/* Get it from the table.  */
+		return peer_from_scid_rr.execute(Msg::RequestPeerFromScid{
+			nullptr, req.next_channel
+		}).then([ this
+			, req
+			](Msg::ResponsePeerFromScid const& r) {
+			if (!r.peer)
+				return Ev::lift(false);
+			return htlc_accepted_cont( r.peer
+						 , req.id
+						 , req.next_amount
+						 );
+		});
+	}
+	Ev::Io<bool>
+	htlc_accepted_cont( Ln::NodeId const& node
+			  , std::uint64_t id
+			  , Ln::Amount amount
+			  ) {
 		return unmanager.get_unmanaged().then([ this
 						      , node
 						      , amount
@@ -233,6 +214,14 @@ public:
 					return msg.requester;
 			       }
 			     )
+	      , peer_from_scid_rr( bus
+				 , [](Msg::RequestPeerFromScid& msg, void* p) {
+					msg.requester = p;
+				   }
+				 , [](Msg::ResponsePeerFromScid& msg) {
+					return msg.requester;
+				   }
+				 )
 	      , unmanager(bus)
 	      { start(); }
 };

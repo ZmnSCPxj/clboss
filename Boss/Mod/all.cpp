@@ -56,6 +56,7 @@
 #include"Boss/Mod/PaymentDeleter.hpp"
 #include"Boss/Mod/PeerCompetitorFeeMonitor/Main.hpp"
 #include"Boss/Mod/PeerComplaintsDesk/Main.hpp"
+#include"Boss/Mod/PeerFromScidMapper.hpp"
 #include"Boss/Mod/PeerMetrician.hpp"
 #include"Boss/Mod/PeerStatistician.hpp"
 #include"Boss/Mod/RebalanceUnmanager.hpp"
@@ -214,6 +215,9 @@ std::shared_ptr<void> all( std::ostream& cout
 
 	/* Unmanaged nodes.  */
 	all->install<UnmanagedManager>(bus);
+
+	/* Utility.  */
+	all->install<PeerFromScidMapper>(bus);
 
 	return all;
 }

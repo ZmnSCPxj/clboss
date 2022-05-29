@@ -221,6 +221,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/PeerComplaintsDesk/Recorder.hpp \
 	Boss/Mod/PeerComplaintsDesk/Unmanager.cpp \
 	Boss/Mod/PeerComplaintsDesk/Unmanager.hpp \
+	Boss/Mod/PeerFromScidMapper.cpp \
+	Boss/Mod/PeerFromScidMapper.hpp \
 	Boss/Mod/PeerJudge/AgeTracker.cpp \
 	Boss/Mod/PeerJudge/AgeTracker.hpp \
 	Boss/Mod/PeerJudge/Algo.cpp \
@@ -336,6 +338,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/RequestListpays.hpp \
 	Boss/Msg/RequestMoveFunds.hpp \
 	Boss/Msg/RequestNewaddr.hpp \
+	Boss/Msg/RequestPeerFromScid.hpp \
 	Boss/Msg/RequestPeerMetrics.hpp \
 	Boss/Msg/RequestPeerStatistics.hpp \
 	Boss/Msg/RequestRebalanceUnmanaged.hpp \
@@ -348,6 +351,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ResponseListpays.hpp \
 	Boss/Msg/ResponseMoveFunds.hpp \
 	Boss/Msg/ResponseNewaddr.hpp \
+	Boss/Msg/ResponsePeerFromScid.hpp \
 	Boss/Msg/ResponsePeerMetrics.hpp \
 	Boss/Msg/ResponsePeerStatistics.hpp \
 	Boss/Msg/ResponseRebalanceUnmanaged.hpp \

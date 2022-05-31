@@ -127,22 +127,8 @@ public:
 	explicit
 	Impl( S::Bus& bus_
 	    ) : bus(bus_)
-	      , move_rr( bus_
-		       , [](Msg::RequestMoveFunds& msg, void* p) {
-				msg.requester = p;
-			 }
-		       , [](Msg::ResponseMoveFunds& msg) {
-				return msg.requester;
-			 }
-		       )
-	      , expense_rr( bus_
-			  , [](Msg::RequestEarningsInfo& msg, void* p) {
-				msg.requester = p;
-			    }
-			  , [](Msg::ResponseEarningsInfo& msg) {
-				return msg.requester;
-			    }
-			  )
+	      , move_rr(bus_)
+	      , expense_rr(bus_)
 	      , unmanager(bus_)
 	      { start(); }
 };

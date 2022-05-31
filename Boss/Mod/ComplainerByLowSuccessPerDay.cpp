@@ -291,14 +291,7 @@ public:
 	explicit
 	Impl(S::Bus& bus_
 	    ) : bus(bus_)
-	      , uptime_rr( bus_
-			 , [](Msg::RequestSelfUptime& m, void* p) {
-				m.requester = p;
-			   }
-			 , [](Msg::ResponseSelfUptime& m) {
-				return m.requester;
-			   }
-			 )
+	      , uptime_rr(bus_)
 	      { start();  }
 };
 

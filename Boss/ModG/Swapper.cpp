@@ -57,16 +57,7 @@ public:
 	    , char const* name_
 	    , char const* statuskey_
 	    ) : bus(bus_), name(name_), statuskey(statuskey_)
-	      , get_ignore_rr( bus_
-			     , []( Msg::RequestGetOnchainIgnoreFlag& m
-				 , void* p
-				 ) {
-					m.requester = p;
-			       }
-			     , [](Msg::ResponseGetOnchainIgnoreFlag& m) {
-					return m.requester;
-			       }
-			     )
+	      , get_ignore_rr(bus_)
 	      { start(); }
 
 private:

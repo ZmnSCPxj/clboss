@@ -30,14 +30,7 @@ public:
 
 	Impl(S::Bus& bus_
 	    ) : bus(bus_)
-	      , statistician( bus_
-			    , [](Msg::RequestPeerStatistics& m, void* p) {
-					m.requester = p;
-			      }
-			    , [](Msg::ResponsePeerStatistics& m) {
-					return m.requester;
-			      }
-			    )
+	      , statistician(bus_)
 	      {
 		start();
 	}

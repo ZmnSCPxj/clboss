@@ -9,9 +9,7 @@ namespace Boss { namespace Mod { namespace ChannelCandidateInvestigator {
 
 Janitor::Janitor(S::Bus& bus_)
 	: bus(bus_)
-	, dowser( bus_
-		, [](Msg::RequestDowser& m, void* r) { m.requester = r; }
-		, [](Msg::ResponseDowser& m) { return m.requester; })
+	, dowser(bus_)
 	{ }
 
 Ev::Io<void>

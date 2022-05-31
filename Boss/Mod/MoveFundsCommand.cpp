@@ -117,14 +117,7 @@ public:
 
 	explicit
 	Impl( S::Bus& bus
-	    ) : movefunds( bus
-			 , [](Msg::RequestMoveFunds& req, void* p) {
-				req.requester = p;
-			   }
-			 , [](Msg::ResponseMoveFunds& rsp) {
-				return rsp.requester;
-			   }
-			 )
+	    ) : movefunds(bus)
 	      { start(bus); }
 };
 

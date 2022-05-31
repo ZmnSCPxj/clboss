@@ -196,10 +196,7 @@ public:
 	Impl() =delete;
 	Impl(S::Bus& bus_
 	    ) : bus(bus_)
-	      , dowser( bus_
-		      , [](Msg::RequestDowser& r, void* p) { r.requester = p; }
-		      , [](Msg::ResponseDowser& r) { return r.requester; }
-		      )
+	      , dowser(bus_)
 	      { start(); }
 };
 

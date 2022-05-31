@@ -26,14 +26,7 @@ public:
 
 	explicit
 	RebalanceUnmanagerProxy(S::Bus& bus)
-		: core( bus
-		      , [](Msg::RequestRebalanceUnmanaged& m, void* p) {
-				m.requester = p;
-		        }
-		      , [](Msg::ResponseRebalanceUnmanaged& m) {
-				return m.requester;
-		        }
-		      )
+		: core(bus)
 		{ }
 
 	/* Returns a pointer since `Ev::Io` expects a movable object,

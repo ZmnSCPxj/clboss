@@ -46,14 +46,7 @@ public:
 	explicit
 	Impl( S::Bus& bus
 	    , Unmanager& unmanager_
-	    ) : metrics_rr( bus
-			  , [](Msg::RequestPeerMetrics& m, void* p) {
-				m.requester = p;
-			    }
-			  , [](Msg::ResponsePeerMetrics& m) {
-				return m.requester;
-			    }
-			  )
+	    ) : metrics_rr(bus)
 	      , unmanager(unmanager_)
 	      { }
 

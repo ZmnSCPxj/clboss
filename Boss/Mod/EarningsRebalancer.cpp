@@ -377,14 +377,7 @@ public:
 	explicit
 	Impl(S::Bus& bus_
 	    ) : bus(bus_)
-	      , earnings_rr( bus_
-			   , [](Msg::RequestEarningsInfo& m, void* p) {
-				m.requester = p;
-			     }
-			   , [](Msg::ResponseEarningsInfo& m) {
-				return m.requester;
-			     }
-			   )
+	      , earnings_rr(bus_)
 	      , unmanager(bus_)
 	      { start(); }
 };

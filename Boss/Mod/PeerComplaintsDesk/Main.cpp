@@ -424,14 +424,7 @@ public:
 	Impl(S::Bus& bus_) : unmanager(bus_)
 			   , exempter(bus_, unmanager)
 			   , bus(bus_)
-			   , metrics_rr( bus_
-				       , [](Msg::RequestPeerMetrics& m, void* p) {
-						m.requester = p;
-					 }
-				       , [](Msg::ResponsePeerMetrics& m) {
-						return m.requester;
-					 }
-				       )
+			   , metrics_rr(bus_)
 			   { start(); }
 };
 

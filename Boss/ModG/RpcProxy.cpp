@@ -12,14 +12,7 @@ namespace Boss { namespace ModG {
 RpcProxy::~RpcProxy() =default;
 
 RpcProxy::RpcProxy(S::Bus& bus)
-	: core( bus
-	      , [](Msg::RequestRpcCommand& m, void* p) {
-			m.requester = p;
-		}
-	      , [](Msg::ResponseRpcCommand& m) {
-			return m.requester;
-		}
-	      ) { }
+	: core(bus) { }
 
 Ev::Io<Jsmn::Object>
 RpcProxy::command( std::string const& command

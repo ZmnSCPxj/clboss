@@ -29,13 +29,7 @@ int main() {
 	auto reqresp = Boss::ModG::ReqResp< Boss::Msg::RequestPeerStatistics
 					  , Boss::Msg::ResponsePeerStatistics
 					  >
-			( bus
-			, []( Boss::Msg::RequestPeerStatistics& m
-			    , void* p
-			    ) { m.requester = p; }
-			, []( Boss::Msg::ResponsePeerStatistics& m
-			    ) { return m.requester; }
-			);
+			(bus);
 	auto get_stats = [&]() {
 		using Boss::Msg::RequestPeerStatistics;
 		using Boss::Msg::ResponsePeerStatistics;

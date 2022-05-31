@@ -330,6 +330,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ProvideUnmanagement.hpp \
 	Boss/Msg/RaisePeerComplaint.hpp \
 	Boss/Msg/ReleaseHtlcAccepted.hpp \
+	Boss/Msg/ReqRespTraits.hpp \
 	Boss/Msg/RequestChannelCreation.hpp \
 	Boss/Msg/RequestConnect.hpp \
 	Boss/Msg/RequestDowser.hpp \

@@ -164,14 +164,7 @@ OnchainFundsAnnouncer::fail( std::string const& msg
 OnchainFundsAnnouncer::~OnchainFundsAnnouncer() =default;
 OnchainFundsAnnouncer::OnchainFundsAnnouncer(S::Bus& bus_)
 	: bus(bus_), rpc(nullptr)
-	, get_ignore_rr( bus_
-		       , [](Msg::RequestGetOnchainIgnoreFlag& m, void* p) {
-				m.requester = p;
-			 }
-		       , [](Msg::ResponseGetOnchainIgnoreFlag& m) {
-				return m.requester;
-			 }
-		       )
+	, get_ignore_rr(bus_)
 	{ start(); }
 
 }}

@@ -171,14 +171,7 @@ public:
 	Impl( S::Bus& bus_
 	    ) : bus(bus_)
 	      , rpc(nullptr)
-	      , get_peer_metrics_rr( bus_
-				   , [](Msg::RequestPeerMetrics& m, void* p) {
-					m.requester = p;
-				     }
-				   , [](Msg::ResponsePeerMetrics& m) {
-					return m.requester;
-				     }
-				   )
+	      , get_peer_metrics_rr(bus_)
 	      { start(); }
 };
 

@@ -46,10 +46,7 @@ int main() {
 	auto bus = S::Bus();
 	auto incr = Util::make_unique<Incrementer>(bus);
 	auto rr = Boss::ModG::ReqResp<InNumber, OutNumber>
-		( bus
-		, [](InNumber& req, void* key) { req.requester = key; }
-		, [](OutNumber& resp) { return resp.requester; }
-		);
+		(bus);
 
 	auto code = Ev::lift().then([&]() {
 

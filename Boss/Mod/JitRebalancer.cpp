@@ -198,30 +198,9 @@ public:
 	Impl( S::Bus& bus_
 	    ) : bus(bus_)
 	      , rpc(bus_)
-	      , earnings_info_rr( bus
-				, [](Msg::RequestEarningsInfo& msg, void* p) {
-					msg.requester = p;
-				  }
-				, [](Msg::ResponseEarningsInfo& msg) {
-					return msg.requester;
-				  }
-				)
-	      , move_funds_rr( bus
-			     , [](Msg::RequestMoveFunds& msg, void* p) {
-					msg.requester = p;
-			       }
-			     , [](Msg::ResponseMoveFunds& msg) {
-					return msg.requester;
-			       }
-			     )
-	      , peer_from_scid_rr( bus
-				 , [](Msg::RequestPeerFromScid& msg, void* p) {
-					msg.requester = p;
-				   }
-				 , [](Msg::ResponsePeerFromScid& msg) {
-					return msg.requester;
-				   }
-				 )
+	      , earnings_info_rr(bus)
+	      , move_funds_rr(bus)
+	      , peer_from_scid_rr(bus)
 	      , unmanager(bus)
 	      { start(); }
 };

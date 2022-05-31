@@ -174,13 +174,7 @@ public:
 	      , timeframe(timeframe_)
 	      , get_min_age(std::move(get_min_age_))
 	      , info_acceptor(std::move(info_acceptor_))
-	      , peerstats( bus_
-			 , [](Msg::RequestPeerStatistics& m, void* p) {
-				m.requester = p;
-			   }
-			 , [](Msg::ResponsePeerStatistics& m) {
-				return m.requester;
-			   })
+	      , peerstats(bus_)
 	      { start(); }
 };
 

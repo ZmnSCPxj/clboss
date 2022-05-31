@@ -2,6 +2,7 @@
 #define BOSS_MODG_REQRESP_HPP
 
 #include"Boss/ModG/Detail/ReqRespBase.hpp"
+#include"Boss/Msg/ReqRespTraits.hpp"
 #include"Boss/Shutdown.hpp"
 #include"Ev/Io.hpp"
 #include"S/Bus.hpp"
@@ -27,28 +28,21 @@ class ReqResp {
 private:
 	S::Bus& bus;
 
-	std::function<void(Request&, void*)> set_annotation;
-	std::function<void*(Response&)> get_annotation;
-
 	std::unique_ptr<Detail::ReqRespBase> base;
 
 public:
 	ReqResp() =delete;
+	explicit
 	ReqResp( S::Bus& bus_
-	       , std::function<void(Request&, void*)> set_annotation_
-	       , std::function<void*(Response&)> get_annotation_
 	       ) : bus(bus_)
-		 , set_annotation(std::move(set_annotation_))
-		 , get_annotation(std::move(get_annotation_))
 		 {
 		bus.subscribe<Response>([this](Response const& resp) {
 			if (!base)
 				return Ev::lift();
 			auto presp = std::make_shared<Response>(resp);
-			auto w_get_annotation = [this
-						](std::shared_ptr<void
-								 > const& p) {
-				return get_annotation(
+			auto w_get_annotation = [](std::shared_ptr<void
+								  > const& p) {
+				return Msg::ReqRespTraits<Response>::get_requester(
 					*reinterpret_cast<Response*>(p.get())
 				);
 			};
@@ -66,12 +60,13 @@ public:
 		auto preq = std::make_shared<Request>(req);
 		if (!base)
 			base = Util::make_unique<Detail::ReqRespBase>();
-		auto w_set_annotation = [this]( std::shared_ptr<void> const& p
-					      , void* key
-					      ){
-			set_annotation( *reinterpret_cast<Request*>(p.get())
-				      , key
-				      );
+		auto w_set_annotation = []( std::shared_ptr<void> const& p
+					  , void* key
+					  ){
+			Msg::ReqRespTraits<Request>::set_requester
+				( *reinterpret_cast<Request*>(p.get())
+				, key
+				);
 		};
 		auto w_broadcast = [this](std::shared_ptr<void> p) {
 			auto& msg = *reinterpret_cast<Request*>(p.get());

@@ -331,14 +331,7 @@ private:
 public:
 	CommandImpl( S::Bus& bus_
 		   ) : bus(bus_)
-		     , dowse_rr( bus_
-			       , [](Msg::RequestDowser& m, void* p) {
-					m.requester = p;
-				 }
-			       , [](Msg::ResponseDowser& m) {
-					return m.requester;
-				 }
-			       )
+		     , dowse_rr(bus_)
 		     { start(); }
 };
 

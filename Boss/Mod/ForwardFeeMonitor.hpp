@@ -39,14 +39,7 @@ public:
 	explicit
 	ForwardFeeMonitor(S::Bus& bus_
 			 ) : bus(bus_)
-			   , peer_from_scid_rr( bus_
-					      , [](Msg::RequestPeerFromScid& m, void* p) {
-							m.requester = p;
-						}
-					      , [](Msg::ResponsePeerFromScid& m) {
-							return m.requester;
-						}
-					      )
+			   , peer_from_scid_rr(bus_)
 			   { start(); }
 };
 

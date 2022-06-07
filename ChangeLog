@@ -1,3 +1,5 @@
+- Implement `clboss-tally`, which provides summary on earnings vs.  expenditures for the use of the node operator.
+
 0.13A
 - Disable `InitialRebalancer`, as it is not based on economic rationality.
 - You can now disable rebalancing to or from specific peers by using `clboss-unmanage` with the key `balance`.

@@ -550,6 +550,7 @@ EXTRA_DIST = \
 	create-tarball.in \
 	external/jsmn/LICENSE \
 	external/jsmn/jsmn.h \
+	new-mod \
 	reproducible/README.md \
 	reproducible/build.sh \
 	reproducible/continue.sh \

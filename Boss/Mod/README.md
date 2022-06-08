@@ -22,6 +22,11 @@ design, but those few --- mostly `Boss::Mod::Rpc` and
 `Boss::Mod::Waiter` --- should eventually be migrated to using
 `S::Bus` fully.
 
+To create a new module, use the `new-mod` script in the top
+level:
+
+    ./new-mod NewModule
+
 Module Header
 -------------
 
@@ -55,7 +60,7 @@ public:
 	 * `default`.
 	 */
 	NewModule(NewModule&&);
-	~NewModule()
+	~NewModule();
 
 	/* The constructor.  */
 	explicit
@@ -123,7 +128,7 @@ public:
 	Impl(Impl&&) =delete;
 
 	explicit
-	Impl(S::Bus& bus_) : bus(bus_) { start(): }
+	Impl(S::Bus& bus_) : bus(bus_) { start(); }
 };
 
 /* The C++-generated defaults should work fine.  We just need to

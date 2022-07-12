@@ -79,6 +79,21 @@ You will then need to modify your `lightning.conf` to add the
 path to `which clboss` as a `plugin` or `important-plugin` of
 `lightningd`.
 
+Usually, autotools-based projects like CLBOSS will default
+to using `-g -O2` for compilation flags, where `-g` causes
+the compiler to include debug info.
+CLBOSS changes this default to `-O2` so that users by default
+get a binary without debug symbols (a binary with debug symbols
+would be 20x larger!), but if it matters to you, you can
+override the CLBOSS default via `CXXFLAGS`, such as:
+
+    ./configure CXXFLAGS="-g -O2"  # or whatever flags you like
+
+And if your build machine has more than 1 core, you probably
+want to pass in the `-j` option to `make`, too:
+
+    make -j4  # or how many cores you want to build on
+
 From a git clone, you first need to execute:
 
     autoreconf -i

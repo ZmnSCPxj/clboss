@@ -10,6 +10,8 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([m4])
 LT_INIT([disable-shared])
 
+m4_pattern_forbid([^PKG_])
+
 # Checks for programs.
 AC_PROG_CXX
 AX_CXX_COMPILE_STDCXX_11

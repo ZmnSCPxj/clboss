@@ -1,6 +1,10 @@
 #include"Boss/Mod/EarningsTracker.hpp"
+#include"Boss/Msg/CommandRequest.hpp"
+#include"Boss/Msg/CommandResponse.hpp"
 #include"Boss/Msg/DbResource.hpp"
 #include"Boss/Msg/ForwardFee.hpp"
+#include"Boss/Msg/Manifestation.hpp"
+#include"Boss/Msg/ManifestCommand.hpp"
 #include"Boss/Msg/ProvideStatus.hpp"
 #include"Boss/Msg/RequestEarningsInfo.hpp"
 #include"Boss/Msg/RequestMoveFunds.hpp"
@@ -57,6 +61,36 @@ private:
 			if (!db)
 				return Ev::lift();
 			return status();
+		});
+
+		/* clboss-destroyearningsinfo command.  */
+		bus.subscribe<Msg::Manifestation
+			     >([this](Msg::Manifestation const&) {
+			return bus.raise(Msg::ManifestCommand{
+				"clboss-destroyearningsinfo",
+				"",
+				"Destroys all the earnings information "
+				"in an attempt to recover from previous "
+				"`InitialRebalancer` behavior.",
+				false
+			});
+		});
+		bus.subscribe<Msg::CommandRequest
+			     >([this](Msg::CommandRequest const& r) {
+			if (r.command != "clboss-destroyearningsinfo")
+				return Ev::lift();
+			auto id = r.id;
+			return db.transact().then([ this
+						  , id
+						  ](Sqlite3::Tx tx) {
+				tx.query_execute(R"QRY(
+				DELETE FROM "EarningsTracker";
+				)QRY");
+				tx.commit();
+				return bus.raise(Msg::CommandResponse{
+					id, Json::Out::empty_object()
+				});
+			});
 		});
 	}
 

@@ -405,3 +405,25 @@ Specify the value in satoshis without adding any unit
 suffix, e.g.
 
     lightningd --clboss-min-channel=1000000
+
+### `clboss-destroyearningsinfo`
+
+If you have been using CLBOSS in 2022 or earlier, you
+may have been running using the very old and very
+economically irrational `InitialRebalancer`.
+
+While CLBOSS v0.13A has disabled `InitialRebalancer`,
+the side-effects of `InitialRebalancer` will effectively
+prevent other rebalancers such as `EarningsRebalancer`
+and `InitialRebalancer` from working.
+
+To reset this, execute the `clboss-destroyearningsinfo`
+exactly once.
+
+Executing this command destroys the data in the
+`offchain_earnings_tracker` key of `clboss-status`,
+which is used by the other rebalancers to determine
+their rebalancing budget, and effectively disable
+them if the expenditures exceed the earnings, which
+`InitialRebalancer` notoriously racked up without
+regard.

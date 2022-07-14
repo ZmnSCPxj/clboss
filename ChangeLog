@@ -1,3 +1,4 @@
+- Implement `clboss-destroyearningsinfo` to allow older users to recover from `InitialRebalancer` epicness.
 - Disable compiling debug information by default; if you need this, explicitly include `-g` in your `configure` command, like so: `./configure CXXFLAGS="-O2 -g"`.  This reduces binary size by 20x.
 - Enable SQLITE3 extended error codes.
 - Avoid parameters/commands deprecated in Core Lightning 0.11.0.

@@ -8,9 +8,11 @@
 #include"Boss/Msg/RequestEarningsInfo.hpp"
 #include"Boss/Msg/RequestMoveFunds.hpp"
 #include"Boss/Msg/RequestPeerFromScid.hpp"
+#include"Boss/Msg/RequestRebalanceBudget.hpp"
 #include"Boss/Msg/ResponseEarningsInfo.hpp"
 #include"Boss/Msg/ResponseMoveFunds.hpp"
 #include"Boss/Msg/ResponsePeerFromScid.hpp"
+#include"Boss/Msg/ResponseRebalanceBudget.hpp"
 #include"Boss/Msg/ProvideHtlcAcceptedDeferrer.hpp"
 #include"Boss/Msg/SolicitHtlcAcceptedDeferrer.hpp"
 #include"Boss/concurrent.hpp"
@@ -37,38 +39,6 @@ namespace {
  */
 auto constexpr htlc_weight = std::size_t(172);
 
-/* Up to how many percent of the total earnings from the outgoing
- * channel do we allow a rebalancing fee to that channel.
- *
- * See https://lists.ozlabs.org/pipermail/c-lightning/2019-July/000160.html
- * for the attack this prevents.
- *
- * The below is how much the above attack can extract from us.
- * Our hope is that the attack is not mounted often enough that the
- * below extractable amount can be taken from us.
- */
-auto constexpr max_fee_percent = double(25.0);
-
-/* Up to how much rebalancing fee we allow "for free" before we insist on
- * the rebalancing fee being less than the above percentage of the fee already
- * earned.
- *
- * Without this, a fresh node would not ever JIT-rebalance.
- *
- * This is exploitable by attackers (via the attack linked above) by
- * starting up new channels with us, but since the below limit is fairly
- * low, they can only steal this "free fee" and not more than that.
- * Our expectation is that attackers will spend much, much more on
- * channel opening fees than the few sats we give them for free for
- * rebalancing, while this small amount should be sufficient for at least
- * one or two rebalances to "seed" our node with actual successful forwards.
- */
-auto const free_fee = Ln::Amount::sat(10);
-
-/* Maximum limit for costs of a *single* rebalance.  */
-auto constexpr max_rebalance_fee_percent = double(0.5);
-auto const min_rebalance_fee = Ln::Amount::sat(5);
-
 }
 
 namespace Boss { namespace Mod {
@@ -79,9 +49,9 @@ private:
 	Boss::ModG::RpcProxy rpc;
 
 	typedef
-	Boss::ModG::ReqResp< Msg::RequestEarningsInfo
-			   , Msg::ResponseEarningsInfo
-			   > EarningsInfoRR;
+	Boss::ModG::ReqResp< Msg::RequestRebalanceBudget
+			   , Msg::ResponseRebalanceBudget
+			   > RebalanceBudgetRR;
 	typedef
 	Boss::ModG::ReqResp< Msg::RequestMoveFunds
 			   , Msg::ResponseMoveFunds
@@ -90,7 +60,7 @@ private:
 	Boss::ModG::ReqResp< Msg::RequestPeerFromScid
 			   , Msg::ResponsePeerFromScid
 			   > PeerFromScidRR;
-	EarningsInfoRR earnings_info_rr;
+	RebalanceBudgetRR get_budget;
 	MoveFundsRR move_funds_rr;
 	PeerFromScidRR peer_from_scid_rr;
 
@@ -166,10 +136,10 @@ private:
 		Run() =delete;
 
 		Run(S::Bus& bus, Boss::ModG::RpcProxy& rpc
+		   , RebalanceBudgetRR& get_budget
 		   , Ln::NodeId const& node
 		   , Ln::Amount amount
 		   , std::uint64_t id
-		   , EarningsInfoRR& earnings_info_rr
 		   , MoveFundsRR& move_funds_rr
 		   , ModG::RebalanceUnmanagerProxy& unmanager
 		   );
@@ -186,8 +156,9 @@ private:
 		      , std::uint64_t id
 		      ) {
 		return Ev::lift().then([this, node, amount, id]() {
-			auto r = Run( bus, rpc, node, amount, id
-				    , earnings_info_rr, move_funds_rr
+			auto r = Run( bus, rpc, get_budget
+				    , node, amount, id
+				    , move_funds_rr
 				    , unmanager
 				    );
 			return r.execute();
@@ -198,7 +169,7 @@ public:
 	Impl( S::Bus& bus_
 	    ) : bus(bus_)
 	      , rpc(bus_)
-	      , earnings_info_rr(bus)
+	      , get_budget(bus)
 	      , move_funds_rr(bus)
 	      , peer_from_scid_rr(bus)
 	      , unmanager(bus)
@@ -210,6 +181,9 @@ class JitRebalancer::Impl::Run::Impl {
 private:
 	S::Bus& bus;
 	Boss::ModG::RpcProxy& rpc;
+	/* ReqResp to `Boss::Mod::RebalanceBudgeter`.  */
+	RebalanceBudgetRR& get_budget;
+	Ln::NodeId source;
 	Ln::NodeId out_node;
 	Ln::Amount amount;
 	std::uint64_t id;
@@ -227,8 +201,6 @@ private:
 	/* Up to how much to pay for *this* rebalance.  */
 	Ln::Amount this_rebalance_fee;
 
-	/* ReqResp to `Boss::Mod::EarningsTracker`.  */
-	EarningsInfoRR& earnings_info_rr;
 	/* ReqResp to `Boss::Mod::FundsMover`.  */
 	MoveFundsRR& move_funds_rr;
 	/* Unmanager proxy.  */
@@ -245,13 +217,6 @@ private:
 	 * We simply use thrown objects to implement a sort of
 	 * `call-with-current-continuation` to implement early outs.
 	 */
-
-	/* Just the information we need from the earnings tracker.  */
-	struct Earnings {
-		/* These are the "out" earnings and expenditures. */
-		Ln::Amount earnings;
-		Ln::Amount expenditures;
-	};
 
 	Ev::Io<void> core_execute() {
 		return Ev::lift().then([this]() {
@@ -386,45 +351,8 @@ private:
 					);
 		}).then([this]() {
 
-			/* Determine how much fee we can use for
-			 * rebalancing.  */
-			return get_earnings(out_node);
-		}).then([this](Earnings e) {
-			/* Total aggregated limit.  */
-			auto limit = free_fee
-				   + (e.earnings * (max_fee_percent / 100.0))
-				   ;
-			if (limit < e.expenditures)
-				return Boss::log( bus, Debug
-						, "JitRebalancer: HTLC %s: "
-						  "Cannot rebalance to %s, we "
-						  "already spent %s on "
-						  "rebalances, limit is %s."
-						, Util::stringify(id).c_str()
-						, std::string(out_node).c_str()
-						, std::string(e.expenditures)
-							.c_str()
-						, std::string(limit).c_str()
-						).then([]() {
-					throw Continue();
-					return Ev::lift();
-				});
-
-			auto max_rebalance_fee = to_move
-					       * ( max_rebalance_fee_percent
-						 / 100.0
-						 );
-			if (max_rebalance_fee < min_rebalance_fee)
-				max_rebalance_fee = min_rebalance_fee;
-
-			this_rebalance_fee = limit - e.expenditures;
-			if (this_rebalance_fee > max_rebalance_fee)
-				this_rebalance_fee = max_rebalance_fee;
-
 			/* Now select a source channel.  */
-			auto min_required = to_move
-					  + (this_rebalance_fee / 2.0)
-					  ;
+			auto min_required = to_move * 1.01;
 			auto sampler = Stats::ReservoirSampler<Ln::NodeId>(1);
 			for (auto& e : available) {
 				auto& candidate = e.first;
@@ -456,32 +384,29 @@ private:
 					throw Continue();
 					return Ev::lift();
 				});
-			auto& selected = samples[0];
+			source = samples[0];
 
 			return Boss::log( bus, Debug
 					, "JitRebalancer: HTLC %s: Move %s "
 					  "from %s to %s."
 					, Util::stringify(id).c_str()
 					, std::string(to_move).c_str()
-					, std::string(selected).c_str()
+					, std::string(source).c_str()
 					, std::string(out_node).c_str()
-					)
-			     + move_funds(selected)
-			     ;
-		});
-	}
-
-	Ev::Io<Earnings> get_earnings(Ln::NodeId const& node) {
-		return earnings_info_rr.execute(Msg::RequestEarningsInfo{
-			nullptr, node
-		}).then([](Msg::ResponseEarningsInfo raw) {
-			return Ev::lift(Earnings{
-				raw.out_earnings, raw.out_expenditures
+					);
+		}).then([this]() {
+			/* Determine how much fee we can use for
+			 * rebalancing.  */
+			return get_budget.execute(Msg::RequestRebalanceBudget{
+				nullptr,
 			});
+		}).then([this](Msg::ResponseRebalanceBudget r) {
+			this_rebalance_fee = r.fee_budget;
+			return move_funds();
 		});
 	}
 
-	Ev::Io<void> move_funds(Ln::NodeId const& source) {
+	Ev::Io<void> move_funds() {
 		return move_funds_rr.execute(Msg::RequestMoveFunds{
 			nullptr,
 			source, out_node,
@@ -495,15 +420,17 @@ private:
 public:
 	Impl( S::Bus& bus_
 	    , Boss::ModG::RpcProxy& rpc_
+	    , Boss::ModG::ReqResp< Msg::RequestRebalanceBudget
+				 , Msg::ResponseRebalanceBudget
+				 >& get_budget_
 	    , Ln::NodeId const& out_node_
 	    , Ln::Amount amount_
 	    , std::uint64_t id_
-	    , EarningsInfoRR& earnings_info_rr_
 	    , MoveFundsRR& move_funds_rr_
 	    , ModG::RebalanceUnmanagerProxy& unmanager_
 	    ) : bus(bus_), rpc(rpc_)
+	      , get_budget(get_budget_)
 	      , out_node(out_node_), amount(amount_), id(id_)
-	      , earnings_info_rr(earnings_info_rr_)
 	      , move_funds_rr(move_funds_rr_)
 	      , unmanager(unmanager_)
 	      { }
@@ -528,15 +455,16 @@ public:
 };
 JitRebalancer::Impl::Run::Run( S::Bus& bus
 			     , Boss::ModG::RpcProxy& rpc
+			     , RebalanceBudgetRR& get_budget
 			     , Ln::NodeId const& node
 			     , Ln::Amount amount
 			     , std::uint64_t id
-			     , EarningsInfoRR& earnings_info_rr
 			     , MoveFundsRR& move_funds_rr
 			     , ModG::RebalanceUnmanagerProxy& unmanager
 			     )
-	: pimpl(std::make_shared<Impl>( bus, rpc, node, amount, id
-				      , earnings_info_rr, move_funds_rr
+	: pimpl(std::make_shared<Impl>( bus, rpc, get_budget
+				      , node, amount, id
+				      , move_funds_rr
 				      , unmanager
 				      )) { }
 Ev::Io<void> JitRebalancer::Impl::Run::execute() {

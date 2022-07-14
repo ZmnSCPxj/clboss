@@ -59,6 +59,7 @@
 #include"Boss/Mod/PeerFromScidMapper.hpp"
 #include"Boss/Mod/PeerMetrician.hpp"
 #include"Boss/Mod/PeerStatistician.hpp"
+#include"Boss/Mod/RebalanceBudgeter.hpp"
 #include"Boss/Mod/RebalanceUnmanager.hpp"
 #include"Boss/Mod/Reconnector.hpp"
 #include"Boss/Mod/RegularActiveProbe.hpp"
@@ -206,6 +207,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<FundsMover::Main>(bus);
 	all->install<MoveFundsCommand>(bus);
 	all->install<EarningsTracker>(bus);
+	all->install<RebalanceBudgeter>(bus);
 	all->install<JitRebalancer>(bus);
 #ifdef ENABLE_INITIAL_REBALANCER
 	all->install<InitialRebalancer>(bus);

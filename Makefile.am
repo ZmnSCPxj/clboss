@@ -238,6 +238,10 @@ libclboss_la_SOURCES = \
 	Boss/Mod/PeerMetrician.hpp \
 	Boss/Mod/PeerStatistician.cpp \
 	Boss/Mod/PeerStatistician.hpp \
+	Boss/Mod/RebalanceBudgeter.cpp \
+	Boss/Mod/RebalanceBudgeter.hpp \
+	Boss/Mod/RebalanceUnmanager.cpp \
+	Boss/Mod/RebalanceUnmanager.hpp \
 	Boss/Mod/Reconnector.cpp \
 	Boss/Mod/Reconnector.hpp \
 	Boss/Mod/RegularActiveProbe.cpp \
@@ -246,8 +250,6 @@ libclboss_la_SOURCES = \
 	Boss/Mod/Rpc.hpp \
 	Boss/Mod/RpcWrapper.cpp \
 	Boss/Mod/RpcWrapper.hpp \
-	Boss/Mod/RebalanceUnmanager.cpp \
-	Boss/Mod/RebalanceUnmanager.hpp \
 	Boss/Mod/SelfUptimeMonitor.cpp \
 	Boss/Mod/SelfUptimeMonitor.hpp \
 	Boss/Mod/SendpayResultMonitor.cpp \
@@ -342,6 +344,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/RequestPeerFromScid.hpp \
 	Boss/Msg/RequestPeerMetrics.hpp \
 	Boss/Msg/RequestPeerStatistics.hpp \
+	Boss/Msg/RequestRebalanceBudget.hpp \
 	Boss/Msg/RequestRebalanceUnmanaged.hpp \
 	Boss/Msg/RequestRpcCommand.hpp \
 	Boss/Msg/RequestSelfUptime.hpp \
@@ -355,6 +358,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ResponsePeerFromScid.hpp \
 	Boss/Msg/ResponsePeerMetrics.hpp \
 	Boss/Msg/ResponsePeerStatistics.hpp \
+	Boss/Msg/ResponseRebalanceBudget.hpp \
 	Boss/Msg/ResponseRebalanceUnmanaged.hpp \
 	Boss/Msg/ResponseRpcCommand.hpp \
 	Boss/Msg/ResponseSelfUptime.hpp \
@@ -593,6 +597,7 @@ TESTS = \
 	tests/boss/test_peerjudge_datagatherer \
 	tests/boss/test_peerstatistician \
 	tests/boss/test_peercomplaintsdesk_recorder \
+	tests/boss/test_rebalancebudgeter \
 	tests/boss/test_reqresp \
 	tests/boss/test_rpc \
 	tests/boss/test_swapmanager \

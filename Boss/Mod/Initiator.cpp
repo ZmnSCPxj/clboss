@@ -188,6 +188,8 @@ public:
 				network = Boss::Msg::Network_Bitcoin;
 			else if (network_s == "testnet")
 				network = Boss::Msg::Network_Testnet;
+			else if (network_s == "signet")
+				network = Boss::Msg::Network_Signet;
 			else if (network_s == "regtest")
 				network = Boss::Msg::Network_Regtest;
 			else

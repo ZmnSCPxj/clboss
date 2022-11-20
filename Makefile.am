@@ -509,6 +509,7 @@ libclboss_la_SOURCES = \
 	Stats/WeightedMedian.hpp \
 	Util/Bech32.cpp \
 	Util/Bech32.hpp \
+	Util/Either.hpp \
 	Util/Rw.cpp \
 	Util/Rw.hpp \
 	Util/Str.cpp \
@@ -626,6 +627,7 @@ TESTS = \
 	tests/test_uuid \
 	tests/util/test_date \
 	tests/util/test_duration \
+	tests/util/test_either \
 	tests/util/test_format
 check_PROGRAMS = $(TESTS)
 

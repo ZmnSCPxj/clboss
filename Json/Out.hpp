@@ -3,6 +3,7 @@
 
 #include"Jsmn/Detail/Str.hpp"
 #include"Jsmn/Object.hpp"
+#include"Util/Either.hpp"
 #include<cstddef>
 #include<cstdint>
 #include<iomanip>
@@ -162,6 +163,18 @@ struct Serializer<std::shared_ptr<a>> {
 			return "null";
 		else
 			return Serializer<a>::serialize(*p);
+	}
+};
+template<typename l, typename r>
+struct Serializer<Util::Either<l,r>> {
+	static std::string serialize(Util::Either<l,r> const& e) {
+		auto rv = std::string();
+		e.cmatch([&](l const& el) {
+			rv = Serializer<l>::serialize(el);
+		}, [&](r const& er) {
+			rv = Serializer<r>::serialize(er);
+		});
+		return rv;
 	}
 };
 

@@ -131,7 +131,7 @@ int main() {
 		return bus.raise(Boss::Msg::CommandRequest{
 			"clboss-earnings-rebalancer",
 			Jsmn::Object(),
-			trigger_id++
+			Ln::CommandId::left(trigger_id++)
 		}) + multiyield();
 	};
 	/* Keep track of funds movement.  */

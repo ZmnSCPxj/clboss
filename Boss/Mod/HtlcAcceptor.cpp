@@ -27,6 +27,16 @@ namespace {
 /* Number of seconds to defer response of htlc accepted.  */
 auto const defer_time = double(6.0);
 
+std::string stringify_cid(Ln::CommandId const& id) {
+	auto rv = std::string();
+	id.cmatch([&](std::uint64_t nid) {
+		rv = Util::stringify(nid);
+	}, [&](std::string const& sid) {
+		rv = sid;
+	});
+	return rv;
+}
+
 }
 
 namespace Boss { namespace Mod {
@@ -46,10 +56,10 @@ private:
 	/* `htlc_accepted` hooks that we are informing to
 	 * deferrers.
 	 */
-	std::set<std::uint64_t> deferring;
+	std::set<Ln::CommandId> deferring;
 	/* `htlc_accepted` hooks that we know are deferred.
 	 */
-	std::set<std::uint64_t> deferred;
+	std::set<Ln::CommandId> deferred;
 
 	void start() {
 		bus.subscribe<Msg::CommandRequest
@@ -102,7 +112,7 @@ private:
 	}
 
 	Ev::Io<std::shared_ptr<Ln::HtlcAccepted::Request>>
-	parse_payload( std::uint64_t id
+	parse_payload( Ln::CommandId id
 		     , Jsmn::Object const& payload
 		     ) {
 		auto rv = std::make_shared<Ln::HtlcAccepted::Request>();
@@ -175,8 +185,8 @@ private:
 		return solicit().then([this, req]() {
 			return Boss::log( bus, Debug
 					, "HtlcAcceptor: "
-					  "HTLC %" PRIu64 " (%s) arrived."
-					, req->id
+					  "HTLC %s (%s) arrived."
+					, stringify_cid(req->id).c_str()
 					, std::string(req->payment_hash)
 						.c_str()
 					);
@@ -214,7 +224,7 @@ private:
 			return finish(id);
 		});
 	}
-	Ev::Io<void> finish(std::uint64_t id) {
+	Ev::Io<void> finish(Ln::CommandId id) {
 		return Ev::lift().then([this, id]() {
 			auto it = deferred.find(id);
 			if (it == deferred.end())
@@ -281,8 +291,8 @@ private:
 		}
 
 		return Boss::log( bus, Debug
-				, "HtlcAcceptor: HTLC %" PRIu64 ": %s"
-				, id
+				, "HtlcAcceptor: HTLC %s: %s"
+				, stringify_cid(id).c_str()
 				, os.str().c_str()
 				)
 		     + bus.raise(Msg::CommandResponse{id, std::move(result)})

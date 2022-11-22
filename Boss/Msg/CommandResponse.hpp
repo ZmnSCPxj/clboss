@@ -2,6 +2,7 @@
 #define BOSS_MSG_COMMANDRESPONSE_HPP
 
 #include"Json/Out.hpp"
+#include"Ln/CommandId.hpp"
 
 namespace Boss { namespace Msg {
 
@@ -13,7 +14,7 @@ namespace Boss { namespace Msg {
  * silently ignored.
  */
 struct CommandResponse {
-	std::uint64_t id;
+	Ln::CommandId id;
 	Json::Out response;
 };
 

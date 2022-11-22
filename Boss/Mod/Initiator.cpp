@@ -13,6 +13,7 @@
 #include"Ev/yield.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
+#include"Ln/CommandId.hpp"
 #include"Ln/NodeId.hpp"
 #include"Net/Connector.hpp"
 #include"Net/DirectConnector.hpp"
@@ -58,7 +59,7 @@ private:
 	Ln::NodeId self_id;
 
 	bool initted;
-	std::uint64_t init_id;
+	Ln::CommandId init_id;
 	Boss::Msg::Network network;
 	std::unique_ptr<Boss::Mod::Rpc> rpc;
 

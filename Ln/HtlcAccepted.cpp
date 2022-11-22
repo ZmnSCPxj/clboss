@@ -14,7 +14,7 @@ private:
 	, Resolve
 	};
 	Type type;
-	std::uint64_t id;
+	Ln::CommandId id;
 	union {
 		std::uint8_t fail[sizeof(std::vector<std::uint8_t>)];
 		std::uint8_t resolve[sizeof(Ln::Preimage)];
@@ -36,9 +36,9 @@ public:
 		}
 	}
 	explicit
-	Impl(std::uint64_t id_) : type(Continue), id(id_) { }
+	Impl(Ln::CommandId id_) : type(Continue), id(id_) { }
 	explicit
-	Impl( std::uint64_t id_
+	Impl( Ln::CommandId id_
 	    , std::vector<std::uint8_t> message
 	    ) : type(Fail), id(id_) {
 		new((void*) d.fail) std::vector<std::uint8_t>(
@@ -46,7 +46,7 @@ public:
 		);
 	}
 	explicit
-	Impl( std::uint64_t id_
+	Impl( Ln::CommandId id_
 	    , Ln::Preimage preimage
 	    ) : type(Resolve), id(id_) {
 		new((void*) d.resolve) Ln::Preimage(
@@ -58,7 +58,7 @@ public:
 	bool is_fail() const { return type == Fail; }
 	bool is_resolve() const { return type == Resolve; }
 
-	std::uint64_t get_id() const { return id; }
+	Ln::CommandId const& get_id() const { return id; }
 	std::vector<std::uint8_t> const& fail_message() const {
 		return *reinterpret_cast<std::vector<std::uint8_t> const*>(
 			d.fail
@@ -71,17 +71,17 @@ public:
 	}
 };
 
-Response Response::cont(std::uint64_t id) {
+Response Response::cont(Ln::CommandId id) {
 	auto rv = Response();
 	rv.pimpl = std::make_shared<Impl>(id);
 	return rv;
 }
-Response Response::fail(std::uint64_t id, std::vector<std::uint8_t> message) {
+Response Response::fail(Ln::CommandId id, std::vector<std::uint8_t> message) {
 	auto rv = Response();
 	rv.pimpl = std::make_shared<Impl>(id, std::move(message));
 	return rv;
 }
-Response Response::resolve(std::uint64_t id, Ln::Preimage preimage) {
+Response Response::resolve(Ln::CommandId id, Ln::Preimage preimage) {
 	auto rv = Response();
 	rv.pimpl = std::make_shared<Impl>(id, std::move(preimage));
 	return rv;
@@ -93,7 +93,7 @@ bool Response::is_cont() const { return pimpl->is_cont(); }
 bool Response::is_fail() const { return pimpl->is_fail(); }
 bool Response::is_resolve() const { return pimpl->is_resolve(); }
 
-std::uint64_t Response::id() const { return pimpl->get_id(); }
+Ln::CommandId const& Response::id() const { return pimpl->get_id(); }
 std::vector<std::uint8_t> const& Response::fail_message() const {
 	return pimpl->fail_message();
 }

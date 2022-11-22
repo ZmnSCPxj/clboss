@@ -2,6 +2,7 @@
 #define BOSS_MOD_STATUSCOMMAND_HPP
 
 #include"Json/Out.hpp"
+#include"Ln/CommandId.hpp"
 #include<cstddef>
 #include<map>
 
@@ -22,7 +23,7 @@ namespace Boss { namespace Mod {
 class StatusCommand {
 private:
 	S::Bus& bus;
-	std::uint64_t id;
+	Ln::CommandId id;
 	bool soliciting;
 	std::map<std::string, Json::Out> fields;
 

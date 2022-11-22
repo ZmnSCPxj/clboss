@@ -2,6 +2,7 @@
 #define LN_HTLCACCEPTED_HPP
 
 #include"Ln/Amount.hpp"
+#include"Ln/CommandId.hpp"
 #include"Ln/Preimage.hpp"
 #include"Ln/Scid.hpp"
 #include"Sha256/Hash.hpp"
@@ -18,7 +19,7 @@ namespace Ln { namespace HtlcAccepted {
  */
 struct Request {
 	/* Command id.  */
-	std::uint64_t id;
+	Ln::CommandId id;
 
 	/* Incoming data.  */
 	/* Raw data.  */
@@ -81,11 +82,11 @@ public:
 	}
 
 	/* Factories.  */
-	static Response cont(std::uint64_t id);
-	static Response fail( std::uint64_t id
+	static Response cont(Ln::CommandId id);
+	static Response fail( Ln::CommandId id
 			    , std::vector<std::uint8_t> message
 			    );
-	static Response resolve( std::uint64_t id
+	static Response resolve( Ln::CommandId id
 			       , Ln::Preimage preimage
 			       );
 
@@ -95,7 +96,7 @@ public:
 	bool is_resolve() const;
 
 	/* Data extraction.  */
-	std::uint64_t id() const;
+	Ln::CommandId const& id() const;
 	std::vector<std::uint8_t> const& fail_message() const;
 	Ln::Preimage const& resolve_preimage() const;
 };

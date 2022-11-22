@@ -2,6 +2,7 @@
 #define BOSS_MSG_COMMANDFAIL_HPP
 
 #include"Json/Out.hpp"
+#include"Ln/CommandId.hpp"
 #include<string>
 
 namespace Boss { namespace Msg {
@@ -15,7 +16,7 @@ namespace Boss { namespace Msg {
  * silently ignored.
  */
 struct CommandFail {
-	std::uint64_t id;
+	Ln::CommandId id;
 	int code;
 	std::string message;
 	Json::Out data;

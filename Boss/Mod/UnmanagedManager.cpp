@@ -211,7 +211,7 @@ private:
 		});
 	}
 
-	Ev::Io<void> unmanage(std::uint64_t id, Jsmn::Object const& params) {
+	Ev::Io<void> unmanage(Ln::CommandId id, Jsmn::Object const& params) {
 		return db.transact().then([this, params](Sqlite3::Tx tx) {
 			auto nodeid = Ln::NodeId();
 			auto new_tags = std::set<std::string>();

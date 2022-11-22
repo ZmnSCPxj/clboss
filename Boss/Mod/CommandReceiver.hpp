@@ -1,6 +1,7 @@
 #ifndef BOSS_MOD_COMMANDRECEIVER_HPP
 #define BOSS_MOD_COMMANDRECEIVER_HPP
 
+#include"Ln/CommandId.hpp"
 #include<cstdint>
 #include<set>
 
@@ -12,7 +13,7 @@ class CommandReceiver {
 private:
 	S::Bus& bus;
 
-	std::set<std::uint64_t> pendings;
+	std::set<Ln::CommandId> pendings;
 
 public:
 	explicit

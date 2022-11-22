@@ -174,7 +174,7 @@ Ln::HtlcAccepted::Request htlc( char const* next_channel
 	auto rv = Ln::HtlcAccepted::Request();
 	rv.next_channel = next_channel ? Ln::Scid(std::string(next_channel)) : nullptr;
 	rv.next_amount = next_amount;
-	rv.id = id;
+	rv.id = Ln::CommandId::left(id);
 	return rv;
 }
 
@@ -190,7 +190,12 @@ private:
 		bus.subscribe<Boss::Msg::ReleaseHtlcAccepted
 			     >([this](Boss::Msg::ReleaseHtlcAccepted const& m) {
 			assert(m.response.is_cont());
-			ids.insert(m.response.id());
+			auto id = m.response.id();
+			id.cmatch([this](std::uint64_t nid) {
+				ids.insert(nid);
+			}, [](std::string const& _) {
+				assert(false);
+			});
 			return Ev::yield();
 		});
 	}

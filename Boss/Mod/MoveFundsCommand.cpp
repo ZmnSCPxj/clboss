@@ -55,7 +55,7 @@ private:
 	Ev::Io<void>
 	do_movefunds( S::Bus& bus
 		    , std::shared_ptr<Jsmn::Object> pparms
-		    , std::uint64_t id
+		    , Ln::CommandId id
 		    ) {
 		return Ev::lift().then([this, &bus, pparms, id]() {
 			auto msg = Msg::RequestMoveFunds();

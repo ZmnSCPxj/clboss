@@ -9,19 +9,9 @@
 #include"Boss/Msg/Notification.hpp"
 #include"Boss/Msg/RpcCommandHook.hpp"
 #include"Boss/concurrent.hpp"
+#include"Ln/CommandId.hpp"
 #include"S/Bus.hpp"
 #include<sstream>
-
-namespace {
-
-std::uint64_t string_to_u64(std::string const& s) {
-	auto is = std::istringstream(s);
-	auto num = std::uint64_t();
-	is >> num;
-	return num;
-}
-
-}
 
 namespace Boss { namespace Mod {
 
@@ -67,14 +57,14 @@ CommandReceiver::CommandReceiver(S::Bus& bus_) : bus(bus_) {
 			       )
 			     ;
 		} else {
-			if (!inp["id"].is_number())
+			auto pid = Ln::command_id_from_jsmn_object(
+				inp["id"]
+			);
+			if (!pid)
 				return Ev::lift();
 
 			/* Command.  */
-			/* Avoid passing through `double`.  */
-			auto id_j = inp["id"];
-			auto id_s = id_j.direct_text();
-			auto id = string_to_u64(id_s);
+			auto const& id = *pid;
 			pendings.insert(id);
 
 			return Boss::concurrent(
@@ -110,7 +100,7 @@ CommandReceiver::CommandReceiver(S::Bus& bus_) : bus(bus_) {
 		auto js = Json::Out()
 			.start_object()
 				.field("jsonrpc", std::string("2.0"))
-				.field("id", double(fail.id))
+				.field("id", fail.id)
 				.start_object("error")
 					.field("code", fail.code)
 					.field("message", fail.message)

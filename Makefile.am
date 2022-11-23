@@ -592,6 +592,7 @@ TESTS = \
 	tests/boss/test_peercomplaintsdesk_recorder \
 	tests/boss/test_reqresp \
 	tests/boss/test_rpc \
+	tests/boss/test_stringid \
 	tests/boss/test_swapmanager \
 	tests/boss/test_unmanagedmanager \
 	tests/boss/test_version \

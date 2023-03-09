@@ -26,7 +26,7 @@ Ev::Io<void> BlockTracker::loop(Boss::Mod::Rpc& rpc) {
 	return Ev::yield().then([this, &rpc]() {
 		auto js = Json::Out()
 			.start_object()
-				.field("blockheight", double(height + 1))
+				.field("blockheight", std::uint32_t(height + 1))
 				.field("timeout", double(86400))
 			.end_object()
 			;

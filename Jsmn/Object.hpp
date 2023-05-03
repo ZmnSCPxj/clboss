@@ -15,11 +15,15 @@ namespace Jsmn { class ParserExposedBuffer; }
 
 namespace Jsmn {
 
+void print_backtrace();
+
 /* Thrown when converting or using as incorrect type.  */
 /* FIXME: Use a backtrace-catching exception.  */
 class TypeError : public std::invalid_argument {
 public:
-	TypeError() : std::invalid_argument("Incorrect type.") { }
+	TypeError() : std::invalid_argument("Incorrect type.") {
+		print_backtrace();
+        }
 };
 
 /* Represents an object that has been parsed from a JSON string.  */

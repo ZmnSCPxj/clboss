@@ -8,7 +8,32 @@
 #include"Jsmn/Parser.hpp"
 #include"Util/Str.hpp"
 
+#include <cstdio>
+#include <execinfo.h>
+#include <cstdlib>
+#include <cxxabi.h>
+
 namespace Jsmn {
+
+void print_backtrace() {
+    constexpr size_t max_frames = 100;
+    void* addrlist[max_frames];
+
+    int stack_depth = backtrace(addrlist, sizeof(addrlist) / sizeof(void*));
+
+    if (stack_depth == 0) {
+      	std::fprintf(stderr, "No backtrace available.\n");
+        return;
+    }
+
+    char** symbollist = backtrace_symbols(addrlist, stack_depth);
+
+    for (int i = 0; i < stack_depth; i++) {
+	std::fprintf(stderr, "%s\n", symbollist[i]);
+    }
+
+    free(symbollist);
+}
 
 class Object::Impl {
 private:

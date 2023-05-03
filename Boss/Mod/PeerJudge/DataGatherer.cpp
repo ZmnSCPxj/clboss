@@ -80,9 +80,9 @@ private:
 						);
 						if (state != "CHANNELD_NORMAL")
 							continue;
-						total += Ln::Amount(std::string(
+						total += Ln::Amount::object(
 							c["total_msat"]
-						));
+						);
 					}
 
 					/* No active channels?  Skip.  */

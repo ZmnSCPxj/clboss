@@ -77,21 +77,16 @@ Ev::Io<void> OnchainFundsAnnouncer::announce() {
 		if (!res.has("excess_msat"))
 			return fail("fundpsbt has no excess_msat", res);
 		auto excess_msat = res["excess_msat"];
-		if (!excess_msat.is_string())
-			return fail( "fundpsbt excess_msat not a string"
+		if (!Ln::Amount::valid_object(excess_msat))
+			return fail( "fundpsbt excess_msat not a valid amount"
 				   , excess_msat
 				   );
-		auto excess_msat_s = std::string(excess_msat);
-		if (!Ln::Amount::valid_string(excess_msat_s))
-			return fail( "fundpsbt excess_msat not valid amount"
-				   , excess_msat
-				   );
-		auto amount = Ln::Amount(excess_msat_s);
+		auto amount = Ln::Amount::object(excess_msat);
 
 		return Boss::log( bus, Debug
 				, "OnchainFundsAnnouncer: "
 				  "Found %s (after deducting fee to spend) onchain."
-				, excess_msat_s.c_str()
+				, std::string(amount).c_str()
 				).then([this, amount]() {
 			return bus.raise(Msg::OnchainFunds{amount});
 		});

@@ -228,13 +228,13 @@ private:
 		   )
 			return;
 		/* FIXME: Handle reserves.  */
-		auto to_us = Ln::Amount(std::string(c["to_us_msat"]));
-		auto total = Ln::Amount(std::string(c["total_msat"]));
+		auto to_us = Ln::Amount::object(c["to_us_msat"]);
+		auto total = Ln::Amount::object(c["total_msat"]);
 		auto to_them = total - to_us;
 		for (auto h : c["htlcs"])
-			to_them -= Ln::Amount(std::string(
+			to_them -= Ln::Amount::object(
 				h["amount_msat"]
-			));
+		);
 		a_spendable += to_us;
 		a_receivable += to_them;
 		a_total += total;

@@ -142,9 +142,9 @@ std::string Surveyor::one_channel(Jsmn::Object const& c) {
 		auto proportional = std::uint32_t(double(
 			c["fee_per_millionth"]
 		));
-		auto weight = Ln::Amount(std::string(
+		auto weight = Ln::Amount::object(
 			c["amount_msat"]
-		));
+		);
 		bases.add(base, weight);
 		proportionals.add(proportional, weight);
 	} catch (Jsmn::TypeError const&) {

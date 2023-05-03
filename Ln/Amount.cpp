@@ -28,6 +28,25 @@ bool Amount::valid_string(std::string const& s) {
 	return true;
 }
 
+bool Amount::valid_object(Jsmn::Object const& o) {
+	if (o.is_number())
+		return true;
+	else if (o.is_string())
+		return valid_string(std::string(o));
+	else
+		return false;
+}
+
+Amount
+Amount::object(Jsmn::Object const& o) {
+	if (o.is_number())
+		return Amount::msat(std::uint64_t(double(o)));
+	else if (o.is_string())
+		return Amount(std::string(o));
+	else
+		throw std::invalid_argument("Ln::Amount json object invalid.");
+}
+
 Amount::Amount(std::string const& s) {
 	if (!valid_string(s))
 		throw std::invalid_argument("Ln::Amount string invalid.");

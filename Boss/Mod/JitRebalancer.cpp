@@ -326,14 +326,12 @@ private:
 						);
 						if (state != "CHANNELD_NORMAL")
 							continue;
-						to_us += Ln::Amount(
-							std::string(
+						to_us += Ln::Amount::object(
 							c["to_us_msat"]
-						));
-						capacity += Ln::Amount(
-							std::string(
+						);
+						capacity += Ln::Amount::object(
 							c["total_msat"]
-						));
+						);
 					}
 
 					auto& av = available[peer];

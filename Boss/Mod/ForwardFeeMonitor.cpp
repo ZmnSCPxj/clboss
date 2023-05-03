@@ -43,9 +43,9 @@ void ForwardFeeMonitor::start() {
 			out_scid = Ln::Scid(std::string(
 				payload["out_channel"]
 			));
-			fee = Ln::Amount(std::string(
+			fee = Ln::Amount::object(
 				payload["fee_msat"]
-			));
+			);
 			resolution_time = double(payload["resolved_time"])
 					- double(payload["received_time"])
 					;

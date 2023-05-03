@@ -736,9 +736,8 @@ private:
 			for (auto out : outputs)
 				onchain_funds.push(std::make_pair(
 					std::string(out["address"]),
-					Ln::Amount(std::string(
-						out["amount_msat"]
-					))
+					Ln::Amount::object(out["amount_msat"]
+					)
 				));
 
 			if (was_empty)

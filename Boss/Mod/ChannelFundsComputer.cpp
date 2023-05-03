@@ -23,12 +23,9 @@ ChannelFundsComputer::on_listfunds(Msg::ListfundsResult const& r) {
 			if (!chan.is_object() || !chan.has("our_amount_msat"))
 				continue;
 			auto amount_j = chan["our_amount_msat"];
-			if (!amount_j.is_string())
+			if (!Ln::Amount::valid_object(amount_j))
 				continue;
-			auto amount_s = std::string(amount_j);
-			if (!Ln::Amount::valid_string(amount_s))
-				continue;
-			auto amount = Ln::Amount(amount_s);
+			auto amount = Ln::Amount::object(amount_j);
 			total += amount;
 
 			if (!chan.has("connected"))

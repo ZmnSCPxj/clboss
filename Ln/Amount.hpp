@@ -1,6 +1,7 @@
 #ifndef LN_AMOUNT_HPP
 #define LN_AMOUNT_HPP
 
+#include"Jsmn/Object.hpp"
 #include<cstdint>
 #include<iostream>
 #include<string>
@@ -30,6 +31,13 @@ public:
 	 * string.  */
 	static
 	bool valid_string(std::string const&);
+
+	static
+	Amount object(Jsmn::Object const&);
+	/* Return false if Amount() would throw given this
+	 * object. */
+	static
+	bool valid_object(Jsmn::Object const&);
 
 	static
 	Amount btc(double v) {

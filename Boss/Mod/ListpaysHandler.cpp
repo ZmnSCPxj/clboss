@@ -63,12 +63,12 @@ Ev::Io<void> ListpaysHandler::listpays(Sha256::Hash h) {
 				resp.status = Msg::StatusListpays_pending;
 			} else if (status == "complete") {
 				resp.status = Msg::StatusListpays_success;
-				resp.amount = Ln::Amount(std::string(
+				resp.amount = Ln::Amount::object(
 					pay["amount_msat"]
-				));
-				resp.amount_sent = Ln::Amount(std::string(
+				);
+				resp.amount_sent = Ln::Amount::object(
 					pay["amount_sent_msat"]
-				));
+				);
 			} else throw Jsmn::TypeError();
 		} catch (Jsmn::TypeError const&) {
 			resp.status = Msg::StatusListpays_nonexistent;

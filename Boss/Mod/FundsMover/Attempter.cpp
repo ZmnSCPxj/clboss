@@ -171,9 +171,9 @@ private:
 				hop1 = Ln::Scid(std::string(
 					hop1_data["channel"]
 				));
-				*hop1_amount = Ln::Amount(std::string(
+				*hop1_amount = Ln::Amount::object(
 					hop1_data["amount_msat"]
-				));
+				);
 				*hop1_delay = std::uint32_t(double(
 					hop1_data["delay"]
 				));

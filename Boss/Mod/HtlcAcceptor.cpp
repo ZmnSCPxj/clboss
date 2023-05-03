@@ -124,9 +124,9 @@ private:
 			rv->incoming_payload = Util::Str::hexread(std::string(
 				onion["payload"]
 			));
-			rv->incoming_amount = Ln::Amount(std::string(
-				htlc["amount"]
-			));
+			rv->incoming_amount = Ln::Amount::object(
+				htlc["amount_msat"]
+			);
 			rv->incoming_cltv = std::uint32_t(double(
 				htlc["cltv_expiry"]
 			));
@@ -142,9 +142,9 @@ private:
 				rv->next_channel = Ln::Scid(std::string(
 					onion["short_channel_id"]
 				));
-				rv->next_amount = Ln::Amount(std::string(
-					onion["forward_amount"]
-				));
+				rv->next_amount = Ln::Amount::object(
+					onion["forward_msat"]
+				);
 				rv->next_cltv = std::uint32_t(double(
 					onion["outgoing_cltv_value"]
 				));

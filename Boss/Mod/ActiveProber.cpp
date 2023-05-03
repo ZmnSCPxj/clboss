@@ -137,9 +137,9 @@ private:
 						chan0 = Ln::Scid(std::string(
 							c["short_channel_id"]
 						));
-						cap0 = Ln::Amount(std::string(
+						cap0 = Ln::Amount::object(
 							c["spendable_msat"]
-						));
+						);
 						break;
 					}
 
@@ -263,9 +263,9 @@ private:
 				chan1 = Ln::Scid(std::string(
 					hop1["channel"]
 				));
-				amount1 = Ln::Amount(std::string(
+				amount1 = Ln::Amount::object(
 					hop1["amount_msat"]
-				));
+				);
 				delay1 = std::uint32_t(double(
 					hop1["delay"]
 				));

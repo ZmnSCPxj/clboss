@@ -173,12 +173,12 @@ private:
 					   )
 						continue;
 
-					auto to_us = Ln::Amount(std::string(
+					auto to_us = Ln::Amount::object(
 						c["to_us_msat"]
-					));
-					auto c_total = Ln::Amount(std::string(
+					);
+					auto c_total = Ln::Amount::object(
 						c["total_msat"]
-					));
+					);
 					auto to_them = c_total - to_us;
 
 					spendable += to_us;

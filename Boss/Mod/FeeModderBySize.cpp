@@ -175,9 +175,9 @@ private:
 			auto source = Ln::NodeId(std::string(
 				channel["source"]
 			));
-			auto amount = Ln::Amount(std::string(
+			auto amount = Ln::Amount::object(
 				channel["amount_msat"]
-			));
+			);
 			(*capacities)[source] += amount;
 
 			return load_capacities_loop( pchannels

@@ -405,3 +405,37 @@ Specify the value in satoshis without adding any unit
 suffix, e.g.
 
     lightningd --clboss-min-channel=1000000
+
+### `clboss-tally` / `clboss-cleartally`
+
+`clboss-tally` provides a simple running sum of earnings and
+expenditures that CLBOSS keeps track of.
+This tracking starts in version 0.13B; if you have been
+running older versions, note that the tally will not be
+accurate.
+`clboss-cleartally` will clear the tally.
+
+As of this writing, the tally counts:
+
+* Earnings from successful forwards.
+* Loss from rebalancing.
+* Loss from offchain-to-onchain swaps to get inbound
+  liquidity.
+
+Future versions of CLBOSS should eventually include more
+expenditures in the tally.
+
+In addition to the current tally, `clboss-tally` also
+outputs historical information on the tally total, taken
+twice daily for the past year.
+This historical information is also deleted by
+`clboss-cleartally`.
+
+While `clboss-status` provides earnings information in more
+detail, the data in `clboss-status` is intended to be
+consumed by CLBOSS too.
+The data provided by `clboss-tally` is purely for the
+convenience of the node operator.
+Thus, if for any reason you want to clear the tally, you
+can freely use `clboss-cleartally` without fear of CLBOSS
+potentially misbehaving.

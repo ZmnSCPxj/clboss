@@ -67,6 +67,7 @@
 #include"Boss/Mod/StatusCommand.hpp"
 #include"Boss/Mod/SwapManager.hpp"
 #include"Boss/Mod/SwapReporter.hpp"
+#include"Boss/Mod/Tally.hpp"
 #include"Boss/Mod/TimerTwiceDailyAnnouncer.hpp"
 #include"Boss/Mod/Timers.hpp"
 #include"Boss/Mod/UnmanagedManager.hpp"
@@ -214,6 +215,9 @@ std::shared_ptr<void> all( std::ostream& cout
 
 	/* Unmanaged nodes.  */
 	all->install<UnmanagedManager>(bus);
+
+	/* Tally.  */
+	all->install<Tally>(bus);
 
 	return all;
 }

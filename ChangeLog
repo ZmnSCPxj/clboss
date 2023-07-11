@@ -1,3 +1,4 @@
+- Implement `clboss-tally`, which provides summary on earnings vs.  expenditures for the use of the node operator.
 - Support string "id" fields in the plugin interface.
 - Disable compiling debug information by default; if you need this, explicitly include `-g` in your `configure` command, like so: `./configure CXXFLAGS="-O2 -g"`.  This reduces binary size by 20x.
 - Enable SQLITE3 extended error codes.

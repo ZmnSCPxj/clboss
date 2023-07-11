@@ -16,6 +16,7 @@
 #include"Ev/yield.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
+#include"Ln/CommandId.hpp"
 #include"Ln/Scid.hpp"
 #include"S/Bus.hpp"
 #include"Util/make_unique.hpp"
@@ -285,7 +286,7 @@ private:
 		});
 	}
 
-	Ev::Io<void> run_command(Jsmn::Object params, std::uint64_t id) {
+	Ev::Io<void> run_command(Jsmn::Object params, Ln::CommandId id) {
 		auto param_fail = [this, id]() {
 			return bus.raise(Msg::CommandFail{
 				id, -32602, "Parameter error",

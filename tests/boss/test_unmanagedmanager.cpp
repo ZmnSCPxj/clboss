@@ -7,6 +7,7 @@
 #include"Boss/Msg/ProvideUnmanagement.hpp"
 #include"Boss/Msg/SolicitUnmanagement.hpp"
 #include"Ev/start.hpp"
+#include"Ln/CommandId.hpp"
 #include"Ln/NodeId.hpp"
 #include"S/Bus.hpp"
 #include"Sqlite3.hpp"
@@ -66,13 +67,19 @@ int main() {
 	});
 
 	/* Simulate clboss-unmanage commands.  */
-	auto req_id = std::uint64_t(0);
-	auto rsp_id = std::uint64_t(0);
+	auto req_id = std::uint64_t();
+	auto rsp_id = Ln::CommandId();
 	auto rsp = false;
 	auto wait_for_response = std::function<Ev::Io<bool>(std::uint64_t)>();
 	wait_for_response = [&](std::uint64_t expected_id) {
 		return Ev::yield().then([expected_id, &rsp_id, &rsp, &wait_for_response]() {
-			if (expected_id != rsp_id)
+			auto ok = false;
+			rsp_id.cmatch([&](std::uint64_t nid) {
+				ok = (expected_id == nid);
+			}, [&](std::string const& _) {
+				ok = false;
+			});
+			if (!ok)
 				return wait_for_response(expected_id);
 			return Ev::lift(rsp);
 		});
@@ -117,7 +124,7 @@ int main() {
 		is >> parms;
 
 		return bus.raise(CommandRequest{
-			"clboss-unmanage", std::move(parms), my_id
+			"clboss-unmanage", std::move(parms), Ln::CommandId::left(my_id)
 		}).then([&wait_for_response, my_id]() {
 			return wait_for_response(my_id);
 		});

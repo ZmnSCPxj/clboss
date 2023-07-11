@@ -435,6 +435,8 @@ libclboss_la_SOURCES = \
 	Json/Out.hpp \
 	Ln/Amount.cpp \
 	Ln/Amount.hpp \
+	Ln/CommandId.cpp \
+	Ln/CommandId.hpp \
 	Ln/HtlcAccepted.cpp \
 	Ln/HtlcAccepted.hpp \
 	Ln/NodeId.cpp \
@@ -511,6 +513,7 @@ libclboss_la_SOURCES = \
 	Stats/WeightedMedian.hpp \
 	Util/Bech32.cpp \
 	Util/Bech32.hpp \
+	Util/Either.hpp \
 	Util/Rw.cpp \
 	Util/Rw.hpp \
 	Util/Str.cpp \
@@ -552,6 +555,7 @@ EXTRA_DIST = \
 	create-tarball.in \
 	external/jsmn/LICENSE \
 	external/jsmn/jsmn.h \
+	new-mod \
 	reproducible/README.md \
 	reproducible/build.sh \
 	reproducible/continue.sh \
@@ -590,6 +594,7 @@ TESTS = \
 	tests/boss/test_peercomplaintsdesk_recorder \
 	tests/boss/test_reqresp \
 	tests/boss/test_rpc \
+	tests/boss/test_stringid \
 	tests/boss/test_swapmanager \
 	tests/boss/test_tally \
 	tests/boss/test_unmanagedmanager \
@@ -612,6 +617,7 @@ TESTS = \
 	tests/jsmn/test_performance \
 	tests/json/test_out_simple \
 	tests/ln/test_amount \
+	tests/ln/test_commandid \
 	tests/ln/test_htlcaccepted \
 	tests/ln/test_nodeid \
 	tests/ln/test_scid \
@@ -628,6 +634,7 @@ TESTS = \
 	tests/test_uuid \
 	tests/util/test_date \
 	tests/util/test_duration \
+	tests/util/test_either \
 	tests/util/test_format
 check_PROGRAMS = $(TESTS)
 

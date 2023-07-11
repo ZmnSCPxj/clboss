@@ -2,6 +2,7 @@
 #define BOSS_MSG_COMMANDREQUEST_HPP
 
 #include"Jsmn/Object.hpp"
+#include"Ln/CommandId.hpp"
 #include<cstdint>
 #include<string>
 
@@ -16,7 +17,7 @@ namespace Boss { namespace Msg {
 struct CommandRequest {
 	std::string command;
 	Jsmn::Object params;
-	std::uint64_t id;
+	Ln::CommandId id;
 };
 
 }}

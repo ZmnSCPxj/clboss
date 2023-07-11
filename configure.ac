@@ -10,8 +10,25 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([m4])
 LT_INIT([disable-shared])
 
+m4_pattern_forbid([^PKG_])
+
 # Checks for programs.
+# If CXXFLAGS is unset, remove the -g
+# that AC_PROG_CXX adds to it.
+clboss_set_CXXFLAGS=${CXXFLAGS+y}
 AC_PROG_CXX
+AS_IF([test ${clboss_set_CXXFLAGS}], [
+	# AC_PROG_CXX will respect the user-given CXXFLAGS
+	:
+],[
+	# AC_PROG_CXX will default to `-g -O2` if g++,
+	# or `-g` otherwise.
+	AS_IF([test x"$GXX" = x"yes"], [
+		CXXFLAGS="-O2"
+	], [
+		CXXFLAGS=""
+	])
+])
 AX_CXX_COMPILE_STDCXX_11
 AC_LANG([C++])
 

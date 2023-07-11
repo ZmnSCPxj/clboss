@@ -33,6 +33,16 @@ public:
 				msg
 			);
 		}
+		res = sqlite3_extended_result_codes(connection, 1);
+		if (res != SQLITE_OK) {
+			auto msg = std::string(sqlite3_errmsg(connection));
+			sqlite3_close_v2(connection);
+			connection = nullptr;
+			throw std::runtime_error(
+				std::string("Sqlite3::Db: sqlite3_extended_result_codes: ") +
+				msg
+			);
+		}
 		res = sqlite3_exec( connection, "PRAGMA foreign_keys = ON;"
 				  , NULL, NULL, NULL
 				  );

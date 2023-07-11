@@ -67,6 +67,16 @@ auto const free_fee = Ln::Amount::sat(10);
 auto constexpr max_rebalance_fee_percent = double(0.5);
 auto const min_rebalance_fee = Ln::Amount::sat(5);
 
+std::string stringify_cid(Ln::CommandId const& id) {
+	auto rv = std::string();
+	id.cmatch([&](std::uint64_t nid) {
+		rv = Util::stringify(nid);
+	}, [&](std::string const& sid) {
+		rv = sid;
+	});
+	return rv;
+}
+
 }
 
 namespace Boss { namespace Mod {
@@ -163,7 +173,7 @@ private:
 						, "JitRebalancer: HTLC %s to "
 						  "unmanaged node %s, will "
 						  "ignore."
-						, Util::stringify(id).c_str()
+						, stringify_cid(id).c_str()
 						, Util::stringify(node).c_str()
 						).then([]() {
 					return Ev::lift(false);
@@ -187,7 +197,7 @@ private:
 		Run(S::Bus& bus, Boss::ModG::RpcProxy& rpc
 		   , Ln::NodeId const& node
 		   , Ln::Amount amount
-		   , std::uint64_t id
+		   , Ln::CommandId id
 		   , EarningsInfoRR& earnings_info_rr
 		   , MoveFundsRR& move_funds_rr
 		   , ModG::RebalanceUnmanagerProxy& unmanager
@@ -202,7 +212,7 @@ private:
 	Ev::Io<void>
 	check_and_move( Ln::NodeId const& node
 		      , Ln::Amount amount
-		      , std::uint64_t id
+		      , Ln::CommandId id
 		      ) {
 		return Ev::lift().then([this, node, amount, id]() {
 			auto r = Run( bus, rpc, node, amount, id
@@ -244,7 +254,7 @@ private:
 	Boss::ModG::RpcProxy& rpc;
 	Ln::NodeId out_node;
 	Ln::Amount amount;
-	std::uint64_t id;
+	Ln::CommandId id;
 
 	/* Unilateral-close feerate.  */
 	std::uint64_t feerate;
@@ -389,7 +399,7 @@ private:
 						, "JitRebalancer: HTLC %s "
 						  "of amount %s fits in "
 						  "outgoing amount %s."
-						, Util::stringify(id).c_str()
+						, stringify_cid(id).c_str()
 						, std::string(amount).c_str()
 						, std::string(it->second.to_us)
 							.c_str()
@@ -410,7 +420,7 @@ private:
 					, "JitRebalancer: HTLC %s needs "
 					  "amount %s, only %s available "
 					  "at %s, want to rebalance %s."
-					, Util::stringify(id).c_str()
+					, stringify_cid(id).c_str()
 					, std::string(amount).c_str()
 					, std::string(it->second.to_us).c_str()
 					, std::string(out_node).c_str()
@@ -432,7 +442,7 @@ private:
 						  "Cannot rebalance to %s, we "
 						  "already spent %s on "
 						  "rebalances, limit is %s."
-						, Util::stringify(id).c_str()
+						, stringify_cid(id).c_str()
 						, std::string(out_node).c_str()
 						, std::string(e.expenditures)
 							.c_str()
@@ -483,7 +493,7 @@ private:
 						, "JitRebalancer: HTLC %s: "
 						  "No candidates to get funds "
 						  "from."
-						, Util::stringify(id).c_str()
+						, stringify_cid(id).c_str()
 						).then([]() {
 					throw Continue();
 					return Ev::lift();
@@ -493,7 +503,7 @@ private:
 			return Boss::log( bus, Debug
 					, "JitRebalancer: HTLC %s: Move %s "
 					  "from %s to %s."
-					, Util::stringify(id).c_str()
+					, stringify_cid(id).c_str()
 					, std::string(to_move).c_str()
 					, std::string(selected).c_str()
 					, std::string(out_node).c_str()
@@ -529,7 +539,7 @@ public:
 	    , Boss::ModG::RpcProxy& rpc_
 	    , Ln::NodeId const& out_node_
 	    , Ln::Amount amount_
-	    , std::uint64_t id_
+	    , Ln::CommandId id_
 	    , EarningsInfoRR& earnings_info_rr_
 	    , MoveFundsRR& move_funds_rr_
 	    , ModG::RebalanceUnmanagerProxy& unmanager_
@@ -562,7 +572,7 @@ JitRebalancer::Impl::Run::Run( S::Bus& bus
 			     , Boss::ModG::RpcProxy& rpc
 			     , Ln::NodeId const& node
 			     , Ln::Amount amount
-			     , std::uint64_t id
+			     , Ln::CommandId id
 			     , EarningsInfoRR& earnings_info_rr
 			     , MoveFundsRR& move_funds_rr
 			     , ModG::RebalanceUnmanagerProxy& unmanager

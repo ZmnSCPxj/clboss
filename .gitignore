@@ -18,6 +18,7 @@ configure
 *.log
 *.m4
 !external/libsodium/m4/*.m4
+!external/secp256k1/build-aux/m4/*.m4
 libtool
 INSTALL
 Makefile
@@ -25,6 +26,7 @@ TAGS
 autom4te*
 m4
 !external/libsodium/m4
+!external/secp256k1/build-aux/m4
 stamp-*
 auxdir
 .deps

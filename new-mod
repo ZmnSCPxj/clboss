@@ -1,0 +1,79 @@
+#! /bin/sh
+
+if test $# '=' 0 || test 'x'"$1" '=' x--help; then
+	echo Usage: $0 NewModuleName
+	exit 0
+fi
+NAME="$1"
+CAPSNAME="`echo $NAME | tr '[a-z]' '[A-Z]'`"
+cat > Boss/Mod/$NAME.hpp <<HEADERFILE
+#ifndef BOSS_MOD_${CAPSNAME}_HPP
+#define BOSS_MOD_${CAPSNAME}_HPP
+
+#include<memory>
+
+namespace S { class Bus; }
+
+namespace Boss { namespace Mod {
+
+/** class Boss::Mod::${NAME}
+ *
+ * @brief <describe your module here>
+ */
+class ${NAME} {
+private:
+	class Impl;
+	std::unique_ptr<Impl> pimpl;
+
+public:
+	${NAME}() =delete;
+
+	${NAME}(${NAME}&&);
+	~${NAME}();
+
+	/* Formal constructor.  */
+	explicit
+	${NAME}(S::Bus&);
+};
+
+}}
+
+#endif /* !defined(BOSS_MOD_${CAPSNAME}_HPP) */
+HEADERFILE
+cat > Boss/Mod/$NAME.cpp <<SOURCEFILE
+#include"Boss/Mod/${NAME}.hpp"
+#include"Ev/Io.hpp"
+#include"S/Bus.hpp"
+#include"Util/make_unique.hpp"
+
+namespace Boss { namespace Mod {
+
+class ${NAME}::Impl {
+private:
+	S::Bus& bus;
+
+	/* <insert your data here> */
+
+	void start() {
+		/* <insert bus.subscribe calls here> */
+	}
+
+public:
+	Impl() =delete;
+	Impl(Impl&&) =delete;
+
+	explicit
+	Impl(S::Bus& bus_) : bus(bus_) { start(); }
+};
+
+/* Use default implementations.  */
+${NAME}::${NAME}(${NAME}&&) =default;
+${NAME}::~${NAME}() =default;
+
+/* Construct the implementation.  */
+${NAME}::${NAME}(S::Bus& bus)
+	: pimpl(Util::make_unique<Impl>(bus)) { }
+
+}}
+SOURCEFILE
+echo "Please add ${NAME} to Makefile.am and Boss/Mod/all.cpp"

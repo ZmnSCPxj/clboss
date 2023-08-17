@@ -1,6 +1,7 @@
 #ifndef UTIL_BECH32_HPP
 #define UTIL_BECH32_HPP
 
+#include "Compiler.hpp"
 #include<stdexcept>
 #include<string>
 #include<vector>

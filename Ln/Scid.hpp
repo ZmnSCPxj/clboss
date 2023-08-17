@@ -1,6 +1,7 @@
 #ifndef LN_SCID_HPP
 #define LN_SCID_HPP
 
+#include "Util/Compiler.hpp"
 #include<cstddef>
 #include<string>
 #include<iostream>

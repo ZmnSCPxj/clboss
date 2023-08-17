@@ -85,7 +85,6 @@ int main() {
 
 		a = Example::left(0);
 		b = Example::right("another string another check");
-		b = std::move(b);
 		assert(a != b);
 		assert(a == Example::left(0));
 		assert(b == Example::right("another string another check"));

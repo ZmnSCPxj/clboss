@@ -136,6 +136,17 @@ transiently be in a state where the default CLANG may
 raise warnings that are not raised by GCC, or may refer to
 Linux-specific header files and functions.
 
+### Nix
+
+If you are a Nix user for developments you are use nix to build clboss, and to get started
+you need nix flake activated on your machine and then run the following command:
+
+```
+nix develop
+autoreconf -i
+./configure && make
+```
+
 Operating
 ---------
 

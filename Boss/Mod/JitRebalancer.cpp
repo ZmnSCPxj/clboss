@@ -141,7 +141,7 @@ private:
 	}
 	Ev::Io<bool>
 	htlc_accepted_cont( Ln::NodeId const& node
-			  , std::uint64_t id
+			  , Ln::CommandId id
 			  , Ln::Amount amount
 			  ) {
 		return unmanager.get_unmanaged().then([ this

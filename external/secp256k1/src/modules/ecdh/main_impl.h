@@ -7,8 +7,8 @@
 #ifndef SECP256K1_MODULE_ECDH_MAIN_H
 #define SECP256K1_MODULE_ECDH_MAIN_H
 
-#include "include/secp256k1_ecdh.h"
-#include "ecmult_const_impl.h"
+#include "../../../include/secp256k1_ecdh.h"
+#include "../../ecmult_const_impl.h"
 
 static int ecdh_hash_function_sha256(unsigned char *output, const unsigned char *x32, const unsigned char *y32, void *data) {
     unsigned char version = (y32[31] & 0x01) | 0x02;
@@ -50,7 +50,7 @@ int secp256k1_ecdh(const secp256k1_context* ctx, unsigned char *output, const se
     overflow |= secp256k1_scalar_is_zero(&s);
     secp256k1_scalar_cmov(&s, &secp256k1_scalar_one, overflow);
 
-    secp256k1_ecmult_const(&res, &pt, &s, 256);
+    secp256k1_ecmult_const(&res, &pt, &s);
     secp256k1_ge_set_gej(&pt, &res);
 
     /* Compute a hash of the point */

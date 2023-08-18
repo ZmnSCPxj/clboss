@@ -1,9 +1,10 @@
 diff --git a/Makefile.am b/Makefile.am
-index de56754..ca039f5 100644
+index 29b8a69..8909287 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -1,9 +1,8 @@
- ACLOCAL_AMFLAGS = -I build-aux/m4
+@@ -4,10 +4,9 @@ ACLOCAL_AMFLAGS = -I build-aux/m4
+ # which does not have an explicit foo_CFLAGS variable set.
+ AM_CFLAGS = $(SECP_CFLAGS)
  
 -lib_LTLIBRARIES = libsecp256k1.la
 -include_HEADERS = include/secp256k1.h
@@ -15,15 +16,17 @@ index de56754..ca039f5 100644
  noinst_HEADERS += src/scalar.h
  noinst_HEADERS += src/scalar_4x64.h
  noinst_HEADERS += src/scalar_8x32.h
-@@ -53,13 +52,13 @@ noinst_HEADERS += contrib/lax_der_privatekey_parsing.c
+@@ -71,7 +70,7 @@ noinst_HEADERS += contrib/lax_der_privatekey_parsing.c
+ noinst_HEADERS += examples/examples_util.h
  
- if USE_EXTERNAL_ASM
- COMMON_LIB = libsecp256k1_common.la
--noinst_LTLIBRARIES = $(COMMON_LIB)
-+noinst_LTLIBRARIES += $(COMMON_LIB)
- else
- COMMON_LIB =
- endif
+ PRECOMPUTED_LIB = libsecp256k1_precomputed.la
+-noinst_LTLIBRARIES = $(PRECOMPUTED_LIB)
++noinst_LTLIBRARIES += $(PRECOMPUTED_LIB)
+ libsecp256k1_precomputed_la_SOURCES =  src/precomputed_ecmult.c src/precomputed_ecmult_gen.c
+ # We need `-I$(top_srcdir)/src` in VPATH builds if libsecp256k1_precomputed_la_SOURCES have been recreated in the build tree.
+ # This helps users and packagers who insist on recreating the precomputed files (e.g., Gentoo).
+@@ -85,7 +84,7 @@ endif
+ noinst_LTLIBRARIES += $(COMMON_LIB)
  
  pkgconfigdir = $(libdir)/pkgconfig
 -pkgconfig_DATA = libsecp256k1.pc
@@ -32,7 +35,7 @@ index de56754..ca039f5 100644
  if USE_EXTERNAL_ASM
  if USE_ASM_ARM
 diff --git a/src/modules/ecdh/Makefile.am.include b/src/modules/ecdh/Makefile.am.include
-index e3088b4..24f762e 100644
+index 7f7f95f..61fc1b0 100644
 --- a/src/modules/ecdh/Makefile.am.include
 +++ b/src/modules/ecdh/Makefile.am.include
 @@ -1,4 +1,4 @@
@@ -40,19 +43,9 @@ index e3088b4..24f762e 100644
 +noinst_HEADERS += include/secp256k1_ecdh.h
  noinst_HEADERS += src/modules/ecdh/main_impl.h
  noinst_HEADERS += src/modules/ecdh/tests_impl.h
- if USE_BENCHMARK
-diff --git a/src/modules/recovery/Makefile.am.include b/src/modules/recovery/Makefile.am.include
-index bf23c26..dd05f6d 100644
---- a/src/modules/recovery/Makefile.am.include
-+++ b/src/modules/recovery/Makefile.am.include
-@@ -1,4 +1,4 @@
--include_HEADERS += include/secp256k1_recovery.h
-+noinst_HEADERS += include/secp256k1_recovery.h
- noinst_HEADERS += src/modules/recovery/main_impl.h
- noinst_HEADERS += src/modules/recovery/tests_impl.h
- noinst_HEADERS += src/modules/recovery/tests_exhaustive_impl.h
+ noinst_HEADERS += src/modules/ecdh/bench_impl.h
 diff --git a/src/modules/extrakeys/Makefile.am.include b/src/modules/extrakeys/Makefile.am.include
-index bf23c26..dd05f6d 100644
+index 0d901ec..017d6b4 100644
 --- a/src/modules/extrakeys/Makefile.am.include
 +++ b/src/modules/extrakeys/Makefile.am.include
 @@ -1,4 +1,4 @@
@@ -61,8 +54,18 @@ index bf23c26..dd05f6d 100644
  noinst_HEADERS += src/modules/extrakeys/tests_impl.h
  noinst_HEADERS += src/modules/extrakeys/tests_exhaustive_impl.h
  noinst_HEADERS += src/modules/extrakeys/main_impl.h
+diff --git a/src/modules/recovery/Makefile.am.include b/src/modules/recovery/Makefile.am.include
+index 156ea69..c8a275b 100644
+--- a/src/modules/recovery/Makefile.am.include
++++ b/src/modules/recovery/Makefile.am.include
+@@ -1,4 +1,4 @@
+-include_HEADERS += include/secp256k1_recovery.h
++noinst_HEADERS += include/secp256k1_recovery.h
+ noinst_HEADERS += src/modules/recovery/main_impl.h
+ noinst_HEADERS += src/modules/recovery/tests_impl.h
+ noinst_HEADERS += src/modules/recovery/tests_exhaustive_impl.h
 diff --git a/src/modules/schnorrsig/Makefile.am.include b/src/modules/schnorrsig/Makefile.am.include
-index bf23c26..dd05f6d 100644
+index 654fa2e..2fc623c 100644
 --- a/src/modules/schnorrsig/Makefile.am.include
 +++ b/src/modules/schnorrsig/Makefile.am.include
 @@ -1,4 +1,4 @@

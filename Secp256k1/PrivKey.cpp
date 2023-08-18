@@ -59,13 +59,13 @@ PrivKey::~PrivKey() {
 }
 
 PrivKey& PrivKey::negate() {
-	auto res = secp256k1_ec_privkey_negate(context.get(), key);
+	auto res = secp256k1_ec_seckey_negate(context.get(), key);
 	assert(res == 1);
 	return *this;
 }
 
 PrivKey& PrivKey::operator+=(PrivKey const& o) {
-	auto res = secp256k1_ec_privkey_tweak_add(context.get(), key, o.key);
+	auto res = secp256k1_ec_seckey_tweak_add(context.get(), key, o.key);
 	/* FIXME: Use a backtrace-catching exception. */
 	if (!res)
 		throw std::out_of_range("Secp256k1::PrivKey += out-of-range");
@@ -73,7 +73,7 @@ PrivKey& PrivKey::operator+=(PrivKey const& o) {
 }
 
 PrivKey& PrivKey::operator*=(PrivKey const& o) {
-	auto res = secp256k1_ec_privkey_tweak_mul(context.get(), key, o.key);
+	auto res = secp256k1_ec_seckey_tweak_mul(context.get(), key, o.key);
 	/* FIXME: Use a backtrace-catching exception. */
 	if (!res)
 		throw std::out_of_range("Secp256k1::PrivKey += out-of-range");

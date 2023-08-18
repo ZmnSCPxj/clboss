@@ -2,7 +2,7 @@
 
 REPO="https://github.com/bitcoin-core/secp256k1"
 EXTNAME="secp256k1"
-COMMIT="4c3ba88"
+COMMIT="acf5c55ae6a94e5ca847e07def40427547876101"
 
 DIR=`mktemp -d`
 
@@ -13,7 +13,7 @@ else
   exit 1
 fi
 
-ORIGDIR="`pwd`"
+ORIGDIR="`pwd`/external"
 
 cd ${DIR}
 

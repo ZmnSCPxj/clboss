@@ -54,14 +54,6 @@ auto const max_proposals = size_t(5);
  */
 auto const min_channels_to_backoff = size_t(4);
 
-/** min_nodes_to_process
- *
- * @brief if the number of nodes known by this node
- * is less than this, go to sleep and try again
- * later.
- */
-auto const min_nodes_to_process = size_t(800);
-
 /** seconds_after_connect
  *
  * @brief if we previously stopped looking for popular
@@ -122,6 +114,14 @@ private:
 	/* Previous total_owend amount.  */
 	std::unique_ptr<Ln::Amount> total_owned;
 
+	/** min_nodes_to_process
+	 *
+	 * @brief if the number of nodes known by this node
+	 * is less than this, go to sleep and try again
+	 * later.
+	 */
+	size_t min_nodes_to_process = size_t(800);
+
 	void start() {
 		running = false;
 		try_later = false;
@@ -134,6 +134,11 @@ private:
 			rpc = &init.rpc;
 			self = init.self_id;
 			db = init.db;
+			switch (init.network) {
+			case Boss::Msg::Network_Bitcoin: min_nodes_to_process = 800; break;
+			case Boss::Msg::Network_Testnet: min_nodes_to_process = 300; break;
+			default: min_nodes_to_process = 10; break; // others are likely small
+			}
 			return db.transact().then([this](Sqlite3::Tx tx) {
 				/* Create the on-database have_run flag.  */
 				tx.query_execute(R"SQL(

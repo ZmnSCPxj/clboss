@@ -1,3 +1,34 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+## [0.13rc2] - 2023-08-28: "The Boss is Back"
+
+### Added
+
+- Continuous Integration (CI) for pull requests!
+- Support string "id" fields in the plugin interface.
+- Enable SQLITE3 extended error codes.
+
+### Changed
+
+- Disable compiling debug information by default; if you need this,
+  explicitly include `-g` in your `configure` command, like so:
+  `./configure CXXFLAGS="-O2 -g"`.  This reduces binary size by 20x.
+- Avoid parameters/commands deprecated in Core Lightning 0.11.0.
+
+### Fixed
+
+- Can now handle JSON-RPC amounts in either the old convention
+  (string, "msat" suffix) or the post 23.05 convention (json number). ([#157], [#164])
+- Fixed non-integer blockheights (testnet) ([#170])
+- Upgraded libraries and compiler to fix build. ([#169])
+
+
+## Prior `ChangeLog` entries [formatting change]
+
 - Support string "id" fields in the plugin interface.
 - Disable compiling debug information by default; if you need this, explicitly include `-g` in your `configure` command, like so: `./configure CXXFLAGS="-O2 -g"`.  This reduces binary size by 20x.
 - Enable SQLITE3 extended error codes.
@@ -117,3 +148,7 @@
 0.2 TV Tropes Will Ruin Your Life
 
 0.1A Initial Alpha Release
+
+Local Variables:
+mode: markdown
+End:

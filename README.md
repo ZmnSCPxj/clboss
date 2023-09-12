@@ -36,14 +36,28 @@ Dependencies
 ------------
 
 If you are installing from some official [source release tarball](https://github.com/ZmnSCPxj/clboss/releases),
-you only need the below packages installed on a Debian or
-Debian-derived systems:
+you only need the below packages installed.
 
+Debian-derived systems:
 * `build-essential`
 * `pkg-config`
 * `libev-dev`
 * `libcurl4-gnutls-dev`
 * `libsqlite3-dev`
+
+RPM-dervied :
+* `groupinstall "Development Tools"`
+* `pkg-config`
+* `libev-devel`
+* `libcurl-devel`
+* `libsqlite3x-devel`
+
+Alpine:
+* `build-base`
+* `pkgconf`
+* `libev-dev`
+* `curl-dev`
+* `sqlite-dev`
 
 Equivalent packages have a good probability of existing in
 non-Debian-derived distributions as well.
@@ -54,8 +68,10 @@ it while building):
 
 * `dnsutils`
 
+For alpine linux the package is: `bind-tools`.
+
 If you have to build directly from github.com, you need the below
-Debian packages in addition:
+Debian/RPM/Alpine packages in addition:
 
 * `git`
 * `automake`

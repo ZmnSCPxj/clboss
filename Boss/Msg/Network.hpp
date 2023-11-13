@@ -7,6 +7,7 @@ enum Network
 { Network_Bitcoin
 , Network_Testnet
 , Network_Regtest
+, Network_Signet
 };
 
 } }

@@ -125,7 +125,7 @@ private:
 			.start_object()
 				.field("id", std::string(toid))
 				.field("fromid", std::string(fromid))
-				.field("msatoshi", "1msat")
+				.field("amount_msat", 1)
 				/* I never had a decent grasp of
 				 * riskfactor.  */
 				.field("riskfactor", 10.0)

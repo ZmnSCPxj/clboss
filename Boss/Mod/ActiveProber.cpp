@@ -241,9 +241,7 @@ private:
 				.start_object()
 					.field("fromid", std::string(peer))
 					.field("id", std::string(dest))
-					.field( "msatoshi"
-					      , std::string(amount)
-					      )
+					.field("amount_msat", amount.to_msat())
 					/* I have written this many times,
 					 * but I never understood riskfactor.
 					 */
@@ -407,11 +405,8 @@ private:
 					.field( "direction"
 					      , self_id > peer ? 1 : 0
 					      )
-					.field( "msatoshi"
-					      , amount0.to_msat()
-					      )
 					.field( "amount_msat"
-					      , std::string(amount0)
+					      , amount0.to_msat()
 					      )
 					.field("delay", delay0)
 					.field("style", "tlv")

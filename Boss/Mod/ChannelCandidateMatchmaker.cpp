@@ -100,7 +100,7 @@ private:
 				/* 2x because the dowser will halve the channel
 				 * capacity of the first hop.
 				 */
-				.field("msatoshi", std::string(2.0 * min_channel))
+				.field("amount_msat", (2.0 * min_channel).to_msat())
 				/* No real idea how to think about
 				 * riskfactor.
 				 */

@@ -125,9 +125,7 @@ private:
 			auto parms = Json::Out()
 				.start_object()
 					.field("id", std::string(destination))
-					.field( "msatoshi"
-					      , std::string(dest_amount)
-					      )
+					.field("amount_msat", dest_amount.to_msat())
 					.field("riskfactor", 10)
 					.field("cltv", cltv_delta + 14)
 					.field("fromid", std::string(source))
@@ -463,10 +461,7 @@ private:
 				.field( "direction"
 				      , self_id > source ? 1 : 0
 				      )
-				.field("msatoshi", source_amount.to_msat())
-				.field( "amount_msat"
-				      , std::string(source_amount)
-				      )
+				.field("amount_msat", source_amount.to_msat())
 				.field("delay", source_delay)
 				/* This used to be an explicit "style": "legacy",
 				 * since we did not want to have to parse listnodes
@@ -501,8 +496,7 @@ private:
 				.field( "direction"
 				      , destination > self_id ? 1 : 0
 				      )
-				.field("msatoshi", amount.to_msat())
-				.field("amount_msat", std::string(amount))
+				.field("amount_msat", amount.to_msat())
 				.field("delay", 14)
 				/* We always support "tlv", at least for now... */
 				.field("style", "tlv")

@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.13.1] - 2024-04-16: "E Street Fix"
+
+### Fixed
+
+- CLN `v24.02` deprecated the RPC `msatoshi` fields which needed to be
+  converted to `amount_msat` instead.  This caused channel candidates
+  to not be found ([#189]) (and maybe other problems).  Fixed in
+  ([#190]).
+
+### Changed
+
+- The minimum number of network nodes seen before initiating certain
+  actions is 800 in the bitcoin network.  ([#173]) changes this
+  threshold for the testnet (300) and other networks (10).  The new
+  thresholds should allow CLBOSS to act when there are fewer available
+  nodes.  The bitcoin limit remains 800.
+
 ## [0.13] - 2023-09-08: "Born to Run"
 
 ### Added

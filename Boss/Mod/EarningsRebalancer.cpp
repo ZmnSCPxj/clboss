@@ -157,11 +157,6 @@ private:
 				));
 
 				for (auto c : p["channels"]) {
-					auto priv = bool(
-						c["private"]
-					);
-					if (priv)
-						continue;
 					auto state = std::string(
 						c["state"]
 					);

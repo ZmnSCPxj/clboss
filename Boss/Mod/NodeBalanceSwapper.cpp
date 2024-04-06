@@ -57,12 +57,6 @@ private:
 						  != "CHANNELD_NORMAL"
 						   )
 							continue;
-						/* Skip unpublished channels,
-						 * they cannot be used for
-						 * forwarding anyway.
-						 */
-						if (chan["private"])
-							continue;
 						auto recv = Ln::Amount();
 						auto send = Ln::Amount();
 						compute_sendable_receivable(

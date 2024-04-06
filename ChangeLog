@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   converted to `amount_msat` instead.  This caused channel candidates
   to not be found ([#189]) (and maybe other problems).  Fixed in
   ([#190]).
+- CLN `v24.02` deprecated the RPC `private` field in the channel info
+  RPC data because private channels are no longer present.  Remove
+  references to the field because we only want to skip these channels
+  anyway.  Fixes ([192])
 
 ### Changed
 

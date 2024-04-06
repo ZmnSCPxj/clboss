@@ -53,8 +53,7 @@ public:
  */
 auto const peers = std::string(R"JSON(
 [ { "id" : "020000000000000000000000000000000000000000000000000000000000000000"
-  , "channels" : [ { "private" : false
-                   , "state" : "CHANNELD_NORMAL"
+  , "channels" : [ { "state" : "CHANNELD_NORMAL"
                    , "to_us_msat" : "1000000000msat"
                    , "total_msat" : "1000000000msat"
                    , "htlcs" : []
@@ -62,8 +61,7 @@ auto const peers = std::string(R"JSON(
                  ]
   }
 , { "id" : "020000000000000000000000000000000000000000000000000000000000000001"
-  , "channels" : [ { "private" : false
-                   , "state" : "CHANNELD_NORMAL"
+  , "channels" : [ { "state" : "CHANNELD_NORMAL"
                    , "to_us_msat" : "0msat"
                    , "total_msat" : "1000000000msat"
                    , "htlcs" : []
@@ -73,8 +71,7 @@ auto const peers = std::string(R"JSON(
 
 
 , { "id" : "020000000000000000000000000000000000000000000000000000000000000003"
-  , "channels" : [ { "private" : false
-                   , "state" : "CHANNELD_NORMAL"
+  , "channels" : [ { "state" : "CHANNELD_NORMAL"
                    , "to_us_msat" : "0msat"
                    , "total_msat" : "1000000000msat"
                    , "htlcs" : []
@@ -82,8 +79,7 @@ auto const peers = std::string(R"JSON(
                  ]
   }
 , { "id" : "020000000000000000000000000000000000000000000000000000000000000004"
-  , "channels" : [ { "private" : false
-                   , "state" : "CHANNELD_NORMAL"
+  , "channels" : [ { "state" : "CHANNELD_NORMAL"
                    , "to_us_msat" : "1000000000msat"
                    , "total_msat" : "1000000000msat"
                    , "htlcs" : []

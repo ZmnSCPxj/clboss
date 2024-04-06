@@ -74,7 +74,6 @@ public:
 					.field("id", std::string(p.first))
 					.start_array("channels")
 						.start_object()
-							.field("private", false)
 							.field("state", "CHANNELD_NORMAL")
 							.field("to_us_msat", std::string(p.second.to_us))
 							.field("total_msat", std::string(p.second.total))

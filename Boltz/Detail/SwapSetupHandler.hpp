@@ -97,6 +97,7 @@ public:
 private:
 	Ev::Io<void> core_run();
 
+	Ev::Io<void> logt(std::string);
 	Ev::Io<void> logd(std::string);
 	Ev::Io<void> loge(std::string);
 	std::string prefixlog(std::string);

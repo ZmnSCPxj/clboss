@@ -18,6 +18,7 @@ Ev::Io<void> log(S::Bus& bus, LogLevel l, const char *fmt, ...) {
 
 	auto level_string = std::string();
 	switch (l) {
+	case Trace: level_string = std::string("trace"); break;
 	case Debug: level_string = std::string("debug"); break;
 	case Info: level_string = std::string("info"); break;
 	case Warn: level_string = std::string("warn"); break;

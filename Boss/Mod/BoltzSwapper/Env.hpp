@@ -33,6 +33,7 @@ public:
 	/* Boltz::EnvIF.  */
 	Ev::Io<std::uint32_t> get_feerate() override;
 	Ev::Io<bool> broadcast_tx(Bitcoin::Tx) override;
+	Ev::Io<void> logt(std::string) override;
 	Ev::Io<void> logd(std::string) override;
 	Ev::Io<void> loge(std::string) override;
 };

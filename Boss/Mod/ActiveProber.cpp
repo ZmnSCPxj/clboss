@@ -117,39 +117,33 @@ private:
 					.field("id", std::string(peer))
 				.end_object()
 				;
-			return rpc.command("listpeers", std::move(parms));
+			return rpc.command("listpeerchannels", std::move(parms));
 		}).then([this](Jsmn::Object res) {
 			try {
-				auto ps = res["peers"];
-				for (auto p : ps) {
-					auto cs = p["channels"];
-					for (auto c : cs) {
-						if (!c.has("short_channel_id"))
-							continue;
-						if (!c.has("spendable_msat"))
-							continue;
-						auto state = std::string(
-							c["state"]
-						);
-						if (state != "CHANNELD_NORMAL")
-							continue;
+				auto cs = res["channels"];
+				for (auto c : cs) {
+					if (!c.has("short_channel_id"))
+						continue;
+					if (!c.has("spendable_msat"))
+						continue;
+					auto state = std::string(
+						c["state"]
+					);
+					if (state != "CHANNELD_NORMAL")
+						continue;
 
-						chan0 = Ln::Scid(std::string(
-							c["short_channel_id"]
-						));
-						cap0 = Ln::Amount::object(
-							c["spendable_msat"]
-						);
-						break;
-					}
-
-					if (chan0)
-						break;
+					chan0 = Ln::Scid(std::string(
+						c["short_channel_id"]
+					));
+					cap0 = Ln::Amount::object(
+						c["spendable_msat"]
+					);
+					break;
 				}
 			} catch (Jsmn::TypeError const& _) {
 				return Boss::log( bus, Error
 						, "ActiveProber: unexpected "
-						  "listpeers result: %s"
+						  "listpeerchannels result: %s"
 						, Util::stringify(res).c_str()
 						);
 			}

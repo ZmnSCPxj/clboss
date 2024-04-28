@@ -303,15 +303,17 @@ private:
 
 			/* Determine the amounts available.  */
 			auto parms = Json::Out::empty_object();
-			return rpc.command("listpeers", std::move(parms));
+			return rpc.command("listpeerchannels", std::move(parms));
 		}).then([this](Jsmn::Object res) {
 			try {
-				auto ps = res["peers"];
-				for (auto p : ps) {
+                                  // auto ps = res["peers"];
+                                  // for (auto p : ps) {
+                          	auto cs = res["channels"];
+                                for (auto c : cs) {
 					auto to_us = Ln::Amount::sat(0);
 					auto capacity = Ln::Amount::sat(0);
 					auto peer = Ln::NodeId(std::string(
-						p["id"]
+						c["peer_id"]
 					));
 
 					/* Skip peers in the unmanaged
@@ -319,29 +321,26 @@ private:
 					if (unmanaged->count(peer) != 0)
 						continue;
 
-					auto cs = p["channels"];
-					for (auto c : cs) {
-						auto state = std::string(
-							c["state"]
-						);
-						if (state != "CHANNELD_NORMAL")
-							continue;
-						to_us += Ln::Amount::object(
-							c["to_us_msat"]
-						);
-						capacity += Ln::Amount::object(
-							c["total_msat"]
-						);
-					}
+					auto state = std::string(
+						c["state"]
+					);
+					if (state != "CHANNELD_NORMAL")
+						continue;
+					to_us += Ln::Amount::object(
+						c["to_us_msat"]
+					);
+					capacity += Ln::Amount::object(
+						c["total_msat"]
+					);
 
 					auto& av = available[peer];
-					av.to_us = to_us;
-					av.capacity = capacity;
-				}
+					av.to_us += to_us;
+					av.capacity += capacity;
+                                }
 			} catch (std::exception const&) {
 				return Boss::log( bus, Error
 						, "JitRebalancer: Unexpected "
-						  "result from listpeers: %s"
+						  "result from listpeerchannels: %s"
 						, Util::stringify(res).c_str()
 						).then([]() {
 					throw Continue();

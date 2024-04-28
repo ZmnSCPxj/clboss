@@ -163,40 +163,35 @@ private:
 					.field("id", std::string(*node))
 				.end_object()
 				;
-			return rpc->command("listpeers", std::move(parms));
+			return rpc->command("listpeerchannels", std::move(parms));
 		}).then([this](Jsmn::Object res) {
 			auto act = Ev::lift();
 			auto found = false;
 			auto to_us = Ln::Amount();
 			auto total = Ln::Amount();
 			try {
-				auto ps = res["peers"];
-				for (auto p : ps) {
-					auto cs = p["channels"];
-					for (auto c : cs) {
-						auto state = std::string(
-							c["state"]
-						);
-						if (state != "CHANNELD_NORMAL")
-							continue;
-						found = true;
-						to_us = Ln::Amount::object(
-							c["to_us_msat"]
-						);
-						total = Ln::Amount::object(
-							c["total_msat"]
-						);
-						break;
-					}
-					if (found)
-						break;
+				auto cs = res["channels"];
+				for (auto c : cs) {
+					auto state = std::string(
+						c["state"]
+					);
+					if (state != "CHANNELD_NORMAL")
+						continue;
+					found = true;
+					to_us = Ln::Amount::object(
+						c["to_us_msat"]
+					);
+					total = Ln::Amount::object(
+						c["total_msat"]
+					);
+					break;
 				}
 			} catch (std::exception const&) {
 				found = false;
 				act = Boss::log( bus, Error
 					       , "FeeModderByBalance: "
 						 "Unexpected result from "
-						 "listpeers: %s"
+						 "listpeerchannels: %s"
 					       , Util::stringify(res)
 							.c_str()
 					       );

@@ -85,11 +85,12 @@ int main() {
 
 	/* ListpeersResult model.  */
 	auto listpeers = [&](std::string peers_json) {
+		std::cerr << "LISTPEERS: " << peers_json << std::endl;
 		auto is = std::stringstream(std::move(peers_json));
 		auto peers = Jsmn::Object();
 		is >> peers;
 		return bus.raise(Boss::Msg::ListpeersResult{
-			peers, false
+				Boss::Mod::convert_legacy_listpeers(peers), false
 		}).then([]() {
 			/* Let object run.  */
 			return yield256();
@@ -290,6 +291,12 @@ int main() {
 			  }
 			, { "id": "020000000000000000000000000000000000000000000000000000000000000001"
 			  , "channels": [ { "state": "CHANNELD_NORMAL"
+					  , "total_msat": "1500000000msat"
+					  }
+					]
+			  }
+			, { "id": "020000000000000000000000000000000000000000000000000000000000000002"
+			  , "channels": [ { "stateXX": "CHANNELD_NORMAL"
 					  , "total_msat": "1500000000msat"
 					  }
 					]

@@ -1,3 +1,4 @@
+
 #include"Boss/Mod/EarningsRebalancer.hpp"
 #include"Boss/ModG/RebalanceUnmanagerProxy.hpp"
 #include"Boss/ModG/ReqResp.hpp"
@@ -119,7 +120,7 @@ private:
 			     >([this](Msg::ListpeersResult const& m) {
 			if (m.initial)
 				return Ev::lift();
-			return update_balances(m.peers);
+			return update_balances(m.cpeers);
 		});
 
 		/* Command to trigger the algorithm for testing.  */
@@ -144,7 +145,7 @@ private:
 		});
 	}
 
-	Ev::Io<void> update_balances(Jsmn::Object const& peers) {
+	Ev::Io<void> update_balances(Boss::Mod::ConstructedListpeers const& peers) {
 		auto new_balances = std::map<Ln::NodeId, BalanceInfo>();
 		try {
 			for (auto p : peers) {
@@ -152,11 +153,9 @@ private:
 				auto receivable = Ln::Amount::sat(0);
 				auto total = Ln::Amount::sat(0);
 
-				auto id = Ln::NodeId(std::string(
-					p["id"]
-				));
+				auto id = p.first;
 
-				for (auto c : p["channels"]) {
+				for (auto c : p.second.channels) {
 					auto state = std::string(
 						c["state"]
 					);

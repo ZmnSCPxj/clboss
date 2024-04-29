@@ -3,6 +3,7 @@
 #include"Boss/Mod/EarningsRebalancer.hpp"
 #include"Boss/Mod/RebalanceUnmanager.hpp"
 #include"Boss/Msg/CommandRequest.hpp"
+#include"Boss/Mod/ConstructedListpeers.hpp"
 #include"Boss/Msg/ListpeersResult.hpp"
 #include"Boss/Msg/RequestEarningsInfo.hpp"
 #include"Boss/Msg/RequestMoveFunds.hpp"
@@ -84,12 +85,12 @@ public:
 				.end_object();
 			}
 			arr.end_array();
-			
+
 			auto is = std::istringstream(j.output());
 			auto js = Jsmn::Object();
 			is >> js;
 			return bus.raise(Boss::Msg::ListpeersResult{
-				std::move(js), false
+					std::move(Boss::Mod::convert_legacy_listpeers(js)), false
 			});
 		});
 	}

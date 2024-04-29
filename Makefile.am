@@ -139,6 +139,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ConnectFinderByHardcode.hpp \
 	Boss/Mod/Connector.cpp \
 	Boss/Mod/Connector.hpp \
+	Boss/Mod/ConstructedListpeers.cpp \
+	Boss/Mod/ConstructedListpeers.hpp \
 	Boss/Mod/Dowser.cpp \
 	Boss/Mod/Dowser.hpp \
 	Boss/Mod/EarningsRebalancer.cpp \

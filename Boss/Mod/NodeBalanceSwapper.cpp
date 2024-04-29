@@ -48,8 +48,8 @@ private:
 			auto total_recv = Ln::Amount::sat(0);
 			auto total_send = Ln::Amount::sat(0);
 			try {
-				for (auto peer : m.peers) {
-					auto channels = peer["channels"];
+				for (auto peer : m.cpeers) {
+                                  	auto channels = peer.second.channels;
 					for (auto chan : channels) {
 						/* Skip non-active channels.
 						 */
@@ -69,7 +69,7 @@ private:
 			} catch (Jsmn::TypeError const&) {
 				/* Should never happen.... */
 				auto os = std::ostringstream();
-				os << m.peers;
+				os << m.cpeers;
 				return Boss::log( bus, Error
 						, "NodeBalanceSwapper: "
 						  "Unexpected listpeers: %s"

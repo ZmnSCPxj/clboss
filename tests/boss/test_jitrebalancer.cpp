@@ -88,6 +88,61 @@ auto const listpeers_result = R"JSON(
 }
 )JSON";
 
+auto const listpeerchannels_result = R"JSON(
+{
+  "channels": [
+    {
+      "state": "CHANNELD_NORMAL",
+      "to_us_msat": "750000000msat",
+      "total_msat": "1000000000msat",
+      "short_channel_id": "1000x1x0",
+      "peer_id": "020000000000000000000000000000000000000000000000000000000000000000",
+      "peer_connected": true
+    },
+    {
+      "state": "CHANNELD_NORMAL",
+      "to_us_msat": "0msat",
+      "total_msat": "1000000000msat",
+      "short_channel_id": "1000x1x1",
+      "peer_id": "020000000000000000000000000000000000000000000000000000000000000001",
+      "peer_connected": true
+    },
+    {
+      "state": "ONCHAIN",
+      "to_us_msat": "1000000000msat",
+      "total_msat": "1000000000msat",
+      "short_channel_id": "999x1x1",
+      "peer_id": "020000000000000000000000000000000000000000000000000000000000000001",
+      "peer_connected": true
+    },
+    {
+      "state": "CHANNELD_NORMAL",
+      "to_us_msat": "80000msat",
+      "total_msat": "1000000000msat",
+      "short_channel_id": "1000x1x2",
+      "peer_id": "020000000000000000000000000000000000000000000000000000000000000002",
+      "peer_connected": true
+    },
+    {
+      "state": "CHANNELD_NORMAL",
+      "to_us_msat": "900000000msat",
+      "total_msat": "1000000000msat",
+      "short_channel_id": "9999x1x0",
+      "peer_id": "02000000000000000000000000000000000000000000000000000000000000FF00",
+      "peer_connected": true
+    },
+    {
+      "state": "CHANNELD_NORMAL",
+      "to_us_msat": "900000000msat",
+      "total_msat": "1000000000msat",
+      "short_channel_id": "9999x1x1",
+      "peer_id": "02000000000000000000000000000000000000000000000000000000000000FF01",
+      "peer_connected": true
+    }
+  ]
+}
+)JSON";
+
 class DummyEarningsManager {
 private:
 	S::Bus& bus;
@@ -140,10 +195,13 @@ public:
 			       ](Boss::Msg::RequestRpcCommand const& m) {
 			if (m.command == "listpeers") {
 				return respond(m.requester, listpeers_result);
+			} else if (m.command == "listpeerchannels") {
+				return respond(m.requester, listpeerchannels_result);
 			} else if (m.command == "feerates") {
 				return respond(m.requester, feerates_result);
 			} else {
 				/* Unmocked command.  */
+				std::cerr << "COMMAND WAS " << m.command << std::endl;
 				assert(0);
 				return Ev::lift();
 			}
@@ -286,7 +344,7 @@ int main() {
 		auto res = parse_json(listpeers_result);
 		auto peers = res["peers"];
 		return bus.raise(Boss::Msg::ListpeersResult{
-			std::move(peers), true
+				std::move(Boss::Mod::convert_legacy_listpeers(peers)), true
 		});
 	}).then([&]() {
 

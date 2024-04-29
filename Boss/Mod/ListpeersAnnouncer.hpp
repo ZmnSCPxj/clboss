@@ -12,6 +12,11 @@ namespace Boss { namespace Mod {
  *
  * @brief announces `listpeers` at `init` and
  * every 10 minutes thereafter.
+ *
+ * IMPORTANT - this msg is no longer directly obtained from
+ * `listpeers` but rather is constructed by "convolving" the value
+ * from `listpeerchannels`.  Specifically, the top level `peer`
+ * objects are non-standard and only have what CLBOSS uses ...
  */
 class ListpeersAnnouncer {
 private:

@@ -26,17 +26,9 @@ private:
 		bus.subscribe<Msg::ListpeersResult
 			     >([this](Msg::ListpeersResult const& m) {
 			auto tmp = std::map<Ln::Scid, Ln::NodeId>();
-			for (auto p : m.peers) {
-				if (!p.has("id"))
-					continue;
-				auto node_j = p["id"];
-				if (!node_j.is_string())
-					continue;
-				auto node_s = std::string(node_j);
-				if (!Ln::NodeId::valid_string(node_s))
-					continue;
-				auto node = Ln::NodeId(node_s);
-				auto cs = p["channels"];
+			for (auto p : m.cpeers) {
+				auto node = p.first;
+				auto cs = p.second.channels;
 				for (auto c : cs) {
 					if (!c.has("short_channel_id"))
 						continue;

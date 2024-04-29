@@ -52,7 +52,7 @@ private:
 			if (running)
 				return Ev::lift();
 
-			auto peers = m.peers;
+			auto peers = m.cpeers;
 
 			running = true;
 			auto code = Ev::lift().then([this, peers]() {
@@ -64,17 +64,15 @@ private:
 			return Boss::concurrent(code);
 		});
 	}
-	Ev::Io<void> process_peers(Jsmn::Object const& peers) {
+	Ev::Io<void> process_peers(Boss::Mod::ConstructedListpeers const& peers) {
 		auto infos = std::make_shared<std::vector<Info>>();
 		return Ev::lift().then([this, peers, infos]() {
 			try {
 				for (auto p : peers) {
-					auto id = Ln::NodeId(std::string(
-						p["id"]
-					));
+					auto id = p.first;
 					auto total = Ln::Amount::sat(0);
 
-					for (auto c : p["channels"]) {
+					for (auto c : p.second.channels) {
 						auto state = std::string(
 							c["state"]
 						);

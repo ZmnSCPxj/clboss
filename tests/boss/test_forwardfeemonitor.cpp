@@ -103,7 +103,7 @@ int main() {
 
 		/* Give the peers.  */
 		return bus.raise(Boss::Msg::ListpeersResult{
-			parse_json(listpeers_result)["peers"], true
+				Boss::Mod::convert_legacy_listpeers(parse_json(listpeers_result)["peers"]), true
 		});
 	}).then([&]() {
 

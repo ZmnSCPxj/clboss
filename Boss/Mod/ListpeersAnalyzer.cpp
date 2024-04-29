@@ -15,31 +15,13 @@ ListpeersAnalyzer::ListpeersAnalyzer(S::Bus& bus) {
 		auto ar = Msg::ListpeersAnalyzedResult();
 		ar.initial = l.initial;
 
-		for (auto peer : l.peers) {
-			if (!peer.is_object() || !peer.has("id"))
-				continue;
-			if (!peer.has("connected"))
-				continue;
-			if (!peer.has("channels"))
-				continue;
+		for (auto peer : l.cpeers) {
 
-			auto id_j = peer["id"];
-			if (!id_j.is_string())
-				continue;
-			auto id_s = std::string(id_j);
-			if (!Ln::NodeId::valid_string(id_s))
-				continue;
-			auto id = Ln::NodeId(id_s);
-
-			auto connected_j = peer["connected"];
-			if (!connected_j.is_boolean())
-				continue;
-			auto connected = bool(connected_j);
+			auto id = peer.first;
+			auto connected = peer.second.connected;
 
 			auto has_chan = bool(false);
-			auto chans = peer["channels"];
-			if (!chans.is_array())
-				continue;
+			auto chans = peer.second.channels;
 			for (auto chan : chans) {
 				if (!chan.is_object() || !chan.has("state"))
 					continue;

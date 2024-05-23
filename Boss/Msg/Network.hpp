@@ -6,6 +6,7 @@ namespace Boss { namespace Msg {
 enum Network
 { Network_Bitcoin
 , Network_Testnet
+, Network_Signet
 , Network_Regtest
 };
 

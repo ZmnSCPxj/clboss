@@ -1,6 +1,7 @@
 #include"Boss/Mod/ActiveProber.hpp"
 #include"Boss/Mod/AmountSettingsHandler.hpp"
 #include"Boss/Mod/AutoDisconnector.hpp"
+#include"Boss/Mod/AutoOpenController.hpp"
 #include"Boss/Mod/AvailableRpcCommandsAnnouncer.hpp"
 #include"Boss/Mod/BlockTracker.hpp"
 #include"Boss/Mod/BoltzSwapper/Main.hpp"
@@ -149,6 +150,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<SelfUptimeMonitor>(bus);
 
 	/* Channel creation wrangling.  */
+        all->install<AutoOpenController>(bus);
 	all->install<ChannelFinderByDistance>(bus, *waiter);
 	all->install<ChannelFinderByEarnedFee>(bus);
 	all->install<ChannelFinderByListpays>(bus);

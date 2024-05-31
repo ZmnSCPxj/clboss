@@ -276,6 +276,7 @@ libclboss_la_SOURCES = \
 	Boss/ModG/RebalanceUnmanagerProxy.hpp \
 	Boss/ModG/Swapper.cpp \
 	Boss/ModG/Swapper.hpp \
+	Boss/ModG/TimedBoolean.hpp \
 	Boss/Msg/AcceptSwapQuotation.hpp \
 	Boss/Msg/AmountSettings.hpp \
 	Boss/Msg/AvailableRpcCommands.hpp \

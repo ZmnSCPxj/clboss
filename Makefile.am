@@ -71,6 +71,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/AmountSettingsHandler.hpp \
         Boss/Mod/AutoOpenController.cpp \
         Boss/Mod/AutoOpenController.hpp \
+        Boss/Mod/AutoSwapController.cpp \
+        Boss/Mod/AutoSwapController.hpp \
 	Boss/Mod/AutoDisconnector.cpp \
 	Boss/Mod/AutoDisconnector.hpp \
 	Boss/Mod/AvailableRpcCommandsAnnouncer.cpp \
@@ -339,6 +341,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/RequestDowser.hpp \
 	Boss/Msg/RequestEarningsInfo.hpp \
 	Boss/Msg/RequestGetAutoOpenFlag.hpp \
+	Boss/Msg/RequestGetAutoSwapFlag.hpp \
 	Boss/Msg/RequestGetOnchainIgnoreFlag.hpp \
 	Boss/Msg/RequestListpays.hpp \
 	Boss/Msg/RequestMoveFunds.hpp \
@@ -353,6 +356,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ResponseDowser.hpp \
 	Boss/Msg/ResponseEarningsInfo.hpp \
 	Boss/Msg/ResponseGetAutoOpenFlag.hpp \
+	Boss/Msg/ResponseGetAutoSwapFlag.hpp \
 	Boss/Msg/ResponseGetOnchainIgnoreFlag.hpp \
 	Boss/Msg/ResponseListpays.hpp \
 	Boss/Msg/ResponseMoveFunds.hpp \

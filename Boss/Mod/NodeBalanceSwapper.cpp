@@ -1,7 +1,10 @@
 #include"Boss/Mod/NodeBalanceSwapper.hpp"
+#include"Boss/ModG/ReqResp.hpp"
 #include"Boss/ModG/Swapper.hpp"
 #include"Boss/Msg/ListpeersResult.hpp"
 #include"Boss/Msg/OnchainFee.hpp"
+#include"Boss/Msg/RequestGetAutoSwapFlag.hpp"
+#include"Boss/Msg/ResponseGetAutoSwapFlag.hpp"
 #include"Boss/log.hpp"
 #include"Jsmn/Object.hpp"
 #include"Ln/Amount.hpp"
@@ -29,6 +32,9 @@ namespace Boss { namespace Mod {
 
 class NodeBalanceSwapper::Impl : ModG::Swapper {
 private:
+        ModG::ReqResp< Msg::RequestGetAutoSwapFlag
+                     , Msg::ResponseGetAutoSwapFlag
+                     > get_auto_swap_rr;
 	std::unique_ptr<bool> fees_low;
 
 	void start() {
@@ -90,42 +96,55 @@ private:
 				/* Nothing to do.  */
 				return Ev::lift();
 
-			auto f = [ this
-				 , total_recv
-				 , total_send
-				 , recv_percent
-				 ]( Ln::Amount& amount
-				  , std::string& why
-				  ) {
-				amount = ( (total_send - total_recv)
-					 * 2
-					 ) / 3;
-
-				auto os = std::ostringstream();
-				os << "receivable = " << total_recv << ", "
-				   << "spendable = " << total_send << "; "
-				   << "%receivable = " << recv_percent << "; "
-				    ;
-				if (*fees_low) {
-					os << "sending funds onchain";
-					why = os.str();
-					return true;
-				} else if ( recv_percent
-					  > min_receivable_percent_highfees
+			return Ev::lift().then([this]() {
+				return get_auto_swap_rr.execute(Msg::RequestGetAutoSwapFlag{
+					nullptr
+				});
+			}).then([this, total, total_recv, total_send, recv_percent](
+					Msg::ResponseGetAutoSwapFlag res) {
+				if (!res.state)
+					return Boss::log( bus, Info,
+						"NodeBalanceSwapper: %s. Will "
+						"not send funds.",
+						res.comment.c_str());
+				auto f = [ this
+					 , total_recv
+					 , total_send
+					 , recv_percent
+					 ]( Ln::Amount& amount
+					  , std::string& why
 					  ) {
-					os << "but fees are high";
-					why = os.str();
-					return false;
-				} else {
-					os << "fees are high but we have "
-					   << "too little receivable"
-					   ;
-					why = os.str();
-					return true;
-				}
-			};
+					amount = ( (total_send - total_recv)
+						 * 2
+						 ) / 3;
 
-			return trigger_swap(f);
+					auto os = std::ostringstream();
+					os << "receivable = " << total_recv << ", "
+					   << "spendable = " << total_send << "; "
+					   << "%receivable = " << recv_percent << "; "
+					    ;
+					if (*fees_low) {
+						os << "sending funds onchain";
+						why = os.str();
+						return true;
+					} else if ( recv_percent
+						  > min_receivable_percent_highfees
+						  ) {
+						os << "but fees are high";
+						why = os.str();
+						return false;
+					} else {
+						os << "fees are high but we have "
+						   << "too little receivable"
+						   ;
+						why = os.str();
+						return true;
+					}
+				};
+
+				return trigger_swap(f);
+			});
+
 		});
 	}
 
@@ -154,7 +173,8 @@ public:
 	Impl(S::Bus& bus_) : ModG::Swapper( bus_
 					  , "NodeBalanceSwapper"
 					  , "incoming_capacity_swapper"
-					  ) { start(); }
+					  )
+			   , get_auto_swap_rr(bus_) { start(); }
 };
 
 NodeBalanceSwapper::NodeBalanceSwapper(NodeBalanceSwapper&&) =default;

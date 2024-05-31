@@ -19,6 +19,7 @@
 #include"Boss/Mod/ChannelFinderByListpays.hpp"
 #include"Boss/Mod/ChannelFinderByPopularity.hpp"
 #include"Boss/Mod/ChannelFundsComputer.hpp"
+#include"Boss/Mod/CircularRebalanceController.hpp"
 #include"Boss/Mod/ComplainerByLowConnectRate.hpp"
 #include"Boss/Mod/ComplainerByLowSuccessPerDay.hpp"
 #include"Boss/Mod/ConnectFinderByDns.hpp"
@@ -207,6 +208,7 @@ std::shared_ptr<void> all( std::ostream& cout
 #endif /* ENABLE_COMPLAINER_BY_LOW_SUCCESS_PER_DAY */
 
 	/* Channel balancing.  */
+        all->install<CircularRebalanceController>(bus);
 	all->install<FundsMover::Main>(bus);
 	all->install<MoveFundsCommand>(bus);
 	all->install<EarningsTracker>(bus);

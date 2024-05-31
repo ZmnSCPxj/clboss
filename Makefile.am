@@ -133,6 +133,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelFinderByPopularity.hpp \
 	Boss/Mod/ChannelFundsComputer.cpp \
 	Boss/Mod/ChannelFundsComputer.hpp \
+	Boss/Mod/CircularRebalanceController.cpp \
+	Boss/Mod/CircularRebalanceController.hpp \
 	Boss/Mod/ComplainerByLowConnectRate.cpp \
 	Boss/Mod/ComplainerByLowConnectRate.hpp \
 	Boss/Mod/ComplainerByLowSuccessPerDay.cpp \
@@ -342,6 +344,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/RequestEarningsInfo.hpp \
 	Boss/Msg/RequestGetAutoOpenFlag.hpp \
 	Boss/Msg/RequestGetAutoSwapFlag.hpp \
+	Boss/Msg/RequestGetCircularRebalanceFlag.hpp \
 	Boss/Msg/RequestGetOnchainIgnoreFlag.hpp \
 	Boss/Msg/RequestListpays.hpp \
 	Boss/Msg/RequestMoveFunds.hpp \
@@ -357,6 +360,7 @@ libclboss_la_SOURCES = \
 	Boss/Msg/ResponseEarningsInfo.hpp \
 	Boss/Msg/ResponseGetAutoOpenFlag.hpp \
 	Boss/Msg/ResponseGetAutoSwapFlag.hpp \
+	Boss/Msg/ResponseGetCircularRebalanceFlag.hpp \
 	Boss/Msg/ResponseGetOnchainIgnoreFlag.hpp \
 	Boss/Msg/ResponseListpays.hpp \
 	Boss/Msg/ResponseMoveFunds.hpp \

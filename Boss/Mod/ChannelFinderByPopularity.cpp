@@ -136,7 +136,7 @@ private:
 			db = init.db;
 			switch (init.network) {
 			case Boss::Msg::Network_Bitcoin: min_nodes_to_process = 800; break;
-			case Boss::Msg::Network_Testnet: min_nodes_to_process = 300; break;
+			case Boss::Msg::Network_Testnet: min_nodes_to_process = 200; break;
 			default: min_nodes_to_process = 10; break; // others are likely small
 			}
 			return db.transact().then([this](Sqlite3::Tx tx) {

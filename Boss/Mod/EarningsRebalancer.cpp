@@ -187,13 +187,16 @@ private:
 				new_balances[id].receivable = receivable;
 				new_balances[id].total = total;
 			}
-		} catch (std::exception const& _) {
+		} catch (std::exception const& e) {
 			return Boss::log( bus, Error
-					, "EarningsRebalancer: Unexpected result from "
-					  "listpeers: %s"
-					, Util::stringify(peers).c_str()
-					);
+					  , "EarningsRebalancer:"
+					  " Unexpected exception: %s "
+					  " handling: %s"
+					  , e.what()
+					  , Util::stringify(peers).c_str()
+				);
 		}
+
 		cached_balances = std::move(new_balances);
 		return Ev::lift();
 	}

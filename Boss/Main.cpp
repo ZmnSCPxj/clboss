@@ -74,8 +74,16 @@ public:
 				if (system(os.str().c_str()))
 					;
 				kill(getpid(), SIGSTOP);
-			} else
+			} else if (argv1 == "--developer") {
+				/* In the future we might want to do something, but for now
+				 * accept and don't fail with usage message
+				 */
+			} else {
+				std::cerr << argv0 << ":"
+					  << " Unrecognized option: " << argv1
+					  << std::endl;
 				is_help = true;
+			}
 		}
 	}
 

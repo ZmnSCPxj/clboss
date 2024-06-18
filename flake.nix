@@ -17,7 +17,23 @@
 
         formatter = pkgs.nixpkgs-fmt;
         devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [ gcc pkg-config libev libevdev curl sqlite bind autoconf autoconf-archive libtool automake git ];
+          buildInputs = with pkgs; [
+            gcc
+            pkg-config
+            libev
+            libevdev
+            curl
+            sqlite
+            bind
+            autoconf
+            autoconf-archive
+            libtool
+            automake
+            git
+
+            # editor support
+            bear
+          ];
         };
       }
     );

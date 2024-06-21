@@ -63,6 +63,15 @@ auto constexpr lo_to_hi_percentile = double(23);
 
 namespace Boss { namespace Mod {
 
+struct PercentileFeerates {
+	double h2l;
+	double mid;
+	double l2h;
+
+	PercentileFeerates()
+        : h2l(-1), mid(-1), l2h(-1) {}
+};
+
 class OnchainFeeMonitor::Impl {
 private:
 	S::Bus& bus;
@@ -98,22 +107,14 @@ private:
 			if (!db)
 				return Ev::lift();
 			return db.transact().then([this](Sqlite3::Tx tx) {
-				auto h2l = get_feerate_at_percentile(
-					tx, hi_to_lo_percentile
-				);
-				auto mid = get_feerate_at_percentile(
-					tx, mid_percentile
-				);
-				auto l2h = get_feerate_at_percentile(
-					tx, lo_to_hi_percentile
-				);
+				auto feerates = get_percentile_feerates(tx);
 				tx.commit();
 
 				auto status = Json::Out()
 					.start_object()
-						.field("hi_to_lo", h2l)
-						.field("init_mid", mid)
-						.field("lo_to_hi", l2h)
+						.field("hi_to_lo", feerates.h2l)
+						.field("init_mid", feerates.mid)
+						.field("lo_to_hi", feerates.l2h)
 						.field( "last_feerate_perkw"
 						      , last_feerate ? *last_feerate : -1.0
 						      )
@@ -189,12 +190,10 @@ private:
 			return db.transact().then([ this
 						  , saved_feerate
 						  ](Sqlite3::Tx tx) {
-				auto mid = get_feerate_at_percentile(
-					tx, mid_percentile
-				);
+				auto feerates = get_percentile_feerates(tx);
 				tx.commit();
-				is_low_fee_flag = *saved_feerate < mid;
-				return report_fee("Init");
+				is_low_fee_flag = *saved_feerate < feerates.mid;
+				return report_fee("Init", feerates);
 			});
 		});
 	}
@@ -281,6 +280,20 @@ private:
 		}
 	}
 
+	PercentileFeerates get_percentile_feerates(Sqlite3::Tx& tx) {
+		PercentileFeerates feerates;
+		feerates.h2l = get_feerate_at_percentile(
+			tx, hi_to_lo_percentile
+			);
+		feerates.mid = get_feerate_at_percentile(
+			tx, mid_percentile
+			);
+		feerates.l2h = get_feerate_at_percentile(
+			tx, lo_to_hi_percentile
+			);
+		return feerates;
+	}
+
 	double
 	get_feerate_at_percentile(Sqlite3::Tx& tx, double percentile) {
           	/* Use the actual number of samples in the collection.
@@ -316,11 +329,15 @@ private:
 		return rv;
 	}
 
-	Ev::Io<void> report_fee(char const* msg) {
+	Ev::Io<void> report_fee(char const* msg, PercentileFeerates const& feerates) {
 		return Boss::log( bus, Debug
-				, "OnchainFeeMonitor: %s: %s fees."
-				, msg
-				, is_low_fee_flag ? "low" : "high"
+				, "OnchainFeeMonitor: %s: (%.0f, %.0f, %.0f): %.0f: %s fees."
+				  , msg
+				  , feerates.h2l
+				  , feerates.mid
+				  , feerates.l2h
+				  , last_feerate ? *last_feerate : -1.0
+				  , is_low_fee_flag ? "low" : "high"
 				).then([this]() {
 			if (last_feerate) {
 				return bus.raise(Msg::OnchainFee{
@@ -343,7 +360,7 @@ private:
 					  , saved_feerate
 					  ](std::unique_ptr<double> feerate) {
 			if (!feerate)
-				return report_fee("Periodic: fee unknown, retaining");
+				return report_fee("Periodic: fee unknown, retaining", PercentileFeerates());
 
 			*saved_feerate = *feerate;
 			last_feerate = std::move(feerate);
@@ -377,21 +394,16 @@ private:
 				 * to think "high fees" even though we are
 				 * at minimum.
 				 */
+				auto feerates = get_percentile_feerates(tx);
 				if (is_low_fee_flag) {
-					auto ref = get_feerate_at_percentile(
-						tx, lo_to_hi_percentile
-					);
-					if (*saved_feerate > ref)
+					if (*saved_feerate > feerates.l2h)
 						is_low_fee_flag = false;
 				} else {
-					auto ref = get_feerate_at_percentile(
-						tx, hi_to_lo_percentile
-					);
-					if (*saved_feerate <= ref)
+					if (*saved_feerate <= feerates.h2l)
 						is_low_fee_flag = true;
 				}
 				tx.commit();
-				return report_fee("Periodic");
+				return report_fee("Periodic", feerates);
 			});
 		});
 	}
@@ -415,12 +427,10 @@ private:
 			return db.transact().then([ this
 						  , saved_feerate
 						  ](Sqlite3::Tx tx) {
-				auto mid = get_feerate_at_percentile(
-					tx, mid_percentile
-				);
+				auto feerates = get_percentile_feerates(tx);
 				tx.commit();
-				is_low_fee_flag = *saved_feerate <= mid;
-				return report_fee("Init");
+				is_low_fee_flag = *saved_feerate <= feerates.mid;
+				return report_fee("Init", feerates);
 			});
 		});
 	}

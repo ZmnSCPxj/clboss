@@ -1,6 +1,8 @@
 #include"Boss/Mod/ActiveProber.hpp"
 #include"Boss/Mod/AmountSettingsHandler.hpp"
 #include"Boss/Mod/AutoDisconnector.hpp"
+#include"Boss/Mod/AutoOpenController.hpp"
+#include"Boss/Mod/AutoSwapController.hpp"
 #include"Boss/Mod/AvailableRpcCommandsAnnouncer.hpp"
 #include"Boss/Mod/BlockTracker.hpp"
 #include"Boss/Mod/BoltzSwapper/Main.hpp"
@@ -17,6 +19,7 @@
 #include"Boss/Mod/ChannelFinderByListpays.hpp"
 #include"Boss/Mod/ChannelFinderByPopularity.hpp"
 #include"Boss/Mod/ChannelFundsComputer.hpp"
+#include"Boss/Mod/CircularRebalanceController.hpp"
 #include"Boss/Mod/ComplainerByLowConnectRate.hpp"
 #include"Boss/Mod/ComplainerByLowSuccessPerDay.hpp"
 #include"Boss/Mod/ConnectFinderByDns.hpp"
@@ -149,6 +152,8 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<SelfUptimeMonitor>(bus);
 
 	/* Channel creation wrangling.  */
+        all->install<AutoOpenController>(bus);
+        all->install<AutoSwapController>(bus);
 	all->install<ChannelFinderByDistance>(bus, *waiter);
 	all->install<ChannelFinderByEarnedFee>(bus);
 	all->install<ChannelFinderByListpays>(bus);
@@ -203,6 +208,7 @@ std::shared_ptr<void> all( std::ostream& cout
 #endif /* ENABLE_COMPLAINER_BY_LOW_SUCCESS_PER_DAY */
 
 	/* Channel balancing.  */
+        all->install<CircularRebalanceController>(bus);
 	all->install<FundsMover::Main>(bus);
 	all->install<MoveFundsCommand>(bus);
 	all->install<EarningsTracker>(bus);

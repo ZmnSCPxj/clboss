@@ -105,6 +105,9 @@ private:
 				return nullptr;
 		}
 		for (;;) {
+			if (start_idx == end_idx) {
+				return nullptr;
+			}
 			auto res = jsmn_parse( &base
 					     , &buffer[start_idx], end_idx - start_idx
 					     , &toks[0], toks.size()
@@ -112,8 +115,8 @@ private:
 			if (res > 0) {
 				assert(base.pos + start_idx <= end_idx);
 				auto pr = Detail::ParseResult();
-				auto text = std::string( &buffer[start_idx]
-						       , &buffer[start_idx + base.pos]
+				auto text = std::string( buffer.begin() + start_idx
+						       , buffer.begin() + start_idx + base.pos
 						       );
 				pr.orig_string = std::move(text);
 				pr.tokens.resize(res);
@@ -165,8 +168,8 @@ private:
 	void move_loaded() {
 		if ((load_idx - start_idx) > start_idx)
 			return;
-		std::copy( &buffer[start_idx], &buffer[load_idx]
-			 , &buffer[0]
+		std::copy( buffer.begin() + start_idx, buffer.begin() + load_idx
+			 , buffer.begin()
 			 );
 		load_idx -= start_idx;
 		end_idx -= start_idx;

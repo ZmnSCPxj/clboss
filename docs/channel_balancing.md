@@ -45,4 +45,11 @@
    Claimer-->|ReleaseHtlcAccepted|HtlcAcceptor
    Claimer-->|ProvideHtlcAcceptedDeferrer|HtlcAcceptor
    Timers-->|TimerRandomHourly|Claimer
+
+   MoveFundsCommand-->|RequestMoveFunds|FundsMover
+   FundsMover-->|ResponseMoveFunds|MoveFundsCommand
+   CommandReceiver-->|CommandRequest|MoveFundsCommand
+   MoveFundsCommand-->|CommandResponse|CommandReceiver
+   Manifester-->|Manifestation|MoveFundsCommand
+   MoveFundsCommand-->|ManifestCommand|Manifester
 ```

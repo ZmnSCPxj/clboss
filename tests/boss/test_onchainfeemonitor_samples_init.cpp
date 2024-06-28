@@ -34,9 +34,10 @@ int main() {
 			samples = r.get<std::size_t>(0);
 		tx.commit();
 
-		assert(samples == 2016);
+		assert(samples == Boss::Mod::OnchainFeeMonitor::num_initial_samples);
 
-		/* Check if repetition of DbResource is still 2016.  */
+		/* Check if repetition of DbResource is still
+		 * Boss::Mod::OnchainFeeMonitor::num_initial_samples.  */
 		auto msg = Boss::Msg::DbResource{db};
 		return bus.raise(msg);
 	}).then([&]() {
@@ -52,7 +53,7 @@ int main() {
 			samples = r.get<std::size_t>(0);
 		tx.commit();
 
-		assert(samples == 2016);
+		assert(samples == Boss::Mod::OnchainFeeMonitor::num_initial_samples);
 
 		return Ev::lift(0);
 	});

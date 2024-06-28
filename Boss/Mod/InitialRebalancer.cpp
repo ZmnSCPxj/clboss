@@ -198,13 +198,13 @@ private:
 					info[id].receivable = receivable;
 					info[id].total = total;
 				}
-			} catch (std::exception const& _) {
+			} catch (std::exception const& e) {
 				return Boss::log( bus, Error
-						, "InitialRebalancer: "
-						  "Unexpected result from "
-						  "listpeers: %s"
-						, Util::stringify(peers)
-							.c_str()
+						  , "InitialRebalancer:"
+						  " Unexpected exception: %s "
+						  " handling: %s"
+						  , e.what()
+						  , Util::stringify(peers).c_str()
 						);
 			}
 			return plan_move();

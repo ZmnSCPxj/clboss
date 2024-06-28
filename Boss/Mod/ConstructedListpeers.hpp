@@ -23,8 +23,11 @@ struct ConstructedListpeer {
 
 typedef std::map<Ln::NodeId, ConstructedListpeer> ConstructedListpeers;
 
+std::ostream& operator<<(std::ostream& os, ConstructedListpeer const& o);
+
 std::ostream& operator<<(std::ostream& os, ConstructedListpeers const& o);
 
+std::ostream& operator<<(std::ostream& os, std::pair<Ln::NodeId, ConstructedListpeer> const& o);
 
 /* for unit tests w/ legacy listpeer setups */
 Boss::Mod::ConstructedListpeers convert_legacy_listpeers(Jsmn::Object const & legacy_listpeers);

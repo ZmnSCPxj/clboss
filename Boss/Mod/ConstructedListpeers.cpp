@@ -1,5 +1,7 @@
 #include"Boss/Mod/ConstructedListpeers.hpp"
 #include"Jsmn/Object.hpp"
+#include"Ln/NodeId.hpp"
+#include"Util/stream_elements.hpp"
 #include<sstream>
 
 namespace Boss { namespace Mod {
@@ -31,17 +33,25 @@ Boss::Mod::ConstructedListpeers convert_legacy_listpeers(Jsmn::Object const & le
 	return cpeers;
 }
 
-std::ostream& operator<<(std::ostream& os, Boss::Mod::ConstructedListpeers const& o) {
-	for (auto p : o) {
-		os << p.first << ':'
-                   << "connected: " << p.second.connected
-                   << ", channels: ";
-                for (auto c : p.second.channels) {
-                  os << c;
-                }
-        }
+std::ostream& operator<<(std::ostream& os, ConstructedListpeer const& o) {
+	os << "(ConstructedListpeer): {"
+	   << "connected: " << o.connected
+	   << ", channels: ";
+	Util::stream_elements(os, o.channels);
+	os << "}";
 	return os;
 }
 
+std::ostream& operator<<(std::ostream& os, ConstructedListpeers const& o) {
+	os << "(ConstructedListpeers): {";
+	Util::stream_elements(os, o);
+	os << "}";
+	return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::pair<Ln::NodeId, ConstructedListpeer>& p) {
+    os << "{" << p.first << ": " << p.second << "}";
+    return os;
+}
 
 }}

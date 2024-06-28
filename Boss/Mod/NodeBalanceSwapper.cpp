@@ -7,6 +7,7 @@
 #include"Ln/Amount.hpp"
 #include"S/Bus.hpp"
 #include"Util/make_unique.hpp"
+#include"Util/stringify.hpp"
 #include<sstream>
 
 namespace {
@@ -66,15 +67,15 @@ private:
 						total_send += send;
 					}
 				}
-			} catch (Jsmn::TypeError const&) {
+			} catch (Jsmn::TypeError const& e) {
 				/* Should never happen.... */
-				auto os = std::ostringstream();
-				os << m.cpeers;
 				return Boss::log( bus, Error
-						, "NodeBalanceSwapper: "
-						  "Unexpected listpeers: %s"
-						, os.str().c_str()
-						);
+						  , "NodeBalanceSwapper:"
+						  " Unexpected exception: %s"
+						  " handling: %s"
+						  , e.what()
+						  , Util::stringify(m.cpeers).c_str()
+					);
 			}
 
 			/* Avoid division by 0. */

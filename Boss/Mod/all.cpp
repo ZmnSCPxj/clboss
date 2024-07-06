@@ -1,8 +1,6 @@
 #include"Boss/Mod/ActiveProber.hpp"
 #include"Boss/Mod/AmountSettingsHandler.hpp"
 #include"Boss/Mod/AutoDisconnector.hpp"
-#include"Boss/Mod/AutoOpenController.hpp"
-#include"Boss/Mod/AutoSwapController.hpp"
 #include"Boss/Mod/AvailableRpcCommandsAnnouncer.hpp"
 #include"Boss/Mod/BlockTracker.hpp"
 #include"Boss/Mod/BoltzSwapper/Main.hpp"
@@ -19,7 +17,6 @@
 #include"Boss/Mod/ChannelFinderByListpays.hpp"
 #include"Boss/Mod/ChannelFinderByPopularity.hpp"
 #include"Boss/Mod/ChannelFundsComputer.hpp"
-#include"Boss/Mod/CircularRebalanceController.hpp"
 #include"Boss/Mod/ComplainerByLowConnectRate.hpp"
 #include"Boss/Mod/ComplainerByLowSuccessPerDay.hpp"
 #include"Boss/Mod/ConnectFinderByDns.hpp"
@@ -76,6 +73,13 @@
 #include"Boss/Mod/UnmanagedManager.hpp"
 #include"Boss/Mod/Waiter.hpp"
 #include"Boss/Mod/all.hpp"
+#include"Boss/ModG/TimedBooleanController.hpp"
+#include"Boss/Msg/RequestGetAutoOpenFlag.hpp"
+#include"Boss/Msg/RequestGetAutoSwapFlag.hpp"
+#include"Boss/Msg/RequestGetCircularRebalanceFlag.hpp"
+#include"Boss/Msg/ResponseGetAutoOpenFlag.hpp"
+#include"Boss/Msg/ResponseGetAutoSwapFlag.hpp"
+#include"Boss/Msg/ResponseGetCircularRebalanceFlag.hpp"
 #include<vector>
 
 namespace {
@@ -92,6 +96,18 @@ public:
 		return ptr;
 	}
 };
+
+const char strAutoOpenControllerName[] = "AutoOpenController";
+const char strAutoOpenChannelsOption[] = "auto-open-channels";
+const char strAutoOpenChannelsDescription[] = "automatic channel opening";
+
+const char strAutoSwapControllerName[] = "AutoSwapController";
+const char strAutoSwapOption[] = "auto-swap";
+const char strAutoSwapDescription[] = "automatic offchain-to-onchain swap";
+
+const char strCircularRebalanceControllerName[] = "CircularRebalanceController";
+const char strCircularRebalanceOption[] = "circular-rebalance";
+const char strCircularRebalanceDescription[] = "circular channel rebalancing";
 
 }
 
@@ -152,8 +168,14 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<SelfUptimeMonitor>(bus);
 
 	/* Channel creation wrangling.  */
-        all->install<AutoOpenController>(bus);
-        all->install<AutoSwapController>(bus);
+        all->install<TimedBooleanController<
+		Msg::RequestGetAutoOpenFlag, Msg::ResponseGetAutoOpenFlag,
+		strAutoOpenControllerName, strAutoOpenChannelsOption,
+		strAutoOpenChannelsDescription> >(bus);
+        all->install<TimedBooleanController<
+		Msg::RequestGetAutoSwapFlag, Msg::ResponseGetAutoSwapFlag,
+		strAutoSwapControllerName, strAutoSwapOption,
+		strAutoSwapDescription> >(bus);
 	all->install<ChannelFinderByDistance>(bus, *waiter);
 	all->install<ChannelFinderByEarnedFee>(bus);
 	all->install<ChannelFinderByListpays>(bus);
@@ -208,7 +230,11 @@ std::shared_ptr<void> all( std::ostream& cout
 #endif /* ENABLE_COMPLAINER_BY_LOW_SUCCESS_PER_DAY */
 
 	/* Channel balancing.  */
-        all->install<CircularRebalanceController>(bus);
+        all->install<TimedBooleanController<
+		Msg::RequestGetCircularRebalanceFlag,
+		Msg::ResponseGetCircularRebalanceFlag,
+		strCircularRebalanceControllerName, strCircularRebalanceOption,
+		strCircularRebalanceDescription> >(bus);
 	all->install<FundsMover::Main>(bus);
 	all->install<MoveFundsCommand>(bus);
 	all->install<EarningsTracker>(bus);

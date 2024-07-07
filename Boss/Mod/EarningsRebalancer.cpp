@@ -7,10 +7,8 @@
 #include"Boss/Msg/ManifestCommand.hpp"
 #include"Boss/Msg/Manifestation.hpp"
 #include"Boss/Msg/RequestEarningsInfo.hpp"
-#include"Boss/Msg/RequestGetCircularRebalanceFlag.hpp"
 #include"Boss/Msg/RequestMoveFunds.hpp"
 #include"Boss/Msg/ResponseEarningsInfo.hpp"
-#include"Boss/Msg/ResponseGetCircularRebalanceFlag.hpp"
 #include"Boss/Msg/ResponseMoveFunds.hpp"
 #include"Boss/Msg/TimerRandomHourly.hpp"
 #include"Boss/concurrent.hpp"
@@ -63,10 +61,6 @@ private:
 
 	bool working;
 
-	ModG::ReqResp< Msg::RequestGetCircularRebalanceFlag
-		     , Msg::ResponseGetCircularRebalanceFlag
-		     > get_circular_rebalance_rr;
-
 	ModG::ReqResp< Msg::RequestEarningsInfo
 		     , Msg::ResponseEarningsInfo
 		     > earnings_rr;
@@ -87,8 +81,6 @@ private:
 
 	ModG::RebalanceUnmanagerProxy unmanager;
 	std::set<Ln::NodeId> const* unmanaged;
-
-	Msg::ResponseGetCircularRebalanceFlag resp_circular_rebalance_flag;
 
 	void start() {
 		struct SelfTrigger { };
@@ -209,15 +201,7 @@ private:
 
 	Ev::Io<void> run() {
 		return Ev::lift().then([this]() {
-			return get_circular_rebalance_rr.execute(
-					Msg::RequestGetCircularRebalanceFlag{
-				nullptr
-			});
-		}).then([this](Msg::ResponseGetCircularRebalanceFlag res) {
-			resp_circular_rebalance_flag = res;
-			return Ev::lift().then([this]() {
-				return unmanager.get_unmanaged();
-			});
+			return unmanager.get_unmanaged();
 		}).then([this](std::set<Ln::NodeId> const* unmanaged_) {
 			unmanaged = unmanaged_;
 			/* Copy the cached balances.  */
@@ -273,12 +257,6 @@ private:
 				return Boss::log( bus, Debug
 						, "EarningsRebalancer: Nothing to do."
 						);
-
-                        if (!resp_circular_rebalance_flag.state)
-				return Boss::log( bus, Info
-					        , "EarningsRebalancer: %s."
-			  		        , resp_circular_rebalance_flag.comment.c_str()
-					        );
 
 			auto num_d = destinations.size();
 			auto num_s = sources.size();
@@ -394,7 +372,6 @@ public:
 	explicit
 	Impl(S::Bus& bus_
 	    ) : bus(bus_)
-	      , get_circular_rebalance_rr(bus_)
 	      , earnings_rr(bus_)
 	      , unmanager(bus_)
 	      { start(); }

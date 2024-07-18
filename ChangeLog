@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.13.2] - 2024-07-18: "Bwahaha's Dominion"
+
+### Added
+
+- Added `signet` support ([#148]).
+- Updated the seeds list ([#208], 
+- Added module diagrams for channel creation, offchain to onchain
+  swaps, and channel balancing ([#200], [#203]).
+
+### Changed
+
+- testnet: Reduce the `min_nodes_to_process` because testnet is shrinking ([#209]).
+- Improve listpeers handling diagnostics ([#214], [#215]).
+- Improve Initialization of OnchainFeeMonitor with Conservative
+  Synthetic History ([#210]).
+
+### Fixed
+
+- Converted deprecated listpeer usage to listpeerchannels ([#213], [#198]).
+- Recognize `--developer` CLI flag and don't exit giving usage ([#185], [#216])).
+
 ## [0.13.1] - 2024-04-16: "E Street Fix"
 
 ### Fixed

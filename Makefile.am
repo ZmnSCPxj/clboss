@@ -566,7 +566,9 @@ EXTRA_DIST = \
 	reproducible/README.md \
 	reproducible/build.sh \
 	reproducible/continue.sh \
-	reproducible/manifest.scm.template 
+	reproducible/manifest.scm.template \
+    generate_commit_hash.sh \
+    commit_hash.h
 
 AM_CXXFLAGS = -Wall -Werror $(PTHREAD_CFLAGS) $(libev_CFLAGS) $(SQLITE3_CFLAGS) $(CURL_CFLAGS) $(CLBOSS_CXXFLAGS)
 LDADD = libclboss.la $(PTHREAD_LIBS) $(libev_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS)
@@ -668,3 +670,11 @@ CLEANFILES = $(noinst_SCRIPTS)
 create-tarball: create-tarball.in Makefile
 	sed -e 's/[@]PACKAGE_VERSION[@]/$(PACKAGE_VERSION)/' < $(srcdir)/create-tarball.in > create-tarball
 	chmod +x create-tarball
+
+BUILT_SOURCES = commit_hash.h
+CLEANFILES += commit_hash.h
+
+commit_hash.h:
+	./generate_commit_hash.sh
+
+clboss libclboss.la: $(BUILT_SOURCES)

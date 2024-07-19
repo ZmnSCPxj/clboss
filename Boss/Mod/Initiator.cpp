@@ -1,3 +1,4 @@
+#include"commit_hash.h"
 #include"Boss/Mod/Initiator.hpp"
 #include"Boss/Mod/Rpc.hpp"
 #include"Boss/Msg/CommandRequest.hpp"
@@ -7,6 +8,8 @@
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/ManifestOption.hpp"
 #include"Boss/Msg/Option.hpp"
+#include"Boss/Msg/ProvideStatus.hpp"
+#include"Boss/Msg/SolicitStatus.hpp"
 #include"Boss/Signer.hpp"
 #include"Boss/log.hpp"
 #include"Ev/ThreadPool.hpp"
@@ -144,6 +147,19 @@ public:
 	      {
 		assert(open_rpc_socket);
 
+		bus.subscribe< Msg::SolicitStatus
+			     >([this](Msg::SolicitStatus const&) {
+			auto info = Json::Out()
+				.start_object()
+				.field( "version", "v" + std::string(PACKAGE_VERSION) )
+				.field( "git_commit_hash", std::string(GIT_COMMIT_HASH) )
+				.field( "git_describe", std::string(GIT_DESCRIBE) )
+				.end_object()
+				;
+			return bus.raise(Msg::ProvideStatus{
+				"info", std::move(info)
+			});
+		});
 		bus.subscribe<Boss::Msg::CommandRequest>([this](Boss::Msg::CommandRequest const& c) {
 			if (c.command != "init")
 				return Ev::lift();
@@ -219,8 +235,10 @@ public:
 			}
 
 			return Boss::log( bus, Info
-					, "%s"
-					, PACKAGE_STRING
+					, "%s v%s (%s)"
+					, PACKAGE_NAME
+					, PACKAGE_VERSION
+					, GIT_DESCRIBE
 					)
 			     + std::move(pre_act)
 			/* Now construct the RPC socket.  */

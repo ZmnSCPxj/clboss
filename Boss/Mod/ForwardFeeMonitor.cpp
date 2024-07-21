@@ -29,7 +29,7 @@ void ForwardFeeMonitor::start() {
 		try {
 			auto payload = n.params["forward_event"];
 			if ( !payload.has("out_channel")
-			  || !payload.has("fee")
+			  || !payload.has("fee_msat")
 			  || !payload.has("resolved_time")
 			  || !payload.has("received_time")
 			   )

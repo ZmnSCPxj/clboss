@@ -235,18 +235,41 @@ private:
 			     ;
 			)QRY").execute();
 
+			uint64_t total_in_earnings = 0;
+			uint64_t total_in_expenditures = 0;
+			uint64_t total_out_earnings = 0;
+			uint64_t total_out_expenditures = 0;
+
 			auto out = Json::Out();
 			auto obj = out.start_object();
 			for (auto& r : fetch) {
+				auto in_earnings = r.get<std::uint64_t>(1);
+				auto in_expenditures = r.get<std::uint64_t>(2);
+				auto out_earnings = r.get<std::uint64_t>(3);
+				auto out_expenditures = r.get<std::uint64_t>(4);
 				auto sub = obj.start_object(r.get<std::string>(0));
 				sub
-					.field("in_earnings", r.get<std::uint64_t>(1))
-					.field("in_expenditures", r.get<std::uint64_t>(2))
-					.field("out_earnings", r.get<std::uint64_t>(3))
-					.field("out_expenditures", r.get<std::uint64_t>(4))
+					.field("in_earnings", in_earnings)
+					.field("in_expenditures", in_expenditures)
+					.field("out_earnings", out_earnings)
+					.field("out_expenditures", out_expenditures)
 					;
 				sub.end_object();
+				total_in_earnings += in_earnings;
+				total_in_expenditures += in_expenditures;
+				total_out_earnings += out_earnings;
+				total_out_expenditures += out_expenditures;
 			}
+
+			auto sub = obj.start_object("total");
+			sub
+				.field("in_earnings", total_in_earnings)
+				.field("in_expenditures", total_in_expenditures)
+				.field("out_earnings", total_out_earnings)
+				.field("out_expenditures", total_out_expenditures)
+				;
+			sub.end_object();
+
 			obj.end_object();
 
 			tx.commit();

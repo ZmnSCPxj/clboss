@@ -37,6 +37,12 @@ public:
 	explicit
 	Env(Ev::ThreadPool& threadpool) : conn(threadpool) { }
 
+	Ev::Io<void> logt(std::string msg) override {
+		return Ev::lift().then([msg]() {
+			std::cout << "TRACE  " << msg << std::endl;
+			return Ev::lift();
+		});
+	}
 	Ev::Io<void> logd(std::string msg) override {
 		return Ev::lift().then([msg]() {
 			std::cout << "DEBUG  " << msg << std::endl;

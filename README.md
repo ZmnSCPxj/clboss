@@ -104,6 +104,7 @@ would be 20x larger!), but if it matters to you, you can
 override the CLBOSS default via `CXXFLAGS`, such as:
 
     ./configure CXXFLAGS="-g -O2"  # or whatever flags you like
+    ./configure CXXFLAGS="-g -Og"  # recommended for debugging
 
 And if your build machine has more than 1 core, you probably
 want to pass in the `-j` option to `make`, too:

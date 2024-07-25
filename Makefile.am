@@ -516,6 +516,7 @@ libclboss_la_SOURCES = \
 	Stats/RunningMean.cpp \
 	Stats/RunningMean.hpp \
 	Stats/WeightedMedian.hpp \
+	Util/BacktraceException.hpp \
 	Util/Bech32.cpp \
 	Util/Bech32.hpp \
 	Util/Compiler.hpp \

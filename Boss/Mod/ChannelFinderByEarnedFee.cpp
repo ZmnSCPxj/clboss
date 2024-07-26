@@ -131,12 +131,13 @@ private:
 						continue;
 					props.emplace(std::move(dest));
 				}
-			} catch (std::exception const&) {
+			} catch (std::exception const& ex) {
 				return Boss::log( bus, Error
 						, "ChannelFinderByEarnedFees: "
 						  "Unexpected result from "
-						  "`listchannels`: %s"
+						  "`listchannels`: %s: %s"
 						, Util::stringify(res).c_str()
+						, ex.what()
 						);
 			}
 			res = Jsmn::Object();

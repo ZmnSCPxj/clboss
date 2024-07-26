@@ -348,15 +348,15 @@ private:
 						data["failcode"]
 					));
 				}
-			} catch (std::exception const&) {
+			} catch (std::exception const& ex) {
 				return std::move(act)
 				     + Boss::log( bus, Error
 						, "FundsMover: Attempt: "
 						  "Unexpected error from "
-						  "%s: %s"
+						  "%s: %s: %s"
 						, e.command.c_str()
-						, Util::stringify(e.error)
-							.c_str()
+						, Util::stringify(e.error).c_str()
+						, ex.what()
 						);
 			}
 

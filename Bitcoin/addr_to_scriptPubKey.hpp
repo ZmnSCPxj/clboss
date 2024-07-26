@@ -1,6 +1,7 @@
 #ifndef BITCOIN_ADDR_TO_SCRIPTPUBKEY_HPP
 #define BITCOIN_ADDR_TO_SCRIPTPUBKEY_HPP
 
+#include"Util/BacktraceException.hpp"
 #include<cstdint>
 #include<string>
 #include<stdexcept>
@@ -8,10 +9,10 @@
 
 namespace Bitcoin {
 
-struct UnknownAddrType : public std::invalid_argument {
+struct UnknownAddrType : public Util::BacktraceException<std::invalid_argument> {
 public:
 	UnknownAddrType()
-		: std::invalid_argument("Bitcoin::UnknownAddrType") { }
+		: Util::BacktraceException<std::invalid_argument>("Bitcoin::UnknownAddrType") { }
 };
 
 /** Bitcoin::addr_to_scriptPubKey

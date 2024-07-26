@@ -5,6 +5,7 @@
 #include<sys/socket.h>
 #include<unistd.h>
 #include"Net/SocketFd.hpp"
+#include"Util/BacktraceException.hpp"
 
 namespace Net {
 
@@ -59,7 +60,7 @@ void SocketFd::write(std::vector<std::uint8_t> const& data) {
 				     );
 		} while (res < 0 && errno == EINTR);
 		if (res < 0)
-			throw std::runtime_error( std::string("Net::SocketFd::write: write: ")
+			throw Util::BacktraceException<std::runtime_error>( std::string("Net::SocketFd::write: write: ")
 						+ strerror(errno)
 						);
 		ptr += res;
@@ -78,7 +79,7 @@ std::vector<std::uint8_t> SocketFd::read(std::size_t size) {
 				    );
 		} while (res < 0 && errno == EINTR);
 		if (res < 0)
-			throw std::runtime_error( std::string("Net::SocketFd::read: read: ")
+			throw Util::BacktraceException<std::runtime_error>( std::string("Net::SocketFd::read: read: ")
 						+ strerror(errno)
 						);
 		if (res == 0) {

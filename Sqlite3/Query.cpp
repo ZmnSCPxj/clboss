@@ -1,6 +1,7 @@
 #include"Sqlite3/Db.hpp"
 #include"Sqlite3/Query.hpp"
 #include"Sqlite3/Result.hpp"
+#include"Util/BacktraceException.hpp"
 #include"Util/make_unique.hpp"
 #include<sqlite3.h>
 #include<stdexcept>
@@ -27,7 +28,7 @@ public:
 	int get_location(char const* field) const {
 		auto res = sqlite3_bind_parameter_index(stmt, field);
 		if (res == 0)
-			throw std::runtime_error(
+			throw Util::BacktraceException<std::runtime_error>(
 				std::string("Sqlite3::Query::bind: "
 					    "no field: "
 					   ) + field

@@ -1,3 +1,4 @@
+#include"Util/BacktraceException.hpp"
 #include"Sqlite3/Db.hpp"
 #include"Sqlite3/Result.hpp"
 #include<sqlite3.h>
@@ -30,7 +31,7 @@ bool Result::advance() {
 	else {
 		auto connection = (sqlite3*) db.get_connection();
 		auto err = std::string(sqlite3_errmsg(connection));
-		throw std::runtime_error(
+		throw Util::BacktraceException<std::runtime_error>(
 			std::string("Sqlite3::Result: ") + err
 		);
 	}

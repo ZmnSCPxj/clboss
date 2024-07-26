@@ -1,6 +1,7 @@
 #ifndef SECP256K1_PUBKEY_HPP
 #define SECP256K1_PUBKEY_HPP
 
+#include"Util/BacktraceException.hpp"
 #include<cstdint>
 #include<functional>
 #include<istream>
@@ -23,9 +24,9 @@ std::ostream& operator<<(std::ostream&, Secp256k1::PubKey const&);
 namespace Secp256k1 {
 
 /* Thrown in case of being fed an invalid public key.  */
-class InvalidPubKey : public std::invalid_argument {
+class InvalidPubKey : public Util::BacktraceException<std::invalid_argument> {
 public:
-	InvalidPubKey() : std::invalid_argument("Invalid public key.") { }
+	InvalidPubKey() : Util::BacktraceException<std::invalid_argument>("Invalid public key.") { }
 };
 
 class PubKey {

@@ -1,6 +1,7 @@
 #include"Ev/Io.hpp"
 #include"Ev/runcmd.hpp"
 #include"Net/Fd.hpp"
+#include"Util/BacktraceException.hpp"
 #include"Util/make_unique.hpp"
 #include<errno.h>
 #include<ev.h>
@@ -62,7 +63,7 @@ private:
 	static
 	void error(std::unique_ptr<RunCmd> self, std::string msg) {
 		try {
-			throw std::runtime_error(
+			throw Util::BacktraceException<Util::BacktraceException<std::runtime_error>>(
 				std::string("pipecmd: ") + msg +
 				": " + strerror(errno)
 			);

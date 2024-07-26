@@ -1,6 +1,7 @@
 #ifndef SECP256K1_SIGNATURE_HPP
 #define SECP256K1_SIGNATURE_HPP
 
+#include"Util/BacktraceException.hpp"
 #include<cstdint>
 #include<stdexcept>
 #include<string>
@@ -12,10 +13,11 @@ namespace Sha256 { class Hash; }
 
 namespace Secp256k1 {
 
-class BadSignatureEncoding : public std::invalid_argument {
+
+class BadSignatureEncoding : public Util::BacktraceException<std::invalid_argument> {
 public:
 	BadSignatureEncoding()
-		: std::invalid_argument("Bad signature encoding")
+		: Util::BacktraceException<std::invalid_argument>("Bad signature encoding")
 		{ }
 };
 

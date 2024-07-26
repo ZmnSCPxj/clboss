@@ -108,12 +108,12 @@ private:
 			try {
 				pays = res["pays"];
 				it = pays.begin();
-			} catch (std::exception const&) {
+			} catch (std::exception const& ex) {
 				return Boss::log( bus, Error
 						, "PaymentDeleter: Unexpected "
-						  "result from 'listpays': "
-						  "%s"
+						  "result from 'listpays': %s: %s"
 						, Util::stringify(res).c_str()
+						, ex.what()
 						);
 			}
 			return loop();
@@ -156,13 +156,13 @@ private:
 				     + delpay(payment_hash, status)
 				     + loop()
 				     ;
-			} catch (std::exception const&) {
+			} catch (std::exception const& ex) {
 				return Boss::log( bus, Error
 						, "PaymentDeleter: "
 						  "Unexpected 'pays' entry "
-						  "from 'listpays': %s"
-						, Util::stringify(pay)
-							.c_str()
+						  "from 'listpays': %s: %s"
+						, Util::stringify(pay).c_str()
+						, ex.what()
 						);
 			}
 		});

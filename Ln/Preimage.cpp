@@ -29,7 +29,7 @@ bool Preimage::valid_string(std::string const& s) {
 Preimage::Preimage(std::string const& s) : pimpl(std::make_shared<Impl>()) {
 	auto buf = Util::Str::hexread(s);
 	if (buf.size() != 32)
-		throw std::invalid_argument("Ln::Preimage: wrong size.");
+		throw Util::BacktraceException<std::invalid_argument>("Ln::Preimage: wrong size.");
 	for (auto i = 0; i < 32; ++i)
 		pimpl->data[i] = buf[i];
 }

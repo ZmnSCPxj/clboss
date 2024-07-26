@@ -60,7 +60,7 @@ std::string RpcError::make_error_message( std::string const& command
 
 RpcError::RpcError( std::string command_
 		  , Jsmn::Object error_
-		  ) : std::runtime_error(make_error_message(command_, error_))
+	          ) : Util::BacktraceException<std::runtime_error>(make_error_message(command_, error_))
 		    , command(command_)
 		    , error(error_)
 		    { }
@@ -200,13 +200,13 @@ private:
 					return std::size_t(0);
 				}
 				if (res < 0)
-					throw std::runtime_error(
+					throw Util::BacktraceException<std::runtime_error>(
 						std::string("Rpc: read: ") +
 						strerror(errno)
 					);
 				if (res == 0)
 					/* Unexpected end of file!  */
-					throw std::runtime_error(
+					throw Util::BacktraceException<std::runtime_error>(
 						"Rpc: read: unexpected end-of-file "
 						"in RPC socket."
 					);
@@ -263,7 +263,7 @@ private:
 				       ))
 				break;
 			if (res < 0)
-				throw std::runtime_error(
+				throw Util::BacktraceException<std::runtime_error>(
 					std::string("Rpc: write: ") +
 					strerror(errno)
 				);

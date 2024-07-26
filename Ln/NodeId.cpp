@@ -19,7 +19,7 @@ namespace Ln {
 NodeId::NodeId(std::string const& s) {
 	/* Parse.  */
 	if (!valid_string(s))
-		throw std::range_error(
+		throw Util::BacktraceException<std::range_error>(
 			std::string("Ln::NodeId: not node ID: ") + s
 		);
 

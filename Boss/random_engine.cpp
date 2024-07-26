@@ -1,5 +1,6 @@
 #include"Boss/random_engine.hpp"
 #include"Net/Fd.hpp"
+#include"Util/BacktraceException.hpp"
 #include<errno.h>
 #include<fcntl.h>
 #include<stdexcept>
@@ -18,7 +19,7 @@ std::default_random_engine initialize_random_engine() {
 		dr = Net::Fd(open("/dev/random", O_RDONLY));
 	} while (!dr && errno == EINTR);
 	if (!dr)
-		throw std::runtime_error(
+		throw Util::BacktraceException<std::runtime_error>(
 			std::string("open /dev/random: ") +
 			strerror(errno)
 		);

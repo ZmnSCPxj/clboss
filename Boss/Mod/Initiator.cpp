@@ -104,7 +104,7 @@ private:
 				, meth
 				, is.c_str()
 				).then([]() {
-			throw std::runtime_error("Unexpected result.");
+			throw Util::BacktraceException<std::runtime_error>("Unexpected result.");
 			return Ev::lift();
 		});
 	}

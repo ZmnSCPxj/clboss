@@ -272,7 +272,7 @@ private:
 		for (auto const& tag : tags) {
 			auto it = tag_informs.find(tag);
 			if (it == tag_informs.end())
-				throw std::runtime_error(
+				throw Util::BacktraceException<std::runtime_error>(
 					std::string("Unknown tag: ") + tag
 				);
 		}

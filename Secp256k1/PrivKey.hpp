@@ -1,6 +1,7 @@
 #ifndef SECP256K1_PRIVKEY_HPP
 #define SECP256K1_PRIVKEY_HPP
 
+#include"Util/BacktraceException.hpp"
 #include<cstdint>
 #include<ostream>
 #include<stdexcept>
@@ -19,9 +20,9 @@ namespace Secp256k1 {
  * private key.
  */
 /* FIXME: derive from a backtrace-capturing exception.  */
-class InvalidPrivKey : public std::invalid_argument {
+class InvalidPrivKey : public Util::BacktraceException<std::invalid_argument> {
 public:
-	InvalidPrivKey() : std::invalid_argument("Invalid private key.") {}
+	InvalidPrivKey() : Util::BacktraceException<std::invalid_argument>("Invalid private key.") {}
 };
 
 class PrivKey {

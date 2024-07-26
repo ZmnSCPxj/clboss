@@ -7,6 +7,7 @@
 #include<memory>
 #include<ostream>
 #include<stdexcept>
+#include"Util/BacktraceException.hpp"
 #include<string>
 #include<vector>
 
@@ -16,10 +17,9 @@ namespace Jsmn { class ParserExposedBuffer; }
 namespace Jsmn {
 
 /* Thrown when converting or using as incorrect type.  */
-/* FIXME: Use a backtrace-catching exception.  */
-class TypeError : public std::invalid_argument {
+class TypeError : public Util::BacktraceException<std::invalid_argument> {
 public:
-	TypeError() : std::invalid_argument("Incorrect type.") { }
+	TypeError() : Util::BacktraceException<std::invalid_argument>("Incorrect type.") { }
 };
 
 /* Represents an object that has been parsed from a JSON string.  */

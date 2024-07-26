@@ -1,6 +1,7 @@
 #ifndef BOLTZ_CONNECTIONIF_HPP
 #define BOLTZ_CONNECTIONIF_HPP
 
+#include"Util/BacktraceException.hpp"
 #include<memory>
 #include<stdexcept>
 #include<string>
@@ -35,10 +36,10 @@ public:
  * @brief thrown when communications with
  * the BOLTZ server has problems.
  */
-class ApiError : public std::runtime_error {
+class ApiError : public Util::BacktraceException<std::runtime_error> {
 public:
 	ApiError(std::string const& e
-		) : std::runtime_error(e) { }
+		) : Util::BacktraceException<std::runtime_error>(e) { }
 };
 
 }

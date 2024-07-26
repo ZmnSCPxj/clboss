@@ -1,6 +1,7 @@
 #include"Sqlite3/Db.hpp"
 #include"Sqlite3/Query.hpp"
 #include"Sqlite3/Tx.hpp"
+#include"Util/BacktraceException.hpp"
 #include"Util/make_unique.hpp"
 #include<stdexcept>
 #include<sqlite3.h>
@@ -15,7 +16,7 @@ private:
 	void throw_sqlite3(char const* src) {
 		auto connection = (sqlite3*) db.get_connection();
 		auto err = std::string(sqlite3_errmsg(connection));
-		throw std::runtime_error(
+		throw Util::BacktraceException<std::runtime_error>(
 			std::string("Sqlite3::Tx: ") + src + ": " + err
 		);
 	}

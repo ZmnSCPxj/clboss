@@ -19,7 +19,7 @@ bool Hash::valid_string(std::string const& s) {
 Hash::Hash(std::string const& s) : pimpl(std::make_shared<Impl>()) {
 	auto buf = Util::Str::hexread(s);
 	if (buf.size() != 20)
-		throw std::invalid_argument(
+		throw Util::BacktraceException<std::invalid_argument>(
 			"Ripemd160::Hash: incorrect size."
 		);
 	from_buffer(&buf[0]);

@@ -46,7 +46,7 @@ Signature::Signature( Secp256k1::PrivKey const& sk
 			/* Extremely unlikely to happen.
 			 * TODO: backtrace-capturing.
 			 */
-			throw std::runtime_error("Nonce generation for signing failed.");
+			throw Util::BacktraceException<std::runtime_error>("Nonce generation for signing failed.");
 		++(*reinterpret_cast<std::uint64_t*>(extra_entropy));
 	} while (!sig_has_low_r());
 }

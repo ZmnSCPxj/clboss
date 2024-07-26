@@ -386,7 +386,7 @@ std::istream& operator>>(std::istream& is, Jsmn::Object& o) {
 		if (!is || is.eof() || !is.get(buf[0])) {
 			if (!started)
 				return is;
-			throw std::runtime_error("Unexpected end-of-file.");
+			throw Util::BacktraceException<std::runtime_error>("Unexpected end-of-file.");
 		}
 		started = true;
 

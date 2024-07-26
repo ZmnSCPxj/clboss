@@ -1,4 +1,5 @@
 #include"Ln/Amount.hpp"
+#include"Util/BacktraceException.hpp"
 #include<algorithm>
 #include<sstream>
 #include<stdexcept>
@@ -44,12 +45,12 @@ Amount::object(Jsmn::Object const& o) {
 	else if (o.is_string())
 		return Amount(std::string(o));
 	else
-		throw std::invalid_argument("Ln::Amount json object invalid.");
+		throw Util::BacktraceException<std::invalid_argument>("Ln::Amount json object invalid.");
 }
 
 Amount::Amount(std::string const& s) {
 	if (!valid_string(s))
-		throw std::invalid_argument("Ln::Amount string invalid.");
+		throw Util::BacktraceException<std::invalid_argument>("Ln::Amount string invalid.");
 	auto is = std::istringstream(std::string(s.begin(), s.end() - 4));
 	is >> v;
 }

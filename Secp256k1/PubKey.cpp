@@ -67,7 +67,7 @@ public:
 						      );
 		/* FIXME: use a backtrace-prserving exception.  */
 		if (!res)
-			throw std::out_of_range(
+			throw Util::BacktraceException<std::out_of_range>(
 				"Secp256k1::PubKey::operatoor+=: "
 				"result of adding PubKey out-of-range"
 			);
@@ -83,7 +83,7 @@ public:
 							, sk.key
 							);
 		if (!res)
-			throw std::out_of_range(
+			throw Util::BacktraceException<std::out_of_range>(
 				"Secp256k1::PubKey::operatoor*=: "
 				"result of multiplying PrivKey out-of-range"
 			);

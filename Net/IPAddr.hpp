@@ -1,6 +1,7 @@
 #ifndef NET_IPADDR_HPP
 #define NET_IPADDR_HPP
 
+#include"Util/BacktraceException.hpp"
 #include<cstdint>
 #include<memory>
 #include<ostream>
@@ -17,11 +18,11 @@ namespace Net {
  *
  * @brief thrown when an invalid IP address is given.
  */
-class IPAddrInvalid : public std::invalid_argument {
+class IPAddrInvalid : public Util::BacktraceException<std::invalid_argument> {
 public:
 	std::string invalid_ip;
 	explicit IPAddrInvalid( std::string const& invalid_ip_
-			      ) : std::invalid_argument( std::string("Invalid IP: ") 
+		              ) : Util::BacktraceException<std::invalid_argument>( std::string("Invalid IP: ") 
 						       + invalid_ip_
 						       )
 				, invalid_ip(invalid_ip_)

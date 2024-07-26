@@ -19,10 +19,10 @@ enum SighashFlags
 , SIGHASH_ANYONECANPAY = 0x80
 };
 
-struct InvalidSighash : public std::invalid_argument {
+struct InvalidSighash : public Util::BacktraceException<std::invalid_argument> {
 	InvalidSighash() =delete;
 	InvalidSighash(std::string const& msg)
-		: std::invalid_argument(
+		: Util::BacktraceException<std::invalid_argument>(
 			std::string("Bitcoin::InvalidSighash: ") + msg
 		  ) { }
 };

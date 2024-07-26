@@ -77,7 +77,7 @@ void try_create_privkey_file( std::string const& privkey_filename
 		/* Benign failure, file already exists.  */
 		return;
 	if (!fd)
-		throw std::runtime_error(
+		throw Util::BacktraceException<std::runtime_error>(
 			std::string("Boss::Signer: creat(\"") +
 			privkey_filename +
 			"\"): " + strerror(errno)
@@ -88,7 +88,7 @@ void try_create_privkey_file( std::string const& privkey_filename
 	auto res = Util::Rw::write_all(fd.get(), &sk, sizeof(sk));
 	if (!res) {
 		unlink_noerr(privkey_filename);
-		throw std::runtime_error(
+		throw Util::BacktraceException<std::runtime_error>(
 			std::string("Boss::Signer: write(\"") +
 			privkey_filename +
 			"\"): " + strerror(errno)
@@ -101,7 +101,7 @@ Secp256k1::PrivKey
 read_privkey_file(std::string const& privkey_filename) {
 	auto fd = Net::Fd(open(privkey_filename.c_str(), O_RDONLY));
 	if (!fd)
-		throw std::runtime_error(
+		throw Util::BacktraceException<std::runtime_error>(
 			std::string("Boss::Signer: open(\"") +
 			privkey_filename +
 			"\"): " + strerror(errno)
@@ -111,13 +111,13 @@ read_privkey_file(std::string const& privkey_filename) {
 	auto size = sizeof(sk);
 	auto res = Util::Rw::read_all(fd.get(), &sk, size);
 	if (!res)
-		throw std::runtime_error(
+		throw Util::BacktraceException<std::runtime_error>(
 			std::string("Boss::Signer: read(\"") +
 			privkey_filename +
 			"\"): " + strerror(errno)
 		);
 	if (size != sizeof(sk))
-		throw std::runtime_error(
+		throw Util::BacktraceException<std::runtime_error>(
 			std::string("Boss::Signer: read(\"") +
 			privkey_filename +
 			"\"): unexpected end-of-file"
@@ -196,7 +196,7 @@ public:
 				/* Check it matches.  */
 				auto actual_pk = Secp256k1::PubKey(self->sk);
 				if (actual_pk != pubkey)
-					throw std::runtime_error(
+					throw Util::BacktraceException<std::runtime_error>(
 						std::string("Boss::Signer: ") +
 						self->privkey_filename +
 						": not matched to database!"

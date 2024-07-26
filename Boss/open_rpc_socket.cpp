@@ -1,5 +1,6 @@
 #include"Boss/open_rpc_socket.hpp"
 #include"Net/Fd.hpp"
+#include"Util/BacktraceException.hpp"
 #include<errno.h>
 #include<stdexcept>
 #include<string.h>
@@ -15,19 +16,19 @@ Net::Fd open_rpc_socket( std::string const& lightning_dir
 		       ) {
 	auto chdir_res = chdir(lightning_dir.c_str());
 	if (chdir_res < 0)
-		throw std::runtime_error(
+		throw Util::BacktraceException<std::runtime_error>(
 			std::string("chdir: ") + strerror(errno)
 		);
 
 	auto fd = Net::Fd(socket(AF_UNIX, SOCK_STREAM, 0));
 	if (!fd)
-		throw std::runtime_error(
+		throw Util::BacktraceException<std::runtime_error>(
 			std::string("socket: ") + strerror(errno)
 		);
 
 	auto addr = sockaddr_un();
 	if (rpc_file.length() + 1 > sizeof(addr.sun_path))
-		throw std::runtime_error(
+		throw Util::BacktraceException<std::runtime_error>(
 			std::string("sizeof(sun_path): ") + strerror(ENOSPC)
 		);
 
@@ -42,7 +43,7 @@ Net::Fd open_rpc_socket( std::string const& lightning_dir
 				     );
 	} while (connect_res < 0 && errno == EINTR);
 	if (connect_res < 0)
-		throw std::runtime_error(
+		throw Util::BacktraceException<std::runtime_error>(
 			std::string("connect: ") + strerror(errno)
 		);
 

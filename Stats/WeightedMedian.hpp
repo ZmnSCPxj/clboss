@@ -1,6 +1,7 @@
 #ifndef STATS_WEIGHTEDMEDIAN_HPP
 #define STATS_WEIGHTEDMEDIAN_HPP
 
+#include"Util/BacktraceException.hpp"
 #include<algorithm>
 #include<functional>
 #include<stdexcept>
@@ -14,9 +15,9 @@ namespace Stats {
  * @brief thrown when the weighted-median is
  * extracted but there are no samples.
  */
-class NoSamples : public std::invalid_argument {
+class NoSamples : public Util::BacktraceException<std::invalid_argument> {
 public:
-	NoSamples() : std::invalid_argument("Stats::NoSamples") { }
+	NoSamples() : Util::BacktraceException<std::invalid_argument>("Stats::NoSamples") { }
 };
 
 /** class Stats::WeightedMedian

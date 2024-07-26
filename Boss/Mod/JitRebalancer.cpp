@@ -337,11 +337,12 @@ private:
 					av.to_us += to_us;
 					av.capacity += capacity;
                                 }
-			} catch (std::exception const&) {
+			} catch (std::exception const& ex) {
 				return Boss::log( bus, Error
 						, "JitRebalancer: Unexpected "
-						  "result from listpeerchannels: %s"
+						  "result from listpeerchannels: %s: %s"
 						, Util::stringify(res).c_str()
+						, ex.what()
 						).then([]() {
 					throw Continue();
 					return Ev::lift();

@@ -90,13 +90,13 @@ private:
 						id, total
 					});
 				}
-			} catch (std::exception const& e) {
+			} catch (std::exception const& ex) {
 				infos->clear();
 				return Boss::log( bus, Error
 						, "PeerJudge: Unexpected "
-						  "listpeers result: %s"
-						, Util::stringify(peers)
-							.c_str()
+						  "listpeers result: %s: %s"
+						, Util::stringify(peers).c_str()
+						, ex.what()
 						);
 			}
 			return Ev::lift();

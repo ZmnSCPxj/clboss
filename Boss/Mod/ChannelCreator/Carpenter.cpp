@@ -157,14 +157,15 @@ Carpenter::construct(std::map<Ln::NodeId, Ln::Amount> plan) {
 					report << ", ";
 				report << node;
 			}
-		} catch (std::invalid_argument const&) {
+		} catch (std::invalid_argument const& ex) {
 			auto os = std::ostringstream();
 			os << res;
 			return Boss::log( bus, Error
 					, "ChannelCreator::Carpenter: "
 					  "Unexpected result from "
-					  "multifundchannel: %s"
+					  "multifundchannel: %s: %s"
 					, os.str().c_str()
+					, ex.what()
 					);
 		}
 

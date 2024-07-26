@@ -384,14 +384,14 @@ private:
 						continue;
 					rv.insert(n);
 				}
-			} catch (std::exception const&) {
+			} catch (std::exception const& ex) {
 				return Boss::log( bus, Error
 						, "FeeModderBySize: "
 						  "get_competitors: "
 						  "Unexpected result from "
-						  "listchannels: %s"
-						, Util::stringify(res)
-							.c_str()
+						  "listchannels: %s: %s"
+						, Util::stringify(res).c_str()
+						, ex.what()
 						).then([rv]() {
 					return Ev::lift(rv);
 				});

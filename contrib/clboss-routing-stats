@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+
+# This script produces a summary of channel stats, sorted by routing performance:
+#
+# - Displays PeerID, SCID, and Alias for each channel
+# - Sorts first by net fees (income - expenses) (descending)
+# - Then sorts by "Success Per Day" (SPD) (descending)
+# - Then sorts by Age in days (ascending)
+#
+# The channels at the top of the list are good, the ones at the bottom are bad.
+
+import subprocess
+import argparse
+import json
+from tabulate import tabulate
+from wcwidth import wcswidth
+
+def run_lightning_cli_command(network_option, command, *args):
+    try:
+        result = subprocess.run(['lightning-cli', network_option, command, *args], capture_output=True, text=True, check=True)
+        return json.loads(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print(f"Command '{command}' failed with error: {e}")
+    except json.JSONDecodeError as e:
+        print(f"Failed to parse JSON from command '{command}': {e}")
+    return None
+
+def calculate_peer_score(peer):
+    in_earnings = peer.get("in_earnings", 0)
+    out_earnings = peer.get("out_earnings", 0)
+    in_expenditures = peer.get("in_expenditures", 0)
+    out_expenditures = peer.get("out_expenditures", 0)
+    success_per_day = peer.get("success_per_day", 0)
+    income_minus_expenditures = in_earnings + out_earnings - in_expenditures - out_expenditures
+    return income_minus_expenditures, success_per_day
+
+def pad_string(s, width):
+    pad = width - wcswidth(s)
+    return s + ' ' * pad
+
+def main():
+    parser = argparse.ArgumentParser(description="Run lightning-cli with specified network")
+    parser.add_argument('--testnet', action='store_true', help='Run on testnet')
+    parser.add_argument('--mainnet', action='store_true', help='Run on mainnet')
+
+    args = parser.parse_args()
+
+    if args.testnet:
+        network_option = '--testnet'
+    else:
+        network_option = '--mainnet'  # Default to mainnet if no option is specified
+
+    # Run listpeerchannels command
+    listpeerchannels_data = run_lightning_cli_command(network_option, 'listpeerchannels')
+    if not listpeerchannels_data:
+        return
+
+    channels_data = listpeerchannels_data.get("channels", [])
+
+    channels = {}
+    peers = {}
+    for channel in channels_data:
+        # Skip channels that are not open
+        if channel.get("state") != "CHANNELD_NORMAL":
+            continue
+
+        short_channel_id = channel.get("short_channel_id")
+        peer_id = channel.get("peer_id")
+        to_us_msat = channel.get("to_us_msat")
+        if short_channel_id and peer_id:
+            channels[short_channel_id] = {
+                "peerid": peer_id,
+                "opener": channel.get("opener"),
+                "to_us_msat": to_us_msat,
+                "total_msat": channel.get("total_msat")
+            }
+            if peer_id not in peers:
+                peers[peer_id] = {
+                    "alias": None,  # Placeholder for alias
+                    "in_earnings": 0,
+                    "in_expenditures": 0,
+                    "out_earnings": 0,
+                    "out_expenditures": 0,
+                    "age": 0,
+                    "success_per_day": 0
+                }
+
+    # Run listnodes command for each unique peer_id and update alias
+    for peer_id in peers.keys():
+        listnodes_data = run_lightning_cli_command(network_option, 'listnodes', peer_id)
+        if listnodes_data:
+            nodes = listnodes_data.get("nodes", [])
+            for node in nodes:
+                alias = node.get("alias")
+                if peer_id in peers:
+                    peers[peer_id]["alias"] = alias
+
+    # Run clboss-status command and capture the output
+    clboss_status_data = run_lightning_cli_command(network_option, 'clboss-status')
+    if clboss_status_data:
+        offchain_earnings_tracker = clboss_status_data.get("offchain_earnings_tracker", {})
+        peer_metrics = clboss_status_data.get("peer_metrics", {})
+
+        for id in peers.keys():
+            if id in offchain_earnings_tracker:
+                peers[id]["in_earnings"] = offchain_earnings_tracker[id].get("in_earnings", 0)
+                peers[id]["in_expenditures"] = offchain_earnings_tracker[id].get("in_expenditures", 0)
+                peers[id]["out_earnings"] = offchain_earnings_tracker[id].get("out_earnings", 0)
+                peers[id]["out_expenditures"] = offchain_earnings_tracker[id].get("out_expenditures", 0)
+
+            if id in peer_metrics:
+                peers[id]["age"] = peer_metrics[id].get("age", 0)
+                peers[id]["success_per_day"] = peer_metrics[id].get("success_per_day", 0)
+
+    # Sort channels based on the calculated score
+    sorted_channels = sorted(channels.keys(), key=lambda cid: (
+        -calculate_peer_score(peers[channels[cid]["peerid"]])[0],  # Descending income_minus_expenditures
+        -calculate_peer_score(peers[channels[cid]["peerid"]])[1],  # Descending success_per_day
+        peers[channels[cid]["peerid"]]["age"]  # Ascending age
+    ))
+
+    # Prepare table data
+    table_data = []
+    max_alias_length = max([wcswidth(peer["alias"]) for peer in peers.values() if peer["alias"]] + [5])  # 5 is the length of "Alias"
+    for short_channel_id in sorted_channels:
+        peer_id = channels[short_channel_id]["peerid"]
+        peer = peers[peer_id]
+        income_minus_expenditures, success_per_day = calculate_peer_score(peer)
+        alias = pad_string(peer["alias"], max_alias_length)
+        to_us_msat = f"{channels[short_channel_id]['to_us_msat']:,}"  # With commas
+        income_minus_expenditures_formatted = f"{income_minus_expenditures:,}"  # With commas
+        spd_formatted = f"x{success_per_day:4.1f}"  # Prefix w/ 'x', strip later, preserves padding
+        table_data.append([
+            alias,
+            short_channel_id,
+            to_us_msat,
+            peer["age"] // 86400,  # Convert age from seconds to days
+            income_minus_expenditures_formatted,
+            spd_formatted,
+            peer_id
+        ])
+
+    # Print the table without grid
+    table_str = tabulate(table_data,
+                         headers=["Alias", "SCID", "to us", "Age", "Net msat", "SPD", "PeerID"],
+                         tablefmt="plain", stralign="left", numalign="right",
+                         colalign=("left", "left", "right", "right", "right", "left", "left"))
+
+    # Remove the "x" prefix from SPD values in the final output
+    table_str = table_str.replace(" x", " ")
+    print(table_str)
+
+if __name__ == "__main__":
+    main()

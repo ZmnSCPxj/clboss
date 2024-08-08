@@ -1,5 +1,6 @@
 #include"Ev/Io.hpp"
 #include"Ev/yield.hpp"
+#include"Util/BacktraceException.hpp"
 #include"Sqlite3/Db.hpp"
 #include"Sqlite3/Tx.hpp"
 #include<stdexcept>
@@ -28,7 +29,7 @@ public:
 				connection = nullptr;
 			} else
 				msg = "Not enough memory";
-			throw std::runtime_error(
+			throw Util::BacktraceException<std::runtime_error>(
 				std::string("Sqlite3::Db: sqlite3_open: ") +
 				msg
 			);
@@ -38,7 +39,7 @@ public:
 			auto msg = std::string(sqlite3_errmsg(connection));
 			sqlite3_close_v2(connection);
 			connection = nullptr;
-			throw std::runtime_error(
+			throw Util::BacktraceException<std::runtime_error>(
 				std::string("Sqlite3::Db: sqlite3_extended_result_codes: ") +
 				msg
 			);
@@ -50,7 +51,7 @@ public:
 			auto msg = std::string(sqlite3_errmsg(connection));
 			sqlite3_close_v2(connection);
 			connection = nullptr;
-			throw std::runtime_error(
+			throw Util::BacktraceException<std::runtime_error>(
 				std::string("Sqlite3::Db: "
 					    "PRAGMA foreign_keys = ON: "
 					   ) +

@@ -13,7 +13,7 @@ namespace S { class Bus; }
 
 namespace Boss { namespace Mod {
 
-struct RpcError : public std::runtime_error {
+struct RpcError : public Util::BacktraceException<std::runtime_error> {
 private:
 	static
 	std::string make_error_message( std::string const&

@@ -2,12 +2,13 @@
 #include<stdexcept>
 #include<string>
 #include"Secp256k1/Detail/context.hpp"
+#include"Util/BacktraceException.hpp"
 
 namespace {
 
 /* Called due to illegal inputs to the library.  */
 void illegal_callback(const char* msg, void*) {
-	throw std::invalid_argument(std::string("SECP256K1: ") + msg);
+	throw Util::BacktraceException<std::invalid_argument>(std::string("SECP256K1: ") + msg);
 }
 
 std::shared_ptr<secp256k1_context_struct> create_secp256k1_context() {

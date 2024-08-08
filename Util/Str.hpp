@@ -5,6 +5,7 @@
  * Minor string utilities.
  */
 
+#include"Util/BacktraceException.hpp"
 #include<cstdint>
 #include<stdarg.h>
 #include<stdexcept>
@@ -20,10 +21,9 @@ std::string hexbyte(std::uint8_t);
 std::string hexdump(void const* p, std::size_t s);
 
 /* Creates a buffer from the given hex string.  */
-/* FIXME: use a backtrace-extracting exception. */
-struct HexParseFailure : public std::runtime_error {
+struct HexParseFailure : public Util::BacktraceException<std::runtime_error> {
 	HexParseFailure(std::string msg)
-		: std::runtime_error("hexread: " + msg) { }
+		: Util::BacktraceException<std::runtime_error>("hexread: " + msg) { }
 };
 std::vector<std::uint8_t> hexread(std::string const&);
 

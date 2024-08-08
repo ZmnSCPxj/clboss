@@ -149,12 +149,13 @@ void ChannelCreateDestroyMonitor::start() {
 		try {
 			auto payload = params["channel_opened"];
 			n = Ln::NodeId(std::string(payload["id"]));
-		} catch (std::runtime_error const&) {
+		} catch (std::runtime_error const& err) {
 			return Boss::log( bus, Error
 					, "ChannelCreateDestroyMonitor: "
 					  "Unexpected channel_opened "
-					  "payload: %s"
+					  "payload: %s: %s"
 					, Util::stringify(params).c_str()
+					, err.what()
 					);
 		}
 		/* Is it already in channeled?  */
@@ -174,12 +175,13 @@ void ChannelCreateDestroyMonitor::start() {
 			n = Ln::NodeId(std::string(payload["peer_id"]));
 			old_state = std::string(payload["old_state"]);
 			new_state = std::string(payload["new_state"]);
-		} catch (std::runtime_error const&) {
+		} catch (std::runtime_error const& err) {
 			return Boss::log( bus, Error
 					, "ChannelCreateDestroyMonitor: "
 					  "Unexpected channel_state_changed "
-					  "payload: %s"
+					  "payload: %s: %s"
 					, Util::stringify(params).c_str()
+					, err.what()
 					);
 		}
 		/* Only continue if we are leaving the CHANNELD_NORMAL

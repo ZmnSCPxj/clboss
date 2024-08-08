@@ -186,14 +186,14 @@ private:
 					);
 					break;
 				}
-			} catch (std::exception const&) {
+			} catch (std::exception const& ex) {
 				found = false;
 				act = Boss::log( bus, Error
 					       , "FeeModderByBalance: "
 						 "Unexpected result from "
-						 "listpeerchannels: %s"
-					       , Util::stringify(res)
-							.c_str()
+						 "listpeerchannels: %s: %s"
+					       , Util::stringify(res).c_str()
+					       , ex.what()
 					       );
 			}
 			typedef ChannelSpecs CS;

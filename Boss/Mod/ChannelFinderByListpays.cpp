@@ -159,12 +159,13 @@ Ev::Io<void> ChannelFinderByListpays::extract_payees_loop() {
 				++pit->second;
 			++count;
 			return extract_payees_loop();
-		} catch (std::exception const&) {
+		} catch (std::exception const& ex) {
 			return Boss::log( bus, Error
 					, "ChannelFinderByListpays: "
 					  "Unexpected result from `listpays` "
-					  "`pays` field: %s"
+					  "`pays` field: %s: %s"
 					, Util::stringify(pay).c_str()
+					, ex.what()
 					);
 		}
 	});

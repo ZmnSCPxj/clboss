@@ -50,11 +50,12 @@ void ForwardFeeMonitor::start() {
 					- double(payload["received_time"])
 					;
 
-		} catch (std::runtime_error const& _) {
+		} catch (std::runtime_error const& err) {
 			return Boss::log( bus, Error
 					, "ForwardFeeMonitor: Unexpected "
-					  "forward_event payload: %s"
+					  "forward_event payload: %s: %s"
 					, Util::stringify(n.params).c_str()
+					, err.what()
 					);
 		}
 

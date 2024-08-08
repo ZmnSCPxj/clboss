@@ -1,4 +1,5 @@
 #include"Ln/Scid.hpp"
+#include"Util/BacktraceException.hpp"
 #include<algorithm>
 #include<sstream>
 #include<stdexcept>
@@ -82,7 +83,7 @@ Scid::Scid(std::string const& s) {
 	auto t = std::uint64_t();
 	auto o = std::uint64_t();
 	if (!validate_and_parse(s, b, t, o))
-		throw std::invalid_argument(std::string("Not an SCID: ") + s);
+		throw Util::BacktraceException<std::invalid_argument>(std::string("Not an SCID: ") + s);
 	val = (b << 40)
 	    | (t << 16)
 	    | (o << 0)

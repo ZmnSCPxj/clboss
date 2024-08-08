@@ -12,6 +12,7 @@
 #include<unistd.h>
 #include<vector>
 #include"Ev/ThreadPool.hpp"
+#include"Util/BacktraceException.hpp"
 #include"Util/make_unique.hpp"
 
 namespace {
@@ -182,7 +183,7 @@ public:
 		int pipes[2];
 		auto pipe_res = pipe(pipes);
 		if (pipe_res < 0) {
-			throw std::runtime_error(std::string("Ev::ThreadPool: pipe:")
+			throw Util::BacktraceException<std::runtime_error>(std::string("Ev::ThreadPool: pipe:")
 						+ strerror(errno)
 						);
 		}

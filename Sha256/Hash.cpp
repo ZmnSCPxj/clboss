@@ -17,7 +17,7 @@ bool Hash::valid_string(std::string const& s) {
 Hash::Hash(std::string const& s) {
 	auto bytes = Util::Str::hexread(s);
 	if (bytes.size() != 32)
-		throw std::invalid_argument("Hashes must be 32 bytes.");
+		throw Util::BacktraceException<std::invalid_argument>("Hashes must be 32 bytes.");
 	pimpl = std::make_shared<Impl>();
 	for (auto i = std::size_t(0); i < 32; ++i)
 		pimpl->d[i] = bytes[i];

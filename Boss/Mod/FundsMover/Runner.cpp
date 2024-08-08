@@ -94,11 +94,12 @@ Ev::Io<void> Runner::gather_info() {
 				));
 				break;
 			}
-		} catch (std::exception const&) {
+		} catch (std::exception const& ex) {
 			return Boss::log( bus, Error
 					, "FundsMover: Unexpected result "
-					  "from listchannels: %s"
+					  "from listchannels: %s: %s"
 					, Util::stringify(res).c_str()
+					, ex.what()
 					);
 		}
 		return Ev::lift();
@@ -134,11 +135,12 @@ Ev::Io<void> Runner::gather_info() {
 				));
 				break;
 			}
-		} catch (std::exception const&) {
+		} catch (std::exception const& ex) {
 			return Boss::log( bus, Error
 					, "FundsMover: Unexpected result "
-					  "from listchannels: %s"
+					  "from listchannels: %s: %s"
 					, Util::stringify(res).c_str()
+					, ex.what()
 					);
 		}
 		return Ev::lift();

@@ -39,7 +39,7 @@ Uuid::Uuid(std::string const& s) {
 	pimpl = Util::make_unique<Impl>();
 	auto buf = Util::Str::hexread(s);
 	if (buf.size() != 16)
-		throw std::invalid_argument("Uuid: invalid input string.");
+		throw Util::BacktraceException<std::invalid_argument>("Uuid: invalid input string.");
 	std::copy(buf.begin(), buf.end(), pimpl->data);
 }
 bool Uuid::valid_string(std::string const& s) {

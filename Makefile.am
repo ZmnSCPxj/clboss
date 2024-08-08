@@ -590,6 +590,7 @@ TESTS = \
 	tests/boss/test_channelcreator_rearrangerbysize \
 	tests/boss/test_channelcreator_reprioritizer \
 	tests/boss/test_earningsrebalancer \
+	tests/boss/test_earningstracker \
 	tests/boss/test_feemodderbypricetheory \
 	tests/boss/test_forwardfeemonitor \
 	tests/boss/test_getmanifest \
@@ -598,6 +599,8 @@ TESTS = \
 	tests/boss/test_needsconnectsolicitor \
 	tests/boss/test_onchainfeemonitor_samples_init \
 	tests/boss/test_peerjudge_agetracker \
+	tests/boss/test_recentearnings \
+	tests/boss/test_earningshistory \
 	tests/boss/test_peerjudge_algo \
 	tests/boss/test_peerjudge_datagatherer \
 	tests/boss/test_peerstatistician \
@@ -621,6 +624,7 @@ TESTS = \
 	tests/ev/test_semaphore \
 	tests/ev/test_throw_in_then \
 	tests/graph/test_dijkstra \
+	tests/jsmn/test_equality \
 	tests/jsmn/test_iterator \
 	tests/jsmn/test_parser \
 	tests/jsmn/test_performance \

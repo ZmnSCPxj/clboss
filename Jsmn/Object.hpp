@@ -42,6 +42,8 @@ public:
 	Object& operator=(Object const&) =default;
 	Object& operator=(Object&&) =default;
 
+	static Object parse_json(char const* txt);
+
 	/* Type queries on the object.  */
 	bool is_null() const;
 	bool is_boolean() const;
@@ -68,6 +70,11 @@ public:
 	/* Act as an array.  */
 	Object operator[](std::size_t) const; /* Return null if out-of-range.  */
 	/* TODO: Iterator.  */
+
+	bool operator==(Object const& other) const;
+	bool operator!=(Object const& other) const {
+		return !(*this == other);
+	}
 
 	/* Formal factory.  */
 	friend class ParserExposedBuffer;

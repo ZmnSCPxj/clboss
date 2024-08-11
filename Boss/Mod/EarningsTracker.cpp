@@ -449,7 +449,9 @@ private:
         		       SUM(out_expenditures) AS total_out_expenditures
         		  FROM "EarningsTracker"
                          WHERE time_bucket >= :cutoff
-        		 GROUP BY node; 
+        		 GROUP BY node
+                         ORDER BY (total_in_earnings - total_in_expenditures +
+                                   total_out_earnings - total_out_expenditures) DESC;
 			)QRY")
 			.bind(":cutoff", cutoff)
 			.execute()

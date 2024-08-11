@@ -55,7 +55,7 @@ Ev::Io<void> raiseMoveFundsLoop(S::Bus& bus, int count) {
 		Boss::Msg::RequestMoveFunds{
 			nullptr,        	// requester (match ResponseMoveFunds)
 			C,              	// source
-			A,              	// destination
+			B,              	// destination
 			Ln::Amount::sat(1000),  // amount
 			Ln::Amount::sat(3)      // fee_budget
 		})
@@ -134,13 +134,13 @@ int main() {
 			    "in_earnings": 336000,
 			    "in_expenditures": 0,
 			    "out_earnings": 0,
-			    "out_expenditures": 14000
+			    "out_expenditures": 0
 			  },
 			  "020000000000000000000000000000000000000000000000000000000000000002": {
 			    "in_earnings": 0,
 			    "in_expenditures": 0,
 			    "out_earnings": 336000,
-			    "out_expenditures": 0
+			    "out_expenditures": 14000
 			  },
 			  "020000000000000000000000000000000000000000000000000000000000000003": {
 			    "in_earnings": 0,
@@ -180,13 +180,13 @@ int main() {
 			    "in_earnings": 720000,
 			    "in_expenditures": 0,
 			    "out_earnings": 0,
-			    "out_expenditures": 14000
+			    "out_expenditures": 0
 			  },
 			  "020000000000000000000000000000000000000000000000000000000000000002": {
 			    "in_earnings": 0,
 			    "in_expenditures": 0,
 			    "out_earnings": 720000,
-			    "out_expenditures": 0
+			    "out_expenditures": 14000
 			  },
 			  "020000000000000000000000000000000000000000000000000000000000000003": {
 			    "in_earnings": 0,

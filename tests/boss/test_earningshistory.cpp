@@ -38,8 +38,9 @@ Ev::Io<void> raiseForwardFeeLoop(S::Bus& bus, int count) {
 	return bus.raise(Boss::Msg::ForwardFee{
 			A,              	// in_id
 			B,              	// out_id
-			Ln::Amount::sat(1),	// fee
-			1.0             	// resolution_time
+			Ln::Amount::sat(2),	// fee
+			1.0,             	// resolution_time
+			Ln::Amount::sat(1000),	// fee
 		})
 		.then([&, count]() {
 			mock_now += 60 * 60;
@@ -64,7 +65,7 @@ Ev::Io<void> raiseMoveFundsLoop(S::Bus& bus, int count) {
 				Boss::Msg::ResponseMoveFunds{
 					nullptr,        	// requester (see RequestMoveFunds)
 					Ln::Amount::sat(1000),  // amount_moved
-					Ln::Amount::sat(2)      // fee_spent
+					Ln::Amount::sat(1)      // fee_spent
 				});
 		})
 		.then([&bus, count]() {
@@ -118,27 +119,39 @@ int main() {
 		assert(result["history"][0] == Jsmn::Object::parse_json(R"JSON(
 			{
 			  "bucket_time": 1722902400,
-			  "in_earnings": 24000,
+			  "in_earnings": 48000,
 			  "in_expenditures": 0,
-			  "out_earnings": 24000,
-			  "out_expenditures": 0
+			  "out_earnings": 48000,
+			  "out_expenditures": 0,
+			  "in_forwarded": 24000000,
+			  "in_rebalanced": 0,
+			  "out_forwarded": 24000000,
+			  "out_rebalanced": 0
 			}
                 )JSON"));
 		assert(result["history"][59] == Jsmn::Object::parse_json(R"JSON(
 			{
 			  "bucket_time": 1728000000,
-			  "in_earnings": 24000,
-			  "in_expenditures": 2000,
-			  "out_earnings": 24000,
-			  "out_expenditures": 2000
+			  "in_earnings": 48000,
+			  "in_expenditures": 1000,
+			  "out_earnings": 48000,
+			  "out_expenditures": 1000,
+			  "in_forwarded": 24000000,
+			  "in_rebalanced": 1000000,
+			  "out_forwarded": 24000000,
+			  "out_rebalanced": 1000000
 			}
                 )JSON"));
 		assert(result["total"] == Jsmn::Object::parse_json(R"JSON(
 			{
-			  "in_earnings": 1440000,
-			  "in_expenditures": 14000,
-			  "out_earnings": 1440000,
-			  "out_expenditures": 14000
+			  "in_earnings": 2880000,
+			  "in_expenditures": 7000,
+			  "out_earnings": 2880000,
+			  "out_expenditures": 7000,
+			  "in_forwarded": 1440000000,
+			  "in_rebalanced": 7000000,
+			  "out_forwarded": 1440000000,
+			  "out_rebalanced": 7000000
 			}
                         )JSON"));
 		return Ev::lift();
@@ -159,27 +172,39 @@ int main() {
 		assert(result["history"][0] == Jsmn::Object::parse_json(R"JSON(
 			{
 			  "bucket_time": 1722902400,
-			  "in_earnings": 24000,
+			  "in_earnings": 48000,
 			  "in_expenditures": 0,
 			  "out_earnings": 0,
-			  "out_expenditures": 0
+			  "out_expenditures": 0,
+			  "in_forwarded": 24000000,
+			  "in_rebalanced": 0,
+			  "out_forwarded": 0,
+			  "out_rebalanced": 0
 			}
                 )JSON"));
 		assert(result["history"][59] == Jsmn::Object::parse_json(R"JSON(
 			{
 			  "bucket_time": 1728000000,
-			  "in_earnings": 24000,
+			  "in_earnings": 48000,
 			  "in_expenditures": 0,
 			  "out_earnings": 0,
-			  "out_expenditures": 2000
+			  "out_expenditures": 1000,
+			  "in_forwarded": 24000000,
+			  "in_rebalanced": 0,
+			  "out_forwarded": 0,
+			  "out_rebalanced": 1000000
 			}
                 )JSON"));
 		assert(result["total"] == Jsmn::Object::parse_json(R"JSON(
 			{
-			  "in_earnings": 1440000,
+			  "in_earnings": 2880000,
 			  "in_expenditures": 0,
 			  "out_earnings": 0,
-			  "out_expenditures": 14000
+			  "out_expenditures": 7000,
+			  "in_forwarded": 1440000000,
+			  "in_rebalanced": 0,
+			  "out_forwarded": 0,
+			  "out_rebalanced": 7000000
 			}
                         )JSON"));
 		return Ev::lift();
@@ -201,26 +226,38 @@ int main() {
 			{
 			  "bucket_time": 1727481600,
 			  "in_earnings": 0,
-			  "in_expenditures": 2000,
+			  "in_expenditures": 1000,
 			  "out_earnings": 0,
-			  "out_expenditures": 0
+			  "out_expenditures": 0,
+			  "in_forwarded": 0,
+			  "in_rebalanced": 1000000,
+			  "out_forwarded": 0,
+			  "out_rebalanced": 0
 			}
                 )JSON"));
 		assert(result["history"][6] == Jsmn::Object::parse_json(R"JSON(
 			{
 			  "bucket_time": 1728000000,
 			  "in_earnings": 0,
-			  "in_expenditures": 2000,
+			  "in_expenditures": 1000,
 			  "out_earnings": 0,
-			  "out_expenditures": 0
+			  "out_expenditures": 0,
+			  "in_forwarded": 0,
+			  "in_rebalanced": 1000000,
+			  "out_forwarded": 0,
+			  "out_rebalanced": 0
 			}
                 )JSON"));
 		assert(result["total"] == Jsmn::Object::parse_json(R"JSON(
 			{
 			  "in_earnings": 0,
-			  "in_expenditures": 14000,
+			  "in_expenditures": 7000,
 			  "out_earnings": 0,
-			  "out_expenditures": 0
+			  "out_expenditures": 0,
+			  "in_forwarded": 0,
+			  "in_rebalanced": 7000000,
+			  "out_forwarded": 0,
+			  "out_rebalanced": 0
 			}
                         )JSON"));
 		return Ev::lift();

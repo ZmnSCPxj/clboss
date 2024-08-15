@@ -140,7 +140,7 @@ int main() {
 		assert(forwardfee->out_id == Ln::NodeId("020000000000000000000000000000000000000000000000000000000000000000"));
 		assert(forwardfee->fee == Ln::Amount::msat(1001));
 		assert(forwardfee->resolution_time == (1560696342.556 - 1560696342.368));
-
+		assert(forwardfee->amount == Ln::Amount::msat(100000000));
 		return Ev::lift(0);
 	});
 

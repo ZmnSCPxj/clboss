@@ -68,7 +68,8 @@ int main() {
 				A,			// in_id
 				B,			// out_id
 				Ln::Amount::sat(1),	// fee
-				1.0			// resolution_time
+				1.0,			// resolution_time
+				Ln::Amount::sat(1000),	// amount forwarded
 			});
 	}).then([&]() {
 		mock_now = 2000.0;
@@ -84,19 +85,31 @@ int main() {
 		    "in_earnings": 1000,
 		    "in_expenditures": 0,
 		    "out_earnings": 0,
-		    "out_expenditures": 0
+		    "out_expenditures": 0,
+		    "in_forwarded": 1000000,
+		    "in_rebalanced": 0,
+		    "out_forwarded": 0,
+		    "out_rebalanced": 0
 		  },
 		  "020000000000000000000000000000000000000000000000000000000000000002": {
 		    "in_earnings": 0,
 		    "in_expenditures": 0,
 		    "out_earnings": 1000,
-		    "out_expenditures": 0
+		    "out_expenditures": 0,
+		    "in_forwarded": 0,
+		    "in_rebalanced": 0,
+		    "out_forwarded": 1000000,
+		    "out_rebalanced": 0
 		  },
 		  "total": {
 		    "in_earnings": 1000,
 		    "in_expenditures": 0,
 		    "out_earnings": 1000,
-		    "out_expenditures": 0
+		    "out_expenditures": 0,
+		    "in_forwarded": 1000000,
+		    "in_rebalanced": 0,
+		    "out_forwarded": 1000000,
+		    "out_rebalanced": 0
 		  }
 		}
                         )JSON"));
@@ -108,7 +121,8 @@ int main() {
 				A,			// in_id
 				B,			// out_id
 				Ln::Amount::sat(1),	// fee
-				1.0			// resolution_time
+				1.0,			// resolution_time
+				Ln::Amount::sat(2000),	// amount forwarded
 			});
 	}).then([&]() {
 		return bus.raise(Boss::Msg::SolicitStatus{});
@@ -123,19 +137,31 @@ int main() {
 		    "in_earnings": 2000,
 		    "in_expenditures": 0,
 		    "out_earnings": 0,
-		    "out_expenditures": 0
+		    "out_expenditures": 0,
+		    "in_forwarded": 3000000,
+		    "in_rebalanced": 0,
+		    "out_forwarded": 0,
+		    "out_rebalanced": 0
 		  },
 		  "020000000000000000000000000000000000000000000000000000000000000002": {
 		    "in_earnings": 0,
 		    "in_expenditures": 0,
 		    "out_earnings": 2000,
-		    "out_expenditures": 0
+		    "out_expenditures": 0,
+		    "in_forwarded": 0,
+		    "in_rebalanced": 0,
+		    "out_forwarded": 3000000,
+		    "out_rebalanced": 0
 		  },
 		  "total": {
 		    "in_earnings": 2000,
 		    "in_expenditures": 0,
 		    "out_earnings": 2000,
-		    "out_expenditures": 0
+		    "out_expenditures": 0,
+		    "in_forwarded": 3000000,
+		    "in_rebalanced": 0,
+		    "out_forwarded": 3000000,
+		    "out_rebalanced": 0
 		  }
 		}
                         )JSON"));
@@ -171,25 +197,41 @@ int main() {
 		    "in_earnings": 2000,
 		    "in_expenditures": 0,
 		    "out_earnings": 0,
-		    "out_expenditures": 2000
+		    "out_expenditures": 2000,
+		    "in_forwarded": 3000000,
+		    "in_rebalanced": 0,
+		    "out_forwarded": 0,
+		    "out_rebalanced": 1000000
 		  },
 		  "020000000000000000000000000000000000000000000000000000000000000002": {
 		    "in_earnings": 0,
 		    "in_expenditures": 0,
 		    "out_earnings": 2000,
-		    "out_expenditures": 0
+		    "out_expenditures": 0,
+		    "in_forwarded": 0,
+		    "in_rebalanced": 0,
+		    "out_forwarded": 3000000,
+		    "out_rebalanced": 0
 		  },
 		  "020000000000000000000000000000000000000000000000000000000000000003": {
 		    "in_earnings": 0,
 		    "in_expenditures": 2000,
 		    "out_earnings": 0,
-		    "out_expenditures": 0
+		    "out_expenditures": 0,
+		    "in_forwarded": 0,
+		    "in_rebalanced": 1000000,
+		    "out_forwarded": 0,
+		    "out_rebalanced": 0
 		  },
 		  "total": {
 		    "in_earnings": 2000,
 		    "in_expenditures": 2000,
 		    "out_earnings": 2000,
-		    "out_expenditures": 2000
+		    "out_expenditures": 2000,
+		    "in_forwarded": 3000000,
+		    "in_rebalanced": 1000000,
+		    "out_forwarded": 3000000,
+		    "out_rebalanced": 1000000
 		  }
 		}
                         )JSON"));

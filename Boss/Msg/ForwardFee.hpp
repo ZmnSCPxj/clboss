@@ -21,6 +21,8 @@ struct ForwardFee {
 	/* The time, in seconds, it took from us receiving the incoming HTLC
 	 * to us receiving the preimage from the outgoing HTLC.  */
 	double resolution_time;
+	/* The amount forwarded.  */
+	Ln::Amount amount;
 };
 
 }}

@@ -29,6 +29,7 @@ private:
 			 , Ln::NodeId out_id
 			 , Ln::Amount fee
 			 , double resolution_time
+			 , Ln::Amount amount
 			 );
 
 public:

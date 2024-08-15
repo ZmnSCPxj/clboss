@@ -14,6 +14,7 @@
 #include"Boss/Msg/SolicitStatus.hpp"
 #include"Boss/concurrent.hpp"
 #include"Ev/Io.hpp"
+#include"Json/Out.hpp"
 #include"S/Bus.hpp"
 #include"Sqlite3.hpp"
 #include"Util/make_unique.hpp"
@@ -21,6 +22,62 @@
 #include<cmath>
 #include<map>
 #include<iostream>
+#include<unordered_set>
+
+namespace {
+
+struct EarningsData {
+	uint64_t in_earnings = 0;
+	uint64_t in_expenditures = 0;
+	uint64_t out_earnings = 0;
+	uint64_t out_expenditures = 0;
+	uint64_t in_forwarded = 0;
+	uint64_t in_rebalanced = 0;
+	uint64_t out_forwarded = 0;
+	uint64_t out_rebalanced = 0;
+
+	// Unmarshal from database fetch
+	static EarningsData from_row(Sqlite3::Row& r, size_t& ndx) {
+		return {
+			r.get<uint64_t>(ndx++),
+			r.get<uint64_t>(ndx++),
+			r.get<uint64_t>(ndx++),
+			r.get<uint64_t>(ndx++),
+			r.get<uint64_t>(ndx++),
+			r.get<uint64_t>(ndx++),
+			r.get<uint64_t>(ndx++),
+			r.get<uint64_t>(ndx++)
+		};
+	}
+
+	// Operator+= for accumulation
+	EarningsData& operator+=(const EarningsData& other) {
+		in_earnings += other.in_earnings;
+		in_expenditures += other.in_expenditures;
+		out_earnings += other.out_earnings;
+		out_expenditures += other.out_expenditures;
+		in_forwarded += other.in_forwarded;
+		in_rebalanced += other.in_rebalanced;
+		out_forwarded += other.out_forwarded;
+		out_rebalanced += other.out_rebalanced;
+		return *this;
+	}
+
+	template <typename T>
+	void to_json(Json::Detail::Object<T>& obj) const {
+		obj
+			.field("in_earnings", in_earnings)
+			.field("in_expenditures", in_expenditures)
+			.field("out_earnings", out_earnings)
+			.field("out_expenditures", out_expenditures)
+			.field("in_forwarded", in_forwarded)
+			.field("in_rebalanced", in_rebalanced)
+			.field("out_forwarded", out_forwarded)
+			.field("out_rebalanced", out_rebalanced);
+	}
+};
+
+}
 
 namespace Boss { namespace Mod {
 
@@ -46,7 +103,7 @@ private:
 		});
 		bus.subscribe<Msg::ForwardFee
 			     >([this](Msg::ForwardFee const& f) {
-			return forward_fee(f.in_id, f.out_id, f.fee);
+				     return forward_fee(f.in_id, f.out_id, f.fee, f.amount);
 		});
 		bus.subscribe<Msg::RequestMoveFunds
 			     >([this](Msg::RequestMoveFunds const& req) {
@@ -158,6 +215,7 @@ private:
 		return db.transact().then([](Sqlite3::Tx tx) {
 			// If we already have a bucket schema we're done
 			if (have_bucket_table(tx)) {
+				add_missing_columns(tx);
 				tx.commit();
 				return Ev::lift();
 			}
@@ -171,6 +229,10 @@ private:
 			     , in_expenditures INTEGER NOT NULL
 			     , out_earnings INTEGER NOT NULL
 			     , out_expenditures INTEGER NOT NULL
+			     , in_forwarded INTEGER NOT NULL
+			     , in_rebalanced INTEGER NOT NULL
+			     , out_forwarded INTEGER NOT NULL
+			     , out_rebalanced INTEGER NOT NULL
 			     , PRIMARY KEY (node, time_bucket)
 			     );
 			)QRY");
@@ -220,12 +282,40 @@ private:
 		return fetch.begin() != fetch.end();
 	}
 
+	static void add_missing_columns(Sqlite3::Tx& tx) {
+		std::unordered_set<std::string> existing_columns;
+		auto columns_query = tx.query("PRAGMA table_info(EarningsTracker);").execute();
+		for (auto& row : columns_query) {
+			existing_columns.insert(row.get<std::string>(1));
+		}
+
+		// These columns are new.
+		std::vector<std::pair<std::string, std::string>> columns_to_check = {
+			{"in_forwarded", "INTEGER NOT NULL DEFAULT 0"},
+			{"in_rebalanced", "INTEGER NOT NULL DEFAULT 0"},
+			{"out_forwarded", "INTEGER NOT NULL DEFAULT 0"},
+			{"out_rebalanced", "INTEGER NOT NULL DEFAULT 0"},
+		};
+
+		// Add missing columns
+		for (const auto& [col_name, col_def] : columns_to_check) {
+			if (existing_columns.find(col_name) == existing_columns.end()) {
+				std::string add_column_query =
+					"ALTER TABLE EarningsTracker ADD COLUMN "
+					+ col_name + " " + col_def + ";";
+				tx.query_execute(add_column_query);
+			}
+		}
+	}
+
 	/* Ensure the given node has an entry.  */
 	void ensure(Sqlite3::Tx& tx, Ln::NodeId const& node, double bucket) {
 		tx.query(R"QRY(
 		INSERT OR IGNORE
 		  INTO "EarningsTracker"
-		VALUES(:node, :bucket, 0, 0, 0, 0);
+		VALUES(:node, :bucket,
+                       0, 0, 0, 0,
+                       0, 0, 0, 0);
 		)QRY")
 			.bind(":node", std::string(node))
 			.bind(":bucket", bucket)
@@ -235,8 +325,9 @@ private:
 	Ev::Io<void> forward_fee( Ln::NodeId const& in
 				, Ln::NodeId const& out
 				, Ln::Amount fee
+				, Ln::Amount amount
 				) {
-		return db.transact().then([this, in, out, fee
+		return db.transact().then([this, in, out, fee, amount
 					  ](Sqlite3::Tx tx) {
 			auto bucket = bucket_time(get_now());
 			ensure(tx, in, bucket);
@@ -244,26 +335,30 @@ private:
 
 			tx.query(R"QRY(
 			UPDATE "EarningsTracker"
-			   SET in_earnings = in_earnings + :fee
+			   SET in_earnings = in_earnings + :fee,
+                               in_forwarded = in_forwarded + :amount
 			 WHERE node = :node
 			   AND time_bucket = :bucket
 			     ;
 			)QRY")
+				.bind(":fee", fee.to_msat())
+				.bind(":amount", amount.to_msat())
 				.bind(":node", std::string(in))
 				.bind(":bucket", bucket)
-				.bind(":fee", fee.to_msat())
 				.execute()
 				;
 			tx.query(R"QRY(
 			UPDATE "EarningsTracker"
-			   SET out_earnings = out_earnings + :fee
+			   SET out_earnings = out_earnings + :fee,
+                               out_forwarded = out_forwarded + :amount
 			 WHERE node = :node
 			   AND time_bucket = :bucket
 			     ;
 			)QRY")
+				.bind(":fee", fee.to_msat())
+				.bind(":amount", amount.to_msat())
 				.bind(":node", std::string(out))
 				.bind(":bucket", bucket)
-				.bind(":fee", fee.to_msat())
 				.execute()
 				;
 
@@ -282,7 +377,8 @@ private:
 	response_move_funds(Boss::Msg::ResponseMoveFunds const& rsp) {
 		auto requester = rsp.requester;
 		auto fee = rsp.fee_spent;
-		return db.transact().then([this, requester, fee
+		auto amount = rsp.amount_moved;
+		return db.transact().then([this, requester, fee, amount
 					  ](Sqlite3::Tx tx) {
 			auto it = pendings.find(requester);
 			if (it == pendings.end())
@@ -299,7 +395,8 @@ private:
 			 * incoming direction).  */
 			tx.query(R"QRY(
 			UPDATE "EarningsTracker"
-			   SET in_expenditures = in_expenditures + :fee
+			   SET in_expenditures = in_expenditures + :fee,
+                               in_rebalanced = in_rebalanced + :amount
 			 WHERE node = :node
 			   AND time_bucket = :bucket
 			     ;
@@ -307,6 +404,7 @@ private:
 				.bind(":node", std::string(pending.source))
 				.bind(":bucket", bucket)
 				.bind(":fee", fee.to_msat())
+				.bind(":amount", amount.to_msat())
 				.execute()
 				;
 			/* Destination gets out-expenditures for same
@@ -314,7 +412,8 @@ private:
 			 */
 			tx.query(R"QRY(
 			UPDATE "EarningsTracker"
-			   SET out_expenditures = out_expenditures + :fee
+			   SET out_expenditures = out_expenditures + :fee,
+                               out_rebalanced = out_rebalanced + :amount
 			 WHERE node = :node
 			   AND time_bucket = :bucket
 			     ;
@@ -324,6 +423,7 @@ private:
 				     )
 				.bind(":bucket", bucket)
 				.bind(":fee", fee.to_msat())
+				.bind(":amount", amount.to_msat())
 				.execute()
 				;
 
@@ -341,42 +441,39 @@ private:
 		auto node = req.node;
 		return db.transact().then([this, requester, node
 					  ](Sqlite3::Tx tx) {
-			auto in_earnings = Ln::Amount::sat(0);
-			auto in_expenditures = Ln::Amount::sat(0);
-			auto out_earnings = Ln::Amount::sat(0);
-			auto out_expenditures = Ln::Amount::sat(0);
-
 			auto fetch = tx.query(R"QRY(
 			SELECT SUM(in_earnings),
 			       SUM(in_expenditures),
 			       SUM(out_earnings),
-			       SUM(out_expenditures)
+			       SUM(out_expenditures),
+			       SUM(in_forwarded),
+			       SUM(in_rebalanced),
+			       SUM(out_forwarded),
+			       SUM(out_rebalanced)
 			  FROM "EarningsTracker"
 			 WHERE node = :node;
 			)QRY")
 				.bind(":node", std::string(node))
 				.execute()
 				;
-			for (auto& r : fetch) {
-				in_earnings = Ln::Amount::msat(
-					r.get<std::uint64_t>(0)
-				);
-				in_expenditures = Ln::Amount::msat(
-					r.get<std::uint64_t>(1)
-				);
-				out_earnings = Ln::Amount::msat(
-					r.get<std::uint64_t>(2)
-				);
-				out_expenditures = Ln::Amount::msat(
-					r.get<std::uint64_t>(3)
-				);
+
+			EarningsData earnings;
+			if (fetch.begin() != fetch.end()) {
+				size_t ndx = 0;
+				earnings = EarningsData::from_row(*fetch.begin(), ndx);
 			}
 
 			tx.commit();
 			return bus.raise(Msg::ResponseEarningsInfo{
 				requester, node,
-				in_earnings, in_expenditures,
-				out_earnings, out_expenditures
+				Ln::Amount::msat(earnings.in_earnings),
+				Ln::Amount::msat(earnings.in_expenditures),
+				Ln::Amount::msat(earnings.out_earnings),
+				Ln::Amount::msat(earnings.out_expenditures),
+				Ln::Amount::msat(earnings.in_forwarded),
+				Ln::Amount::msat(earnings.in_rebalanced),
+				Ln::Amount::msat(earnings.out_forwarded),
+				Ln::Amount::msat(earnings.out_rebalanced),
 			});
 		});
 	}
@@ -388,46 +485,30 @@ private:
         		       SUM(in_earnings) AS total_in_earnings,
         		       SUM(in_expenditures) AS total_in_expenditures,
         		       SUM(out_earnings) AS total_out_earnings,
-        		       SUM(out_expenditures) AS total_out_expenditures
+        		       SUM(out_expenditures) AS total_out_expenditures,
+        		       SUM(in_forwarded) AS total_in_forwarded,
+        		       SUM(in_rebalanced) AS total_in_rebalanced,
+        		       SUM(out_forwarded) AS total_out_forwarded,
+        		       SUM(out_rebalanced) AS total_out_rebalanced
         		  FROM "EarningsTracker"
-        		 GROUP BY node; 
+        		 GROUP BY node;
 			)QRY").execute();
 
-			uint64_t total_in_earnings = 0;
-			uint64_t total_in_expenditures = 0;
-			uint64_t total_out_earnings = 0;
-			uint64_t total_out_expenditures = 0;
-
+			EarningsData total_earnings;
 			auto out = Json::Out();
 			auto obj = out.start_object();
 			for (auto& r : fetch) {
-				auto in_earnings = r.get<std::uint64_t>(1);
-				auto in_expenditures = r.get<std::uint64_t>(2);
-				auto out_earnings = r.get<std::uint64_t>(3);
-				auto out_expenditures = r.get<std::uint64_t>(4);
-				auto sub = obj.start_object(r.get<std::string>(0));
-				sub
-					.field("in_earnings", in_earnings)
-					.field("in_expenditures", in_expenditures)
-					.field("out_earnings", out_earnings)
-					.field("out_expenditures", out_expenditures)
-					;
+				size_t ndx = 0;
+				auto node = r.get<std::string>(ndx++);
+				auto earnings = EarningsData::from_row(r, ndx);
+				auto sub = obj.start_object(node);
+				earnings.to_json(sub);
 				sub.end_object();
-				total_in_earnings += in_earnings;
-				total_in_expenditures += in_expenditures;
-				total_out_earnings += out_earnings;
-				total_out_expenditures += out_expenditures;
+				total_earnings += earnings;
 			}
-
-			auto sub = obj.start_object("total");
-			sub
-				.field("in_earnings", total_in_earnings)
-				.field("in_expenditures", total_in_expenditures)
-				.field("out_earnings", total_out_earnings)
-				.field("out_expenditures", total_out_expenditures)
-				;
-			sub.end_object();
-
+			auto total = obj.start_object("total");
+			total_earnings.to_json(total);
+			total.end_object();
 			obj.end_object();
 
 			tx.commit();
@@ -446,7 +527,11 @@ private:
         		       SUM(in_earnings) AS total_in_earnings,
         		       SUM(in_expenditures) AS total_in_expenditures,
         		       SUM(out_earnings) AS total_out_earnings,
-        		       SUM(out_expenditures) AS total_out_expenditures
+        		       SUM(out_expenditures) AS total_out_expenditures,
+        		       SUM(in_forwarded) AS total_in_forwarded,
+        		       SUM(in_rebalanced) AS total_in_rebalanced,
+        		       SUM(out_forwarded) AS total_out_forwarded,
+        		       SUM(out_rebalanced) AS total_out_rebalanced
         		  FROM "EarningsTracker"
                          WHERE time_bucket >= :cutoff
         		 GROUP BY node
@@ -456,40 +541,26 @@ private:
 			.bind(":cutoff", cutoff)
 			.execute()
 			;
+
+		EarningsData total_earnings;
 		auto out = Json::Out();
 		auto top = out.start_object();
 		auto recent = top.start_object("recent");
-		uint64_t total_in_earnings = 0;
-		uint64_t total_in_expenditures = 0;
-		uint64_t total_out_earnings = 0;
-		uint64_t total_out_expenditures = 0;
 		for (auto& r : fetch) {
-			auto in_earnings = r.get<std::uint64_t>(1);
-			auto in_expenditures = r.get<std::uint64_t>(2);
-			auto out_earnings = r.get<std::uint64_t>(3);
-			auto out_expenditures = r.get<std::uint64_t>(4);
-			auto sub = recent.start_object(r.get<std::string>(0));
-			sub
-				.field("in_earnings", in_earnings)
-				.field("in_expenditures", in_expenditures)
-				.field("out_earnings", out_earnings)
-				.field("out_expenditures", out_expenditures)
-				;
+			size_t ndx = 0;
+			auto node = r.get<std::string>(ndx++);
+			auto earnings = EarningsData::from_row(r, ndx);
+			auto sub = recent.start_object(node);
+			earnings.to_json(sub);
 			sub.end_object();
-			total_in_earnings += in_earnings;
-			total_in_expenditures += in_expenditures;
-			total_out_earnings += out_earnings;
-			total_out_expenditures += out_expenditures;
+			total_earnings += earnings;
 		}
 		recent.end_object();
+
 		auto total = top.start_object("total");
-		total
-			.field("in_earnings", total_in_earnings)
-			.field("in_expenditures", total_in_expenditures)
-			.field("out_earnings", total_out_earnings)
-			.field("out_expenditures", total_out_expenditures)
-			;
+		total_earnings.to_json(total);
 		total.end_object();
+
 		top.end_object();
 		return out;
 	}
@@ -502,7 +573,11 @@ private:
 		                   SUM(in_earnings) AS total_in_earnings,
 		                   SUM(in_expenditures) AS total_in_expenditures,
 		                   SUM(out_earnings) AS total_out_earnings,
-		                   SUM(out_expenditures) AS total_out_expenditures
+		                   SUM(out_expenditures) AS total_out_expenditures,
+		                   SUM(in_forwarded) AS total_in_forwarded,
+		                   SUM(in_rebalanced) AS total_in_rebalanced,
+		                   SUM(out_forwarded) AS total_out_forwarded,
+		                   SUM(out_rebalanced) AS total_out_rebalanced
 		              FROM "EarningsTracker"
 		             GROUP BY time_bucket
 		             ORDER BY time_bucket;
@@ -513,7 +588,11 @@ private:
 		                   in_earnings,
 		                   in_expenditures,
 		                   out_earnings,
-		                   out_expenditures
+		                   out_expenditures,
+		                   in_forwarded,
+		                   in_rebalanced,
+		                   out_forwarded,
+		                   out_rebalanced
 		              FROM "EarningsTracker"
 		             WHERE node = :nodeid
 		             ORDER BY time_bucket;
@@ -527,39 +606,23 @@ private:
 
 		auto out = Json::Out();
 		auto top = out.start_object();
+		EarningsData total_earnings;
 		auto history = top.start_array("history");
-		uint64_t total_in_earnings = 0;
-		uint64_t total_in_expenditures = 0;
-		uint64_t total_out_earnings = 0;
-		uint64_t total_out_expenditures = 0;
 		for (auto& r : fetch) {
-			auto in_earnings = r.get<std::uint64_t>(1);
-			auto in_expenditures = r.get<std::uint64_t>(2);
-			auto out_earnings = r.get<std::uint64_t>(3);
-			auto out_expenditures = r.get<std::uint64_t>(4);
+			size_t ndx = 0;
+			auto bucket_time = r.get<double>(ndx++);
+			auto earnings = EarningsData::from_row(r, ndx);
 			auto sub = history.start_object();
-			sub
-				.field("bucket_time", static_cast<std::uint64_t>(r.get<double>(0)))
-				.field("in_earnings", in_earnings)
-				.field("in_expenditures", in_expenditures)
-				.field("out_earnings", out_earnings)
-				.field("out_expenditures", out_expenditures)
-				;
+			sub.field("bucket_time", static_cast<std::uint64_t>(bucket_time));
+			earnings.to_json(sub);
 			sub.end_object();
-			total_in_earnings += in_earnings;
-			total_in_expenditures += in_expenditures;
-			total_out_earnings += out_earnings;
-			total_out_expenditures += out_expenditures;
+			total_earnings += earnings;
 		}
 		history.end_array();
 		auto total = top.start_object("total");
-		total
-			.field("in_earnings", total_in_earnings)
-			.field("in_expenditures", total_in_expenditures)
-			.field("out_earnings", total_out_earnings)
-			.field("out_expenditures", total_out_expenditures)
-			;
+		total_earnings.to_json(total);
 		total.end_object();
+
 		top.end_object();
 		return out;
 	}

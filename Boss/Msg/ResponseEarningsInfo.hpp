@@ -30,6 +30,11 @@ struct ResponseEarningsInfo {
 	Ln::Amount out_earnings;
 	/* How much we have spent on rebalancing *to* this node.  */
 	Ln::Amount out_expenditures;
+
+	Ln::Amount in_forwarded;	// Amount forwarded inward to earn fees
+	Ln::Amount in_rebalanced; 	// Amount inward rebalanced for expenditure
+	Ln::Amount out_forwarded;	// Amount forwarded outward to earn fees
+	Ln::Amount out_rebalanced;	// Amount outward rebalanced for expenditure
 };
 
 }}

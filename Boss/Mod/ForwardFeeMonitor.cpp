@@ -25,6 +25,7 @@ void ForwardFeeMonitor::start() {
 		auto in_scid = Ln::Scid();
 		auto out_scid = Ln::Scid();
 		auto fee = Ln::Amount();
+		auto amount = Ln::Amount();
 		auto resolution_time = double();
 		try {
 			auto payload = n.params["forward_event"];
@@ -46,10 +47,12 @@ void ForwardFeeMonitor::start() {
 			fee = Ln::Amount::object(
 				payload["fee_msat"]
 			);
+			amount = Ln::Amount::object(
+				payload["out_msat"]
+			);
 			resolution_time = double(payload["resolved_time"])
 					- double(payload["received_time"])
 					;
-
 		} catch (std::runtime_error const& err) {
 			return Boss::log( bus, Error
 					, "ForwardFeeMonitor: Unexpected "
@@ -71,11 +74,13 @@ void ForwardFeeMonitor::start() {
 			      ).then([ this
 				     , fee
 				     , resolution_time
+				     , amount
 				     ](std::vector<Ln::NodeId> nids) {
 			return cont( std::move(nids[0])
 				   , std::move(nids[1])
 				   , fee
 				   , resolution_time
+				   , amount
 				   );
 		});
 	});
@@ -85,6 +90,7 @@ Ev::Io<void> ForwardFeeMonitor::cont( Ln::NodeId in_id
 				    , Ln::NodeId out_id
 				    , Ln::Amount fee
 				    , double resolution_time
+				    , Ln::Amount amount
 				    ) {
 	if (!in_id || !out_id)
 		return Ev::lift();
@@ -102,7 +108,8 @@ Ev::Io<void> ForwardFeeMonitor::cont( Ln::NodeId in_id
 		std::move(in_id),
 		std::move(out_id),
 		fee,
-		resolution_time
+		resolution_time,
+		amount
 	}));
 	return act;
 }

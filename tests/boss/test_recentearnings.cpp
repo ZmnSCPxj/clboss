@@ -38,8 +38,9 @@ Ev::Io<void> raiseForwardFeeLoop(S::Bus& bus, int count) {
 	return bus.raise(Boss::Msg::ForwardFee{
 			A,              	// in_id
 			B,              	// out_id
-			Ln::Amount::sat(1),	// fee
-			1.0             	// resolution_time
+			Ln::Amount::sat(2),	// fee
+			1.0,             	// resolution_time
+			Ln::Amount::sat(1000),	// amount forwarded
 		})
 		.then([&, count]() {
 			mock_now += 60 * 60;
@@ -57,14 +58,14 @@ Ev::Io<void> raiseMoveFundsLoop(S::Bus& bus, int count) {
 			C,              	// source
 			B,              	// destination
 			Ln::Amount::sat(1000),  // amount
-			Ln::Amount::sat(3)      // fee_budget
+			Ln::Amount::sat(2)      // fee_budget
 		})
 		.then([&bus]() {
 			return bus.raise(
 				Boss::Msg::ResponseMoveFunds{
 					nullptr,        	// requester (see RequestMoveFunds)
 					Ln::Amount::sat(1000),  // amount_moved
-					Ln::Amount::sat(2)      // fee_spent
+					Ln::Amount::sat(1)      // fee_spent
 				});
 		})
 		.then([&bus, count]() {
@@ -128,34 +129,50 @@ int main() {
 		assert(rsp);
 		assert(lastRsp.id == Ln::CommandId::left(req_id));
 		auto result = Jsmn::Object::parse_json(lastRsp.response.output().c_str());
-		assert(result["recent"] == Jsmn::Object::parse_json(R"JSON(
+		assert(result  == Jsmn::Object::parse_json(R"JSON(
 			{
-			  "020000000000000000000000000000000000000000000000000000000000000001": {
-			    "in_earnings": 336000,
-			    "in_expenditures": 0,
-			    "out_earnings": 0,
-			    "out_expenditures": 0
+			  "recent": {
+			    "020000000000000000000000000000000000000000000000000000000000000001": {
+			      "in_earnings": 672000,
+			      "in_expenditures": 0,
+			      "out_earnings": 0,
+			      "out_expenditures": 0,
+			      "in_forwarded": 336000000,
+			      "in_rebalanced": 0,
+			      "out_forwarded": 0,
+			      "out_rebalanced": 0
+			    },
+			    "020000000000000000000000000000000000000000000000000000000000000002": {
+			      "in_earnings": 0,
+			      "in_expenditures": 0,
+			      "out_earnings": 672000,
+			      "out_expenditures": 7000,
+			      "in_forwarded": 0,
+			      "in_rebalanced": 0,
+			      "out_forwarded": 336000000,
+			      "out_rebalanced": 7000000
+			    },
+			    "020000000000000000000000000000000000000000000000000000000000000003": {
+			      "in_earnings": 0,
+			      "in_expenditures": 7000,
+			      "out_earnings": 0,
+			      "out_expenditures": 0,
+			      "in_forwarded": 0,
+			      "in_rebalanced": 7000000,
+			      "out_forwarded": 0,
+			      "out_rebalanced": 0
+			    }
 			  },
-			  "020000000000000000000000000000000000000000000000000000000000000002": {
-			    "in_earnings": 0,
-			    "in_expenditures": 0,
-			    "out_earnings": 336000,
-			    "out_expenditures": 14000
-			  },
-			  "020000000000000000000000000000000000000000000000000000000000000003": {
-			    "in_earnings": 0,
-			    "in_expenditures": 14000,
-			    "out_earnings": 0,
-			    "out_expenditures": 0
+			  "total": {
+			    "in_earnings": 672000,
+			    "in_expenditures": 7000,
+			    "out_earnings": 672000,
+			    "out_expenditures": 7000,
+			    "in_forwarded": 336000000,
+			    "in_rebalanced": 7000000,
+			    "out_forwarded": 336000000,
+			    "out_rebalanced": 7000000
 			  }
-			}
-                        )JSON"));
-		assert(result["total"] == Jsmn::Object::parse_json(R"JSON(
-			{
-			  "in_earnings": 336000,
-			  "in_expenditures": 14000,
-			  "out_earnings": 336000,
-			  "out_expenditures": 14000
 			}
                         )JSON"));
 		return Ev::lift();
@@ -174,34 +191,50 @@ int main() {
 		auto result = Jsmn::Object::parse_json(lastRsp.response.output().c_str());
 		// The expenditures stay the same because they are entirely in the last
 		// week but the earnings increase.
-		assert(result["recent"] == Jsmn::Object::parse_json(R"JSON(
+		assert(result == Jsmn::Object::parse_json(R"JSON(
 			{
-			  "020000000000000000000000000000000000000000000000000000000000000001": {
-			    "in_earnings": 720000,
-			    "in_expenditures": 0,
-			    "out_earnings": 0,
-			    "out_expenditures": 0
+			  "recent": {
+			    "020000000000000000000000000000000000000000000000000000000000000001": {
+			      "in_earnings": 1440000,
+			      "in_expenditures": 0,
+			      "out_earnings": 0,
+			      "out_expenditures": 0,
+			      "in_forwarded": 720000000,
+			      "in_rebalanced": 0,
+			      "out_forwarded": 0,
+			      "out_rebalanced": 0
+			    },
+			    "020000000000000000000000000000000000000000000000000000000000000002": {
+			      "in_earnings": 0,
+			      "in_expenditures": 0,
+			      "out_earnings": 1440000,
+			      "out_expenditures": 7000,
+			      "in_forwarded": 0,
+			      "in_rebalanced": 0,
+			      "out_forwarded": 720000000,
+			      "out_rebalanced": 7000000
+			    },
+			    "020000000000000000000000000000000000000000000000000000000000000003": {
+			      "in_earnings": 0,
+			      "in_expenditures": 7000,
+			      "out_earnings": 0,
+			      "out_expenditures": 0,
+			      "in_forwarded": 0,
+			      "in_rebalanced": 7000000,
+			      "out_forwarded": 0,
+			      "out_rebalanced": 0
+			    }
 			  },
-			  "020000000000000000000000000000000000000000000000000000000000000002": {
-			    "in_earnings": 0,
-			    "in_expenditures": 0,
-			    "out_earnings": 720000,
-			    "out_expenditures": 14000
-			  },
-			  "020000000000000000000000000000000000000000000000000000000000000003": {
-			    "in_earnings": 0,
-			    "in_expenditures": 14000,
-			    "out_earnings": 0,
-			    "out_expenditures": 0
+			  "total": {
+			    "in_earnings": 1440000,
+			    "in_expenditures": 7000,
+			    "out_earnings": 1440000,
+			    "out_expenditures": 7000,
+			    "in_forwarded": 720000000,
+			    "in_rebalanced": 7000000,
+			    "out_forwarded": 720000000,
+			    "out_rebalanced": 7000000
 			  }
-			}
-                        )JSON"));
-		assert(result["total"] == Jsmn::Object::parse_json(R"JSON(
-			{
-			  "in_earnings": 720000,
-			  "in_expenditures": 14000,
-			  "out_earnings": 720000,
-			  "out_expenditures": 14000
 			}
                         )JSON"));
 		return Ev::lift();

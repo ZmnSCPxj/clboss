@@ -673,9 +673,21 @@ create-tarball: create-tarball.in Makefile
 	chmod +x create-tarball
 
 BUILT_SOURCES = commit_hash.h
-CLEANFILES += commit_hash.h
 
-commit_hash.h:
-	./generate_commit_hash.sh
+commit_hash.h: FORCE
+	@if test -e $(srcdir)/.git/logs/HEAD; then \
+		if [ ! -f $@ ] || [ $(srcdir)/.git/logs/HEAD -nt $@ ]; then \
+			echo "Regenerating commit_hash.h..."; \
+			$(SHELL) $(srcdir)/generate_commit_hash.sh; \
+		else \
+			echo "commit_hash.h is up-to-date."; \
+		fi \
+	else \
+		echo "Using existing commit_hash.h"; \
+	fi
+
+FORCE:
+
+.PHONY: FORCE
 
 clboss libclboss.la: $(BUILT_SOURCES)

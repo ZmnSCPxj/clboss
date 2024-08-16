@@ -213,6 +213,9 @@ private:
 
 	Ev::Io<void> init() {
 		return db.transact().then([](Sqlite3::Tx tx) {
+			// NOTE - we can't just alter table here because we
+			// are changing the primary key.
+
 			// If we already have a bucket schema we're done
 			if (have_bucket_table(tx)) {
 				add_missing_columns(tx);
@@ -242,9 +245,11 @@ private:
 				tx.query_execute(R"QRY(
 				INSERT INTO EarningsTracker_New
 				    ( node, time_bucket, in_earnings, in_expenditures
-				    , out_earnings, out_expenditures)
+				    , out_earnings, out_expenditures, in_forwarded
+				    , in_rebalanced, out_forwarded, out_rebalanced)
 				SELECT node, 0, in_earnings, in_expenditures
-				    , out_earnings, out_expenditures FROM EarningsTracker;
+				    , out_earnings, out_expenditures, 0, 0, 0, 0
+				FROM EarningsTracker;
 				DROP TABLE EarningsTracker;
 			        )QRY");
 			}
@@ -261,6 +266,30 @@ private:
 			tx.commit();
 			return Ev::lift();
 		});
+
+		// These statements revert the schema to before time buckets:
+		/*
+		CREATE TABLE IF NOT EXISTS EarningsTracker_Old
+		     ( node TEXT PRIMARY KEY
+		     , in_earnings INTEGER NOT NULL
+		     , in_expenditures INTEGER NOT NULL
+		     , out_earnings INTEGER NOT NULL
+		     , out_expenditures INTEGER NOT NULL
+ 		     );
+
+		INSERT INTO EarningsTracker_Old
+		    ( node, in_earnings, in_expenditures
+		    , out_earnings, out_expenditures)
+		SELECT node
+		    , SUM(in_earnings), SUM(in_expenditures)
+		    , SUM(out_earnings), SUM(out_expenditures)
+		FROM EarningsTracker
+		GROUP BY node;
+
+		DROP TABLE EarningsTracker;
+
+		ALTER TABLE EarningsTracker_Old RENAME TO EarningsTracker;
+		*/
 	}
 
 	static bool have_bucket_table(Sqlite3::Tx& tx) {

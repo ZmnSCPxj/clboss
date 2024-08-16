@@ -28,12 +28,12 @@ namespace {
 
 struct EarningsData {
 	uint64_t in_earnings = 0;
-	uint64_t in_expenditures = 0;
-	uint64_t out_earnings = 0;
-	uint64_t out_expenditures = 0;
 	uint64_t in_forwarded = 0;
+	uint64_t in_expenditures = 0;
 	uint64_t in_rebalanced = 0;
+	uint64_t out_earnings = 0;
 	uint64_t out_forwarded = 0;
+	uint64_t out_expenditures = 0;
 	uint64_t out_rebalanced = 0;
 
 	// Unmarshal from database fetch
@@ -53,12 +53,12 @@ struct EarningsData {
 	// Operator+= for accumulation
 	EarningsData& operator+=(const EarningsData& other) {
 		in_earnings += other.in_earnings;
-		in_expenditures += other.in_expenditures;
-		out_earnings += other.out_earnings;
-		out_expenditures += other.out_expenditures;
 		in_forwarded += other.in_forwarded;
+		in_expenditures += other.in_expenditures;
 		in_rebalanced += other.in_rebalanced;
+		out_earnings += other.out_earnings;
 		out_forwarded += other.out_forwarded;
+		out_expenditures += other.out_expenditures;
 		out_rebalanced += other.out_rebalanced;
 		return *this;
 	}
@@ -67,12 +67,12 @@ struct EarningsData {
 	void to_json(Json::Detail::Object<T>& obj) const {
 		obj
 			.field("in_earnings", in_earnings)
-			.field("in_expenditures", in_expenditures)
-			.field("out_earnings", out_earnings)
-			.field("out_expenditures", out_expenditures)
 			.field("in_forwarded", in_forwarded)
+			.field("in_expenditures", in_expenditures)
 			.field("in_rebalanced", in_rebalanced)
+			.field("out_earnings", out_earnings)
 			.field("out_forwarded", out_forwarded)
+			.field("out_expenditures", out_expenditures)
 			.field("out_rebalanced", out_rebalanced);
 	}
 };
@@ -229,12 +229,12 @@ private:
 			     ( node TEXT NOT NULL
 			     , time_bucket REAL NOT NULL
 			     , in_earnings INTEGER NOT NULL
-			     , in_expenditures INTEGER NOT NULL
-			     , out_earnings INTEGER NOT NULL
-			     , out_expenditures INTEGER NOT NULL
 			     , in_forwarded INTEGER NOT NULL
+			     , in_expenditures INTEGER NOT NULL
 			     , in_rebalanced INTEGER NOT NULL
+			     , out_earnings INTEGER NOT NULL
 			     , out_forwarded INTEGER NOT NULL
+			     , out_expenditures INTEGER NOT NULL
 			     , out_rebalanced INTEGER NOT NULL
 			     , PRIMARY KEY (node, time_bucket)
 			     );
@@ -472,12 +472,12 @@ private:
 					  ](Sqlite3::Tx tx) {
 			auto fetch = tx.query(R"QRY(
 			SELECT SUM(in_earnings),
-			       SUM(in_expenditures),
-			       SUM(out_earnings),
-			       SUM(out_expenditures),
 			       SUM(in_forwarded),
+			       SUM(in_expenditures),
 			       SUM(in_rebalanced),
+			       SUM(out_earnings),
 			       SUM(out_forwarded),
+			       SUM(out_expenditures),
 			       SUM(out_rebalanced)
 			  FROM "EarningsTracker"
 			 WHERE node = :node;
@@ -512,12 +512,12 @@ private:
 			auto fetch = tx.query(R"QRY(
         		SELECT node,
         		       SUM(in_earnings) AS total_in_earnings,
-        		       SUM(in_expenditures) AS total_in_expenditures,
-        		       SUM(out_earnings) AS total_out_earnings,
-        		       SUM(out_expenditures) AS total_out_expenditures,
         		       SUM(in_forwarded) AS total_in_forwarded,
+        		       SUM(in_expenditures) AS total_in_expenditures,
         		       SUM(in_rebalanced) AS total_in_rebalanced,
+        		       SUM(out_earnings) AS total_out_earnings,
         		       SUM(out_forwarded) AS total_out_forwarded,
+        		       SUM(out_expenditures) AS total_out_expenditures,
         		       SUM(out_rebalanced) AS total_out_rebalanced
         		  FROM "EarningsTracker"
         		 GROUP BY node;
@@ -554,12 +554,12 @@ private:
 		auto fetch = tx.query(R"QRY(
         		SELECT node,
         		       SUM(in_earnings) AS total_in_earnings,
-        		       SUM(in_expenditures) AS total_in_expenditures,
-        		       SUM(out_earnings) AS total_out_earnings,
-        		       SUM(out_expenditures) AS total_out_expenditures,
         		       SUM(in_forwarded) AS total_in_forwarded,
+        		       SUM(in_expenditures) AS total_in_expenditures,
         		       SUM(in_rebalanced) AS total_in_rebalanced,
+        		       SUM(out_earnings) AS total_out_earnings,
         		       SUM(out_forwarded) AS total_out_forwarded,
+        		       SUM(out_expenditures) AS total_out_expenditures,
         		       SUM(out_rebalanced) AS total_out_rebalanced
         		  FROM "EarningsTracker"
                          WHERE time_bucket >= :cutoff
@@ -600,12 +600,12 @@ private:
 		        sql = R"QRY(
 		            SELECT time_bucket,
 		                   SUM(in_earnings) AS total_in_earnings,
-		                   SUM(in_expenditures) AS total_in_expenditures,
-		                   SUM(out_earnings) AS total_out_earnings,
-		                   SUM(out_expenditures) AS total_out_expenditures,
 		                   SUM(in_forwarded) AS total_in_forwarded,
+		                   SUM(in_expenditures) AS total_in_expenditures,
 		                   SUM(in_rebalanced) AS total_in_rebalanced,
+		                   SUM(out_earnings) AS total_out_earnings,
 		                   SUM(out_forwarded) AS total_out_forwarded,
+		                   SUM(out_expenditures) AS total_out_expenditures,
 		                   SUM(out_rebalanced) AS total_out_rebalanced
 		              FROM "EarningsTracker"
 		             GROUP BY time_bucket
@@ -615,12 +615,12 @@ private:
 		        sql = R"QRY(
 		            SELECT time_bucket,
 		                   in_earnings,
-		                   in_expenditures,
-		                   out_earnings,
-		                   out_expenditures,
 		                   in_forwarded,
+		                   in_expenditures,
 		                   in_rebalanced,
+		                   out_earnings,
 		                   out_forwarded,
+		                   out_expenditures,
 		                   out_rebalanced
 		              FROM "EarningsTracker"
 		             WHERE node = :nodeid

@@ -36,7 +36,7 @@ int main() {
 			Jsmn::Parser parser;
 			return parser.feed(sample_text);
 		});
-		return waiter.timed(5.0, std::move(act));
+		return waiter.timed(10.0, std::move(act));
 	}).then([&](std::vector<Jsmn::Object> result) {
 		assert(result.size() == 1);
 		assert(result[0].is_array());

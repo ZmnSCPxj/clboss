@@ -14,6 +14,7 @@ import argparse
 import json
 from tabulate import tabulate
 from wcwidth import wcswidth
+from clboss.alias_cache import lookup_alias
 
 def run_lightning_cli_command(network_option, command, *args):
     try:
@@ -85,15 +86,9 @@ def main():
                     "success_per_day": 0
                 }
 
-    # Run listnodes command for each unique peer_id and update alias
     for peer_id in peers.keys():
-        listnodes_data = run_lightning_cli_command(network_option, 'listnodes', peer_id)
-        if listnodes_data:
-            nodes = listnodes_data.get("nodes", [])
-            for node in nodes:
-                alias = node.get("alias")
-                if peer_id in peers:
-                    peers[peer_id]["alias"] = alias
+        alias = lookup_alias(run_lightning_cli_command, network_option, peer_id)
+        peers[peer_id]["alias"] = alias
 
     # Run clboss-status command and capture the output
     clboss_status_data = run_lightning_cli_command(network_option, 'clboss-status')

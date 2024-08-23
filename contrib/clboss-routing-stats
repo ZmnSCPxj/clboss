@@ -39,17 +39,30 @@ def pad_string(s, width):
     pad = width - wcswidth(s)
     return s + ' ' * pad
 
+import argparse
+
 def main():
     parser = argparse.ArgumentParser(description="Run lightning-cli with specified network")
-    parser.add_argument('--testnet', action='store_true', help='Run on testnet')
+
     parser.add_argument('--mainnet', action='store_true', help='Run on mainnet')
+    parser.add_argument('--testnet', action='store_true', help='Run on testnet')
+    parser.add_argument('--signet', action='store_true', help='Run on signet')
+    parser.add_argument('--regtest', action='store_true', help='Run on regtest')
+    parser.add_argument('--network', help='Set the network explicitly')
 
     args = parser.parse_args()
 
-    if args.testnet:
-        network_option = '--testnet'
+    # Reconcile network option
+    if args.network:
+        network_option = f'--network={args.network}'
+    elif args.testnet:
+        network_option = '--network=testnet'
+    elif args.signet:
+        network_option = '--network=signet'
+    elif args.regtest:
+        network_option = '--network=regtest'
     else:
-        network_option = '--mainnet'  # Default to mainnet if no option is specified
+        network_option = '--network=bitcoin'	# lightning-cli wants "bitcoin" for mainnet
 
     # Run listpeerchannels command
     listpeerchannels_data = run_lightning_cli_command(network_option, 'listpeerchannels')

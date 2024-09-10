@@ -135,12 +135,14 @@ def main():
         peer = peers[peer_id]
         income_minus_expenditures, success_per_day = calculate_peer_score(peer)
         alias = pad_string(peer["alias"], max_alias_length)
+        opener = "L" if channels[short_channel_id]["opener"] == "local" else "R"
         to_us_msat = f"{channels[short_channel_id]['to_us_msat']:,}"  # With commas
         income_minus_expenditures_formatted = f"{income_minus_expenditures:,}"  # With commas
         spd_formatted = f"x{success_per_day:4.1f}"  # Prefix w/ 'x', strip later, preserves padding
         table_data.append([
             alias,
             short_channel_id,
+            opener,
             to_us_msat,
             peer["age"] // 86400,  # Convert age from seconds to days
             income_minus_expenditures_formatted,
@@ -150,9 +152,26 @@ def main():
 
     # Print the table without grid
     table_str = tabulate(table_data,
-                         headers=["Alias", "SCID", "to us", "Age", "Net msat", "SPD", "PeerID"],
+                         headers=[
+                             "Alias",
+                             "SCID",
+                             "O",
+                             "to us",
+                             "Age",
+                             "Net msat",
+                             "SPD",
+                             "PeerID"
+                         ],
                          tablefmt="plain", stralign="left", numalign="right",
-                         colalign=("left", "left", "right", "right", "right", "left", "left"))
+                         colalign=(
+                             "left",
+                             "left",
+                             "left",
+                             "right",
+                             "right",
+                             "right",
+                             "left",
+                             "left"))
 
     # Remove the "x" prefix from SPD values in the final output
     table_str = table_str.replace(" x", " ")

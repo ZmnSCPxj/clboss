@@ -164,6 +164,12 @@ autoreconf -i
 ./configure && make
 ```
 
+### Contributed Utilities
+
+There are some contributed utilities in the `contrib` directory.  See the
+`contrib/README.md` for more details.
+
+
 Operating
 ---------
 

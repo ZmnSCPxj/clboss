@@ -39,14 +39,26 @@ jobs:
       - name: Create .zip source tarball
         run: make dist-zip
 
-      - name: List files to verify tarball creation
+      - name: List generated files for debugging
         run: ls -lah
+
+      - name: Find .tar.gz file and set environment variable
+        id: find_tarball
+        run: |
+          TARBALL_PATH=$(find . -name 'clboss-*.tar.gz')
+          echo "TARBALL_PATH=$TARBALL_PATH" >> $GITHUB_ENV
+
+      - name: Find .zip file and set environment variable
+        id: find_zip
+        run: |
+          ZIP_PATH=$(find . -name 'clboss-*.zip')
+          echo "ZIP_PATH=$ZIP_PATH" >> $GITHUB_ENV
 
       - name: Upload .tar.gz release asset
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./clboss-*.tar.gz
+          asset_path: ${{ env.TARBALL_PATH }}
           asset_name: clboss-${{ github.event.release.tag_name }}.tar.gz
           asset_content_type: application/gzip
 
@@ -54,6 +66,6 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./clboss-*.zip
+          asset_path: ${{ env.ZIP_PATH }}
           asset_name: clboss-${{ github.event.release.tag_name }}.zip
           asset_content_type: application/zip

@@ -11,4 +11,4 @@ jobs:
     - uses: cachix/install-nix-action@v22
       with:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
-    - run: nix develop --command bash -c "autoreconf -i && ./configure --disable-dependency-tracking && make -j4 distcheck"
+    - run: nix develop --command bash -c "autoreconf -i && ./configure && make -j4 distcheck"

@@ -680,15 +680,20 @@ BUILT_SOURCES = commit_hash.h
 
 commit_hash.h: FORCE
 	@if test -e $(srcdir)/.git/logs/HEAD; then \
-		if [ ! -f $@ ] || [ $(srcdir)/.git/logs/HEAD -nt $@ ]; then \
-			echo "Regenerating commit_hash.h..."; \
+		if [ ! -f $(srcdir)/commit_hash.h ] || [ $(srcdir)/.git/logs/HEAD -nt $(srcdir)/commit_hash.h ]; then \
+			echo "Regenerating $(srcdir)/commit_hash.h..."; \
 			$(SHELL) $(srcdir)/generate_commit_hash.sh; \
 		else \
-			echo "commit_hash.h is up-to-date."; \
+			echo "$(srcdir)/commit_hash.h is up-to-date."; \
 		fi \
 	else \
-		echo "Using existing commit_hash.h"; \
+		echo "Using existing $(srcdir)/commit_hash.h"; \
 	fi
+
+# Ensure that commit_hash.h is included in the source tarball.
+dist-hook:
+	test -f $(srcdir)/commit_hash.h || $(MAKE) commit_hash.h
+	test -f $(distdir)/commit_hash.h || cp $(srcdir)/commit_hash.h $(distdir)/
 
 FORCE:
 

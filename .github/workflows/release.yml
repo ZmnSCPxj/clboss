@@ -39,6 +39,9 @@ jobs:
       - name: Create .zip source tarball
         run: make dist-zip
 
+      - name: List files to verify tarball creation
+        run: ls -lah
+
       - name: Upload .tar.gz release asset
         uses: actions/upload-release-asset@v1
         with:

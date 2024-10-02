@@ -62,7 +62,7 @@ jobs:
           asset_name: clboss-${{ github.event.release.tag_name }}.tar.gz
           asset_content_type: application/gzip
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload .zip release asset
         uses: actions/upload-release-asset@v1
@@ -72,4 +72,4 @@ jobs:
           asset_name: clboss-${{ github.event.release.tag_name }}.zip
           asset_content_type: application/zip
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

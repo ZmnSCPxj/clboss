@@ -20,6 +20,7 @@ jobs:
             autoconf-archive \
             automake \
             curl \
+            libcurl4-openssl-dev \
             git \
             libev-dev \
             libtool \

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import subprocess
 import argparse
 import json
@@ -7,9 +8,12 @@ from datetime import datetime
 from tabulate import tabulate
 from clboss.alias_cache import lookup_alias, is_nodeid, lookup_nodeid_by_alias
 
-def run_lightning_cli_command(network_option, command, *args):
+def run_lightning_cli_command(lightning_dir, network_option, command, *args):
     try:
-        result = subprocess.run(['lightning-cli', network_option, command, *args],
+        command = ['lightning-cli', network_option, command, *args]
+        if lightning_dir:
+            command = command[:2] + [f'--lightning-dir={lightning_dir}'] + command[2:]
+        result = subprocess.run(command,
                                 capture_output=True,
                                 text=True,
                                 check=True)
@@ -37,6 +41,8 @@ def main():
     parser.add_argument('nodeid_or_alias', nargs='?',
                         help='The node ID (or alias) to pass to clboss-earnings-history (optional)')
 
+    parser.add_argument('--lightning-dir', help='lightning data location')
+
     args = parser.parse_args()
 
     # Reconcile network option
@@ -51,22 +57,28 @@ def main():
     else:
         network_option = '--network=bitcoin'	# lightning-cli wants "bitcoin" for mainnet
 
+    if args.lightning_dir:
+        lightning_dir = args.lightning_dir
+        assert os.path.isdir(lightning_dir), f'"{lightning_dir}" is not a valid directory'
+    else:
+        lightning_dir = None
+
     alias = None
     nodeid = None
     if args.nodeid_or_alias:
         # Determine if input is a nodeid or alias
         if is_nodeid(args.nodeid_or_alias):  # Check if it's a node ID
             nodeid = args.nodeid_or_alias
-            alias = lookup_alias(run_lightning_cli_command, network_option, nodeid)
+            alias = lookup_alias(run_lightning_cli_command, lightning_dir, network_option, nodeid)
         else:  # It's an alias, so look it up
             alias = args.nodeid_or_alias
-            nodeid = lookup_nodeid_by_alias(run_lightning_cli_command, network_option, alias)
+            nodeid = lookup_nodeid_by_alias(run_lightning_cli_command, lightning_dir, network_option, alias)
             if not nodeid:
                 print(f"Error: Alias '{alias}' not found.")
                 return
 
     earnings_data = run_lightning_cli_command(
-        network_option, 'clboss-earnings-history', nodeid or "")
+        lightning_dir, network_option, 'clboss-earnings-history', nodeid or "")
 
     # Initialize totals
     total_net_earnings = 0

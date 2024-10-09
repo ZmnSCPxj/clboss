@@ -100,6 +100,21 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 	AC_MSG_RESULT([no])
 ])
 
+# Check for getprogname()
+AC_MSG_CHECKING([for getprogname])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include<stdlib.h>
+]], [[
+	const char* p = getprogname();
+	(void)p; // avoid warning about set but unused variable
+]])], [ #then
+	AC_DEFINE([HAVE_GETPROGNAME], [1],
+		  [Define to 1 if you have a getprogname function.])
+	AC_MSG_RESULT([yes])
+], [ #else
+	AC_MSG_RESULT([no])
+])
+
 AC_CONFIG_FILES([Makefile
 		 external/bitcoin-ripemd160/Makefile
 		 external/bitcoin-sha256/Makefile

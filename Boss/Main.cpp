@@ -20,6 +20,8 @@
 # include "config.h"
 #endif
 
+std::string g_argv0;
+
 namespace Boss {
 
 class Main::Impl {
@@ -62,6 +64,7 @@ public:
 	      {
 		assert(argv.size() >= 1);
 		argv0 = argv[0];
+		g_argv0 = argv[0];
 		if (argv.size() >= 2) {
 			auto argv1 = argv[1];
 			if (argv1 == "--version" || argv1 == "-V")

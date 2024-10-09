@@ -19,7 +19,7 @@ def save_cache(cache):
     with open(CACHE_FILE, 'w') as f:
         json.dump(cache, f)
 
-def lookup_alias(run_lightning_cli_command, network_option, peer_id):
+def lookup_alias(run_lightning_cli_command, lightning_dir, network_option, peer_id):
     # Load the cache
     cache = load_cache()
 
@@ -29,7 +29,7 @@ def lookup_alias(run_lightning_cli_command, network_option, peer_id):
 
     # Perform the lookup
     alias = peer_id  # Default to peer_id if alias not found
-    listnodes_data = run_lightning_cli_command(network_option, 'listnodes', peer_id)
+    listnodes_data = run_lightning_cli_command(lightning_dir, network_option, 'listnodes', peer_id)
     if listnodes_data:
         nodes = listnodes_data.get("nodes", [])
         for node in nodes:
@@ -41,7 +41,7 @@ def lookup_alias(run_lightning_cli_command, network_option, peer_id):
 
     return alias
 
-def lookup_nodeid_by_alias(run_lightning_cli_command, network_option, alias):
+def lookup_nodeid_by_alias(run_lightning_cli_command, lightning_dir, network_option, alias):
     # Load the cache
     cache = load_cache()
 
@@ -51,7 +51,7 @@ def lookup_nodeid_by_alias(run_lightning_cli_command, network_option, alias):
             return peer_id
 
     # Perform exhaustive search using `listnodes`
-    listnodes_data = run_lightning_cli_command(network_option, 'listnodes')
+    listnodes_data = run_lightning_cli_command(lightning_dir, network_option, 'listnodes')
     if listnodes_data:
         nodes = listnodes_data.get("nodes", [])
         for node in nodes:

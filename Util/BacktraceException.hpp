@@ -6,8 +6,15 @@
 #include <iomanip>
 #include <memory>
 #include <sstream>
-#include <vector>
+#include <stdlib.h>
 #include <string.h>
+#include <string>
+
+#ifdef HAVE_CONFIG_H
+# include"config.h"
+#endif
+
+extern std::string g_argv0;
 
 namespace Util {
 
@@ -74,13 +81,29 @@ private:
 		return oss.str();
 	}
 
+        std::string progname() const {
+		// This variable is set by the CLBOSS mainline.
+		if (!g_argv0.empty()) {
+			return g_argv0;
+		}
+
+		// When libclboss is linked with the unit tests the
+		// g_argv0 variable is not set and we need to use
+		// built-in versions
+#ifdef HAVE_GETPROGNAME
+		return getprogname();
+#else
+		return program_invocation_name;
+#endif
+	}
+
 	// Unfortunately there is no simple way to get a high quality
 	// backtrace using in-process libraries.  Instead for now we
 	// popen an addr2line process and use it's output.
 	std::string addr2line(void* addr) const {
 		char cmd[512];
 		snprintf(cmd, sizeof(cmd),
-			 "addr2line -C -f -p -e %s %p", program_invocation_name, addr);
+			 "addr2line -C -f -p -e %s %p", progname().c_str(), addr);
 
 		std::array<char, 128> buffer;
 		std::string result;

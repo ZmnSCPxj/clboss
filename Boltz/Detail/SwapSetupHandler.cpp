@@ -28,6 +28,9 @@ auto const max_timeout = std::uint32_t(288);
 
 namespace Boltz { namespace Detail {
 
+Ev::Io<void> SwapSetupHandler::logt(std::string msg) {
+	return env.logt(prefixlog(std::move(msg)));
+}
 Ev::Io<void> SwapSetupHandler::logd(std::string msg) {
 	return env.logd(prefixlog(std::move(msg)));
 }

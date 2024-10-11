@@ -85,6 +85,7 @@ private:
 	Ev::Io<void> core_run();
 
 	/* Wrappers.  */
+	Ev::Io<void> logt(std::string);
 	Ev::Io<void> logd(std::string);
 	Ev::Io<void> loge(std::string);
 	std::string logprefix(std::string);

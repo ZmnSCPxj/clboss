@@ -50,7 +50,7 @@ Ev::Io<void> ClaimTxHandler::core_run() {
 	}).then([this](Sqlite3::Tx tx) {
 		/* First do a quick check.  */
 		auto check1 = tx.query(R"QRY(
-		SELECT lockedUp, timeoutBlockheight
+		SELECT lockedUp, timeoutBlockheight, destinationAddress
 		  FROM "BoltzServiceFactory_rsub"
 		 WHERE apiAccess = :apiAccess
 		   AND swapId = :swapId
@@ -65,6 +65,7 @@ Ev::Io<void> ClaimTxHandler::core_run() {
 			++found;
 			lockedUp = r.get<bool>(0);
 			timeoutBlockheight = r.get<std::uint32_t>(1);
+			destinationAddress = r.get<std::string>(2);
 			break;
 		}
 		if (found == 0) {
@@ -89,6 +90,14 @@ Ev::Io<void> ClaimTxHandler::core_run() {
 				return Ev::lift();
 			});
 		}
+		if (destinationAddress.empty()) {
+			return loge("Swap destination address is empty??"
+				   ).then([]() {
+				throw End();
+				return Ev::lift();
+			});
+		}
+		// TODO: Check for validity of destination address?
 
 		/* Perform the actual fetch of the data.  */
 		auto fetch = tx.query(R"QRY(

@@ -679,8 +679,10 @@ create-tarball: create-tarball.in Makefile
 BUILT_SOURCES = commit_hash.h
 
 commit_hash.h: FORCE
-	@if test -e $(srcdir)/.git/logs/HEAD; then \
-		if [ ! -f $(srcdir)/commit_hash.h ] || [ $(srcdir)/.git/logs/HEAD -nt $(srcdir)/commit_hash.h ]; then \
+	@if git -C $(srcdir) rev-parse --is-inside-work-tree > /dev/null 2>&1; then \
+		CURRENT_HASH="$$(git -C $(srcdir) rev-parse HEAD)"; \
+		if [ ! -f $(srcdir)/commit_hash.h ] || \
+		   [ "$$(grep -oE '[0-9a-f]{40}' $(srcdir)/commit_hash.h)" != "$$CURRENT_HASH" ]; then \
 			echo "Regenerating $(srcdir)/commit_hash.h..."; \
 			$(SHELL) $(srcdir)/generate_commit_hash.sh; \
 		else \

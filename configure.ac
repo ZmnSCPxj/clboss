@@ -50,6 +50,22 @@ AX_LIB_CURL(,[:],[
 	AC_MSG_ERROR([Need libcurl.])
 ])
 
+# Check for libunwind
+PKG_CHECK_MODULES([LIBUNWIND], [libunwind], [
+  AC_DEFINE([HAVE_LIBUNWIND], [1], [Define if libunwind is available])
+], [
+  AC_MSG_ERROR([libunwind is required but not found])
+])
+
+# https://github.com/ZmnSCPxj/clboss/issues/245
+case "$host_os" in
+  *alpine*)
+    LDFLAGS="$LDFLAGS -lexecinfo"
+    ;;
+esac
+
+AC_SUBST(LDFLAGS)
+
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.

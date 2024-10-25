@@ -191,6 +191,12 @@ private:
 			     ( payment_hash TEXT UNIQUE
 			     , amount_sent INTEGER NOT NULL
 			     );
+
+			-- Sanity check to remove erroneous blank addresses
+			-- from the address cache.
+			DELETE FROM SwapManager_addrcache
+			 WHERE address IS NULL
+			  OR address = '';
 			)QRY");
 			tx.commit();
 

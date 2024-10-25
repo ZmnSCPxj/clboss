@@ -280,6 +280,8 @@ private:
 			/* First, try to get an address from the addrcache.  */
 			auto check = tx.query(R"QRY(
 			SELECT id, address FROM "SwapManager_addrcache"
+                         WHERE address IS NOT NULL
+                          AND address <> ''
 			 ORDER BY id
 			 LIMIT 1
 			     ;
@@ -626,12 +628,14 @@ private:
 		auto address = std::string();
 		for (auto& r : fetch)
 			address = r.get<std::string>(0);
-		tx.query(R"QRY(
-		INSERT INTO "SwapManager_addrcache"
-		VALUES(NULL, :address);
-		)QRY")
-			.bind(":address", address)
-			.execute();
+		if (!address.empty()) {
+			tx.query(R"QRY(
+		        INSERT INTO "SwapManager_addrcache"
+		        VALUES(NULL, :address);
+		        )QRY")
+				.bind(":address", address)
+				.execute();
+		}
 
 		/* Delete the swap itself.  */
 		tx.query(R"QRY(

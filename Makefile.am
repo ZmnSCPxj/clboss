@@ -689,7 +689,14 @@ commit_hash.h: FORCE
 			echo "$(srcdir)/commit_hash.h is up-to-date."; \
 		fi \
 	else \
-		echo "Using existing $(srcdir)/commit_hash.h"; \
+		if [ ! -f $(srcdir)/commit_hash.h ]; then \
+			echo "Error: commit_hash.h is missing.!!!"; \
+			echo "Maybe you need the other release tarball?"; \
+			echo "(the one named \"Source code\" is **NOT** the one you want ...)"; \
+			exit 1; \
+		else \
+			echo "Using existing $(srcdir)/commit_hash.h"; \
+		fi \
 	fi
 
 # Ensure that commit_hash.h is included in the source tarball.

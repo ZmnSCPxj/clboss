@@ -4,6 +4,46 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.14.1] - 2024-10-31: "Hand at the Grindstone"
+
+### Added
+
+- **Contrib Script Enhancements**:
+  - Added `--lightning-dir` option to the contrib scripts:
+    - `clboss-earnings-history`
+    - `clboss-recent-earnings`
+    - `clboss-routing-stats`
+
+    This allows users with non-default configurations to specify their
+    `lightning-dir` when running these scripts. ([#243])
+
+  - **Nix Support**:
+    - Introduced `contrib-shell.nix` to facilitate running contrib
+      scripts within Nix environments. Users can now execute
+      `nix-shell contrib-shell.nix` and run any Python scripts in
+      `contrib/`. ([#241])
+    - Updated `contrib/README.md` with detailed instructions for
+      Python dependencies installation, including a section on using
+      Nix.
+
+- **Stack Unwinding Support**:
+  - Implemented `libunwind` for stack unwinding. This replaces the use
+    of `backtrace()`, which is not available on Alpine Linux. This
+    improves compatibility with Alpine and other systems lacking
+    `backtrace()`. ([#245], [#249])
+  - Replaced the use of `program_invocation_name` (only available on
+    Linux) with a custom global variable to store the program name,
+    improving portability to systems like FreeBSD and other Unix-like
+    systems. ([#242])
+
+### Fixed
+
+- **Build System**:
+  - Fixed issues when building CLBOSS as a git submodule. ([#247], [#250])
+  - Improved diagnostic messages for missing `commit_hash.h` in
+    tarball builds. This helps users identify and resolve build issues
+    when `commit_hash.h` is not present. ([#244]), [#251])
+
 ## [0.14.0] - 2024-09-25: "Hand at the Grindstone"
 
 ### Added

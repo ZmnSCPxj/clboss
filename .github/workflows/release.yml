@@ -21,7 +21,6 @@ jobs:
             automake \
             curl \
             libcurl4-openssl-dev \
-            libunwind \
             libunwind-dev \
             git \
             libev-dev \

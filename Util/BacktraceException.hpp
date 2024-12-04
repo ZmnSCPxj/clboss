@@ -1,6 +1,37 @@
 #ifndef UTIL_BACKTRACE_EXCEPTION_HPP
 #define UTIL_BACKTRACE_EXCEPTION_HPP
 
+#ifdef HAVE_CONFIG_H
+# include"config.h"
+#endif
+
+#if !ENABLE_EXCEPTION_BACKTRACE // If not enabled or undefined
+
+#include <utility>
+
+namespace Util {
+
+/** class Util::BacktraceException<E>
+ *
+ * @brief A do-nothing wrapper when backtraces are disabled.
+ */
+
+template <typename T>
+class BacktraceException : public T {
+public:
+    template <typename... Args>
+    BacktraceException(Args&&... args)
+        : T(std::forward<Args>(args)...) {}
+
+    const char* what() const noexcept override {
+        return T::what();
+    }
+};
+
+} // namespace Util
+
+#else // ENABLE_EXCEPTION_BACKTRACE in force
+
 #include <array>
 #include <execinfo.h>
 #include <iomanip>
@@ -10,10 +41,6 @@
 #include <string.h>
 #include <string>
 #include <vector>
-
-#ifdef HAVE_CONFIG_H
-# include"config.h"
-#endif
 
 extern std::string g_argv0;
 
@@ -149,5 +176,7 @@ private:
 };
 
 } // namespace Util
+
+#endif // ENABLE_EXCEPTION_BACKTRACE
 
 #endif /* UTIL_BACKTRACE_EXCEPTION_HPP */

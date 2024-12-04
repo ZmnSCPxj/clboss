@@ -12,6 +12,26 @@ LT_INIT([disable-shared])
 
 m4_pattern_forbid([^PKG_])
 
+# Enable exception backtrace option
+AC_ARG_ENABLE([exception-backtrace],
+    [AS_HELP_STRING([--disable-exception-backtrace],
+        [Disable exception backtrace in exceptions (enabled by default)])],
+    [case "${enable_exception_backtrace}" in
+        yes|no) ;;
+        *) AC_MSG_ERROR([invalid value for --enable-exception-backtrace: ${enable_exception_backtrace}]) ;;
+    esac],
+    [enable_exception_backtrace=yes]) # Default to "yes"
+
+AM_CONDITIONAL([ENABLE_EXCEPTION_BACKTRACE], [test "x$enable_exception_backtrace" = "xyes"])
+AC_SUBST([ENABLE_EXCEPTION_BACKTRACE], [$enable_exception_backtrace])
+
+# Define a macro in config.h
+if test "x$enable_exception_backtrace" = "xyes"; then
+    AC_DEFINE([ENABLE_EXCEPTION_BACKTRACE], [1], [Define if exception backtraces are enabled])
+else
+    AC_DEFINE([ENABLE_EXCEPTION_BACKTRACE], [0], [Define if exception backtraces are enabled])
+fi
+
 # Checks for programs.
 # If CXXFLAGS is unset, remove the -g
 # that AC_PROG_CXX adds to it.

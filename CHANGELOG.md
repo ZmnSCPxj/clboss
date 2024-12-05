@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [0.14.1] - 2024-10-31: "Hand at the Grindstone"
+## [0.14.1] - 2024-12-05: "Hand at the Grindstone"
 
 ### Added
 
@@ -35,6 +35,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     Linux) with a custom global variable to store the program name,
     improving portability to systems like FreeBSD and other Unix-like
     systems. ([#242])
+
+- **Configurable Exception Backtrace Support**:
+  - Added the `--disable-exception-backtrace` option to
+    `configure`. This allows disabling the inclusion of backtrace
+    information in exception wrappers. ([#256])
+  - The `Util::BacktraceException` class now provides a no-op wrapper
+    when exception backtraces are disabled via
+    `--disable-exception-backtrace`. This ensures minimal overhead in
+    configurations where backtraces are not needed. ([#256])
 
 ### Fixed
 

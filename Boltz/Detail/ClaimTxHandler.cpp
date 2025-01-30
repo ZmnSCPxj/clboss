@@ -25,6 +25,9 @@ std::string ClaimTxHandler::logprefix(std::string msg) {
 	     + msg
 	     ;
 }
+Ev::Io<void> ClaimTxHandler::logt(std::string msg) {
+	return env.logt(logprefix(msg));
+}
 Ev::Io<void> ClaimTxHandler::logd(std::string msg) {
 	return env.logd(logprefix(msg));
 }

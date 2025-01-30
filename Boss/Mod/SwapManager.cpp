@@ -269,7 +269,7 @@ private:
 	Ev::Io<void> loop_needs_address() {
 		if (needs_address.empty()) {
 			getting_address = false;
-			return Boss::log( bus, Debug
+			return Boss::log( bus, Trace
 					, "SwapManager: "
 					  "no more swaps need addresses"
 					);

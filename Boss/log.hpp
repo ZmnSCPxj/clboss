@@ -11,6 +11,7 @@ namespace S { class Bus; }
 namespace Boss {
 
 enum LogLevel {
+	Trace,
 	Debug,
 	Info,
 	Warn,

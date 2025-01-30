@@ -21,6 +21,9 @@ namespace Boltz { namespace Detail {
 std::string ServiceImpl::prefixlog(std::string msg) {
 	return std::string("Boltz::Service(\"") + label + "\"): " + msg;
 }
+Ev::Io<void> ServiceImpl::logt(std::string msg) {
+	return env.logt(prefixlog(std::move(msg)));
+}
 Ev::Io<void> ServiceImpl::logd(std::string msg) {
 	return env.logd(prefixlog(std::move(msg)));
 }

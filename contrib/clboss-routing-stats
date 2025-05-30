@@ -6,6 +6,7 @@
 # - Sorts first by net fees (income - expenses) (descending)
 # - Then sorts by "Success Per Day" (SPD) (descending)
 # - Then sorts by Age in days (ascending)
+# - Uses `clboss-recent-earnings` to limit the history considered
 #
 # The channels at the top of the list are good, the ones at the bottom are bad.
 
@@ -54,6 +55,8 @@ def main():
     parser.add_argument('--regtest', action='store_true', help='Run on regtest')
     parser.add_argument('--network', help='Set the network explicitly')
     parser.add_argument('--lightning-dir', help='lightning data location')
+    parser.add_argument('--days', type=int,
+                        help='Number of days of history to use with clboss-recent-earnings')
 
     args = parser.parse_args()
 
@@ -114,18 +117,27 @@ def main():
         alias = lookup_alias(run_lightning_cli_command, lightning_dir, network_option, peer_id)
         peers[peer_id]["alias"] = alias
 
+    # Get recent earnings for each peer
+    if args.days:
+        recent_data = run_lightning_cli_command(lightning_dir, network_option,
+                                                'clboss-recent-earnings', str(args.days))
+    else:
+        recent_data = run_lightning_cli_command(lightning_dir, network_option,
+                                                'clboss-recent-earnings')
+
     # Run clboss-status command and capture the output
     clboss_status_data = run_lightning_cli_command(lightning_dir, network_option, 'clboss-status')
     if clboss_status_data:
-        offchain_earnings_tracker = clboss_status_data.get("offchain_earnings_tracker", {})
         peer_metrics = clboss_status_data.get("peer_metrics", {})
 
+        recent = recent_data.get("recent", {}) if recent_data else {}
+
         for id in peers.keys():
-            if id in offchain_earnings_tracker:
-                peers[id]["in_earnings"] = offchain_earnings_tracker[id].get("in_earnings", 0)
-                peers[id]["in_expenditures"] = offchain_earnings_tracker[id].get("in_expenditures", 0)
-                peers[id]["out_earnings"] = offchain_earnings_tracker[id].get("out_earnings", 0)
-                peers[id]["out_expenditures"] = offchain_earnings_tracker[id].get("out_expenditures", 0)
+            if id in recent:
+                peers[id]["in_earnings"] = recent[id].get("in_earnings", 0)
+                peers[id]["in_expenditures"] = recent[id].get("in_expenditures", 0)
+                peers[id]["out_earnings"] = recent[id].get("out_earnings", 0)
+                peers[id]["out_expenditures"] = recent[id].get("out_expenditures", 0)
 
             if id in peer_metrics:
                 peers[id]["age"] = peer_metrics[id].get("age", 0)

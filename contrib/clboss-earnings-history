@@ -40,6 +40,10 @@ def bucket_key(ds, bucket):
     elif bucket == 'week':
         iso = dt.isocalendar()
         return f"{iso[0]}-W{iso[1]:02d}"
+    elif bucket == 'fortnight':
+        iso_year, iso_week, _ = dt.isocalendar()
+        fn = ((iso_week - 1) // 2) + 1
+        return f"{iso_year}-F{fn:02d}"
     elif bucket == 'month':
         return dt.strftime('%Y-%m')
     else:  # quarter
@@ -62,7 +66,7 @@ def main():
     parser.add_argument('--csv-file', help='Write raw data to the given CSV file')
     parser.add_argument('--graph-file', help='Write a PNG graph of net earnings')
     parser.add_argument('--bucket', dest='bucket', default='day',
-                        choices=['day','week','month','quarter'],
+                        choices=['day','week','fortnight','month','quarter'],
                         help='Aggregation period for table and graph')
 
     args = parser.parse_args()

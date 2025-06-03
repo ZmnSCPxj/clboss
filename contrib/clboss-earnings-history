@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 
+import argparse
+import csv
+import json
 import os
 import subprocess
-import argparse
-import json
-import csv
 from datetime import datetime
+
 from tabulate import tabulate
-from clboss.alias_cache import lookup_alias, is_nodeid, lookup_nodeid_by_alias
+
+from clboss.alias_cache import is_nodeid, lookup_alias, lookup_nodeid_by_alias
+
 
 def run_lightning_cli_command(lightning_dir, network_option, command, *args):
     try:
-        command = ['lightning-cli', network_option, command, *args]
+        command = ["lightning-cli", network_option, command, *args]
         if lightning_dir:
-            command = command[:2] + [f'--lightning-dir={lightning_dir}'] + command[2:]
-        result = subprocess.run(command,
-                                capture_output=True,
-                                text=True,
-                                check=True)
+            command = command[:2] \
+                + [f"--lightning-dir={lightning_dir}"] \
+                + command[2:]
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
         return json.loads(result.stdout)
     except subprocess.CalledProcessError as e:
         print(f"Command '{command}' failed with error: {e}")
@@ -25,67 +27,83 @@ def run_lightning_cli_command(lightning_dir, network_option, command, *args):
         print(f"Failed to parse JSON from command '{command}': {e}")
     return None
 
+
 def format_bucket_time(bucket_time):
     if bucket_time == 0:
         return "Legacy"
     else:
-        return datetime.utcfromtimestamp(bucket_time).strftime('%Y-%m-%d')
+        return datetime.utcfromtimestamp(bucket_time).strftime("%Y-%m-%d")
+
 
 def bucket_key(ds, bucket):
     if ds == "Legacy":
         return ds
-    dt = datetime.strptime(ds, '%Y-%m-%d')
-    if bucket == 'day':
-        return dt.strftime('%Y-%m-%d')
-    elif bucket == 'week':
+    dt = datetime.strptime(ds, "%Y-%m-%d")
+    if bucket == "day":
+        return dt.strftime("%Y-%m-%d")
+    elif bucket == "week":
         iso = dt.isocalendar()
         return f"{iso[0]}-W{iso[1]:02d}"
-    elif bucket == 'fortnight':
+    elif bucket == "fortnight":
         iso_year, iso_week, _ = dt.isocalendar()
         fn = ((iso_week - 1) // 2) + 1
         return f"{iso_year}-F{fn:02d}"
-    elif bucket == 'month':
-        return dt.strftime('%Y-%m')
+    elif bucket == "month":
+        return dt.strftime("%Y-%m")
     else:  # quarter
-        q = (dt.month - 1)//3 + 1
+        q = (dt.month - 1) // 3 + 1
         return f"{dt.year}-Q{q}"
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Run lightning-cli with specified network")
-    parser.add_argument('--mainnet', action='store_true', help='Run on mainnet')
-    parser.add_argument('--testnet', action='store_true', help='Run on testnet')
-    parser.add_argument('--signet', action='store_true', help='Run on signet')
-    parser.add_argument('--regtest', action='store_true', help='Run on regtest')
-    parser.add_argument('--network', help='Set the network explicitly')
+    parser = argparse.ArgumentParser(
+        description="Run lightning-cli with specified network"
+    )
+    parser.add_argument("--mainnet",action="store_true", help="Run on mainnet")
+    parser.add_argument("--testnet", action="store_true", help="Run on testnet")
+    parser.add_argument("--signet", action="store_true", help="Run on signet")
+    parser.add_argument("--regtest", action="store_true", help="Run on regtest")
+    parser.add_argument("--network", help="Set the network explicitly")
 
-    parser.add_argument('nodeid_or_alias', nargs='?',
-                        help='The node ID (or alias) to pass to clboss-earnings-history (optional)')
+    parser.add_argument(
+        "nodeid_or_alias",
+        nargs="?",
+        help="The node ID (or alias) to pass to clboss-earnings-history (optional)",
+    )
 
-    parser.add_argument('--lightning-dir', help='lightning data location')
+    parser.add_argument("--lightning-dir", help="lightning data location")
 
-    parser.add_argument('--csv-file', help='Write raw data to the given CSV file')
-    parser.add_argument('--graph-file', help='Write a PNG graph of net earnings')
-    parser.add_argument('--bucket', dest='bucket', default='day',
-                        choices=['day','week','fortnight','month','quarter'],
-                        help='Aggregation period for table and graph')
+    parser.add_argument("--csv-file", help="Write raw data to the given CSV file")
+    parser.add_argument("--graph-file", help="Write a PNG graph of net earnings")
+    parser.add_argument(
+        "--bucket",
+        dest="bucket",
+        default="day",
+        choices=["day", "week", "fortnight", "month", "quarter"],
+        help="Aggregation period for table and graph",
+    )
 
     args = parser.parse_args()
 
     # Reconcile network option
     if args.network:
-        network_option = f'--network={args.network}'
+        network_option = f"--network={args.network}"
     elif args.testnet:
-        network_option = '--network=testnet'
+        network_option = "--network=testnet"
     elif args.signet:
-        network_option = '--network=signet'
+        network_option = "--network=signet"
     elif args.regtest:
-        network_option = '--network=regtest'
+        network_option = "--network=regtest"
     else:
-        network_option = '--network=bitcoin'	# lightning-cli wants "bitcoin" for mainnet
+        network_option = (
+            "--network=bitcoin"  # lightning-cli wants "bitcoin" for mainnet
+        )
 
     if args.lightning_dir:
         lightning_dir = args.lightning_dir
-        assert os.path.isdir(lightning_dir), f'"{lightning_dir}" is not a valid directory'
+        assert os.path.isdir(
+            lightning_dir
+        ), f'"{lightning_dir}" is not a valid directory'
     else:
         lightning_dir = None
 
@@ -95,16 +113,21 @@ def main():
         # Determine if input is a nodeid or alias
         if is_nodeid(args.nodeid_or_alias):  # Check if it's a node ID
             nodeid = args.nodeid_or_alias
-            alias = lookup_alias(run_lightning_cli_command, lightning_dir, network_option, nodeid)
+            alias = lookup_alias(
+                run_lightning_cli_command, lightning_dir, network_option, nodeid
+            )
         else:  # It's an alias, so look it up
             alias = args.nodeid_or_alias
-            nodeid = lookup_nodeid_by_alias(run_lightning_cli_command, lightning_dir, network_option, alias)
+            nodeid = lookup_nodeid_by_alias(
+                run_lightning_cli_command, lightning_dir, network_option, alias
+            )
             if not nodeid:
                 print(f"Error: Alias '{alias}' not found.")
                 return
 
     earnings_data = run_lightning_cli_command(
-        lightning_dir, network_option, 'clboss-earnings-history', nodeid or "")
+        lightning_dir, network_option, "clboss-earnings-history", nodeid or ""
+    )
 
     # Initialize totals
     total_net_earnings = 0
@@ -122,40 +145,40 @@ def main():
     csv_rows = []
     bucket_data = {}
     bucket_order = []
-    for entry in earnings_data['history']:
-        in_earnings = entry['in_earnings']
-        in_forwarded = entry['in_forwarded']
-        in_expenditures = entry['in_expenditures']
-        in_rebalanced = entry['in_rebalanced']
+    for entry in earnings_data["history"]:
+        in_earnings = entry["in_earnings"]
+        in_forwarded = entry["in_forwarded"]
+        in_expenditures = entry["in_expenditures"]
+        in_rebalanced = entry["in_rebalanced"]
 
-        out_earnings = entry['out_earnings']
-        out_forwarded = entry['out_forwarded']
-        out_expenditures = entry['out_expenditures']
-        out_rebalanced = entry['out_rebalanced']
+        out_earnings = entry["out_earnings"]
+        out_forwarded = entry["out_forwarded"]
+        out_expenditures = entry["out_expenditures"]
+        out_rebalanced = entry["out_rebalanced"]
 
-        date_str = format_bucket_time(entry['bucket_time'])
+        date_str = format_bucket_time(entry["bucket_time"])
         key = bucket_key(date_str, args.bucket)
         if key not in bucket_data:
             bucket_data[key] = {
-                'in_earnings': 0,
-                'in_forwarded': 0,
-                'in_expenditures': 0,
-                'in_rebalanced': 0,
-                'out_earnings': 0,
-                'out_forwarded': 0,
-                'out_expenditures': 0,
-                'out_rebalanced': 0,
+                "in_earnings": 0,
+                "in_forwarded": 0,
+                "in_expenditures": 0,
+                "in_rebalanced": 0,
+                "out_earnings": 0,
+                "out_forwarded": 0,
+                "out_expenditures": 0,
+                "out_rebalanced": 0,
             }
             bucket_order.append(key)
 
-        bucket_data[key]['in_earnings'] += in_earnings
-        bucket_data[key]['in_forwarded'] += in_forwarded
-        bucket_data[key]['in_expenditures'] += in_expenditures
-        bucket_data[key]['in_rebalanced'] += in_rebalanced
-        bucket_data[key]['out_earnings'] += out_earnings
-        bucket_data[key]['out_forwarded'] += out_forwarded
-        bucket_data[key]['out_expenditures'] += out_expenditures
-        bucket_data[key]['out_rebalanced'] += out_rebalanced
+        bucket_data[key]["in_earnings"] += in_earnings
+        bucket_data[key]["in_forwarded"] += in_forwarded
+        bucket_data[key]["in_expenditures"] += in_expenditures
+        bucket_data[key]["in_rebalanced"] += in_rebalanced
+        bucket_data[key]["out_earnings"] += out_earnings
+        bucket_data[key]["out_forwarded"] += out_forwarded
+        bucket_data[key]["out_expenditures"] += out_expenditures
+        bucket_data[key]["out_rebalanced"] += out_rebalanced
 
         total_in_earnings += in_earnings
         total_in_forwarded += in_forwarded
@@ -167,21 +190,23 @@ def main():
         total_out_rebalanced += out_rebalanced
 
         if args.nodeid_or_alias:
-            net_earnings = (in_earnings + out_earnings) - (in_expenditures + out_expenditures)
+            net_earnings = (in_earnings + out_earnings) - (
+                in_expenditures + out_expenditures
+            )
         else:
             net_earnings = in_earnings - in_expenditures
         total_net_earnings += net_earnings
 
     for key in bucket_order:
         data = bucket_data[key]
-        in_earnings = data['in_earnings']
-        in_forwarded = data['in_forwarded']
-        in_expenditures = data['in_expenditures']
-        in_rebalanced = data['in_rebalanced']
-        out_earnings = data['out_earnings']
-        out_forwarded = data['out_forwarded']
-        out_expenditures = data['out_expenditures']
-        out_rebalanced = data['out_rebalanced']
+        in_earnings = data["in_earnings"]
+        in_forwarded = data["in_forwarded"]
+        in_expenditures = data["in_expenditures"]
+        in_rebalanced = data["in_rebalanced"]
+        out_earnings = data["out_earnings"]
+        out_forwarded = data["out_forwarded"]
+        out_expenditures = data["out_expenditures"]
+        out_rebalanced = data["out_rebalanced"]
 
         in_forwarded_rate = (
             (in_earnings / in_forwarded) * 1_000_000 if in_forwarded != 0 else 0
@@ -193,70 +218,82 @@ def main():
             (out_earnings / out_forwarded) * 1_000_000 if out_forwarded != 0 else 0
         )
         out_rebalance_rate = (
-            (out_expenditures / out_rebalanced) * 1_000_000 if out_rebalanced != 0 else 0
+            (out_expenditures / out_rebalanced) * 1_000_000
+            if out_rebalanced != 0
+            else 0
         )
 
         if args.nodeid_or_alias:
-            net_earnings = (in_earnings + out_earnings) - (in_expenditures + out_expenditures)
+            net_earnings = (in_earnings + out_earnings) - (
+                in_expenditures + out_expenditures
+            )
         else:
             net_earnings = in_earnings - in_expenditures
 
         date_str = key
 
         if args.nodeid_or_alias:
-            rows.append([
-                date_str,
-                f"{in_forwarded:,}".replace(',', '_'),
-                f"{in_forwarded_rate:,.0f}",
-                f"{in_earnings:,}".replace(',', '_'),
-                f"{out_forwarded:,}".replace(',', '_'),
-                f"{out_forwarded_rate:,.0f}",
-                f"{out_earnings:,}".replace(',', '_'),
-                f"{in_rebalanced:,}".replace(',', '_'),
-                f"{in_rebalance_rate:,.0f}",
-                f"{in_expenditures:,}".replace(',', '_'),
-                f"{out_rebalanced:,}".replace(',', '_'),
-                f"{out_rebalance_rate:,.0f}",
-                f"{out_expenditures:,}".replace(',', '_'),
-                f"{int(net_earnings):,}".replace(',', '_')
-            ])
-            csv_rows.append([
-                date_str,
-                in_forwarded,
-                round(in_forwarded_rate, 0),
-                in_earnings,
-                out_forwarded,
-                round(out_forwarded_rate, 0),
-                out_earnings,
-                in_rebalanced,
-                round(in_rebalance_rate, 0),
-                in_expenditures,
-                out_rebalanced,
-                round(out_rebalance_rate, 0),
-                out_expenditures,
-                int(net_earnings)
-            ])
+            rows.append(
+                [
+                    date_str,
+                    f"{in_forwarded:,}".replace(",", "_"),
+                    f"{in_forwarded_rate:,.0f}",
+                    f"{in_earnings:,}".replace(",", "_"),
+                    f"{out_forwarded:,}".replace(",", "_"),
+                    f"{out_forwarded_rate:,.0f}",
+                    f"{out_earnings:,}".replace(",", "_"),
+                    f"{in_rebalanced:,}".replace(",", "_"),
+                    f"{in_rebalance_rate:,.0f}",
+                    f"{in_expenditures:,}".replace(",", "_"),
+                    f"{out_rebalanced:,}".replace(",", "_"),
+                    f"{out_rebalance_rate:,.0f}",
+                    f"{out_expenditures:,}".replace(",", "_"),
+                    f"{int(net_earnings):,}".replace(",", "_"),
+                ]
+            )
+            csv_rows.append(
+                [
+                    date_str,
+                    in_forwarded,
+                    round(in_forwarded_rate, 0),
+                    in_earnings,
+                    out_forwarded,
+                    round(out_forwarded_rate, 0),
+                    out_earnings,
+                    in_rebalanced,
+                    round(in_rebalance_rate, 0),
+                    in_expenditures,
+                    out_rebalanced,
+                    round(out_rebalance_rate, 0),
+                    out_expenditures,
+                    int(net_earnings),
+                ]
+            )
         else:
-            rows.append([
-                date_str,
-                f"{in_forwarded:,}".replace(',', '_'),
-                f"{in_forwarded_rate:,.0f}",
-                f"{in_earnings:,}".replace(',', '_'),
-                f"{in_rebalanced:,}".replace(',', '_'),
-                f"{in_rebalance_rate:,.0f}",
-                f"{in_expenditures:,}".replace(',', '_'),
-                f"{int(net_earnings):,}".replace(',', '_')
-            ])
-            csv_rows.append([
-                date_str,
-                in_forwarded,
-                round(in_forwarded_rate, 0),
-                in_earnings,
-                in_rebalanced,
-                round(in_rebalance_rate, 0),
-                in_expenditures,
-                int(net_earnings)
-            ])
+            rows.append(
+                [
+                    date_str,
+                    f"{in_forwarded:,}".replace(",", "_"),
+                    f"{in_forwarded_rate:,.0f}",
+                    f"{in_earnings:,}".replace(",", "_"),
+                    f"{in_rebalanced:,}".replace(",", "_"),
+                    f"{in_rebalance_rate:,.0f}",
+                    f"{in_expenditures:,}".replace(",", "_"),
+                    f"{int(net_earnings):,}".replace(",", "_"),
+                ]
+            )
+            csv_rows.append(
+                [
+                    date_str,
+                    in_forwarded,
+                    round(in_forwarded_rate, 0),
+                    in_earnings,
+                    in_rebalanced,
+                    round(in_rebalance_rate, 0),
+                    in_expenditures,
+                    int(net_earnings),
+                ]
+            )
 
     # Add a header (separator) row
     if args.nodeid_or_alias:
@@ -275,7 +312,7 @@ def main():
             "Out Rebalanced",
             "PPM",
             "Out Expense",
-            "Net Earnings"
+            "Net Earnings",
         ]
     else:
         # Incoming and outgoing are always the same (balanced)
@@ -287,7 +324,7 @@ def main():
             "Rebalanced",
             "PPM",
             "Expense",
-            "Net Earnings"
+            "Net Earnings",
         ]
 
     # Make a separator row before the totals
@@ -295,75 +332,87 @@ def main():
 
     # Append the total row
     if args.nodeid_or_alias:
-	# Show both the incoming and outgoing statistics
-        rows.append([
-            "TOTAL",
-            f"{total_in_forwarded:,}".replace(',', '_'),
-            # misleading because legacy numerator only: f"{total_in_forwarded_rate:,.0f}",
-            f"",
-            f"{total_in_earnings:,}".replace(',', '_'),
-            f"{total_out_forwarded:,}".replace(',', '_'),
-            # misleading because legacy numerator only: f"{total_out_forwarded_rate:,.0f}",
-            f"",
-            f"{total_out_earnings:,}".replace(',', '_'),
-            f"{total_in_rebalanced:,}".replace(',', '_'),
-            # misleading because legacy: f"{total_in_rebalance_rate:,.0f}",
-            f"",
-            f"{total_in_expenditures:,}".replace(',', '_'),
-            f"{total_out_rebalanced:,}".replace(',', '_'),
-            # misleading because legacy: f"{total_out_rebalance_rate:,.0f}",
-            f"",
-            f"{total_out_expenditures:,}".replace(',', '_'),
-            f"{int(total_net_earnings):,}".replace(',', '_')
-        ])
-        csv_rows.append([
-            "TOTAL",
-            total_in_forwarded,
-            "",
-            total_in_earnings,
-            total_out_forwarded,
-            "",
-            total_out_earnings,
-            total_in_rebalanced,
-            "",
-            total_in_expenditures,
-            total_out_rebalanced,
-            "",
-            total_out_expenditures,
-            int(total_net_earnings)
-        ])
+        # Show both the incoming and outgoing statistics
+        rows.append(
+            [
+                "TOTAL",
+                f"{total_in_forwarded:,}".replace(",", "_"),
+                # misleading because legacy numerator only: f"{total_in_forwarded_rate:,.0f}",
+                "",
+                f"{total_in_earnings:,}".replace(",", "_"),
+                f"{total_out_forwarded:,}".replace(",", "_"),
+                # misleading because legacy numerator only: f"{total_out_forwarded_rate:,.0f}",
+                "",
+                f"{total_out_earnings:,}".replace(",", "_"),
+                f"{total_in_rebalanced:,}".replace(",", "_"),
+                # misleading because legacy: f"{total_in_rebalance_rate:,.0f}",
+                "",
+                f"{total_in_expenditures:,}".replace(",", "_"),
+                f"{total_out_rebalanced:,}".replace(",", "_"),
+                # misleading because legacy: f"{total_out_rebalance_rate:,.0f}",
+                "",
+                f"{total_out_expenditures:,}".replace(",", "_"),
+                f"{int(total_net_earnings):,}".replace(",", "_"),
+            ]
+        )
+        csv_rows.append(
+            [
+                "TOTAL",
+                total_in_forwarded,
+                "",
+                total_in_earnings,
+                total_out_forwarded,
+                "",
+                total_out_earnings,
+                total_in_rebalanced,
+                "",
+                total_in_expenditures,
+                total_out_rebalanced,
+                "",
+                total_out_expenditures,
+                int(total_net_earnings),
+            ]
+        )
     else:
         # Incoming and outgoing are always the same (balanced)
-        rows.append([
-            "TOTAL",
-            f"{total_in_forwarded:,}".replace(',', '_'),
-            # misleading because legacy: f"{total_in_forwarded_rate:,.0f}",
-            f"",
-            f"{total_in_earnings:,}".replace(',', '_'),
-            f"{total_in_rebalanced:,}".replace(',', '_'),
-            # misleading because legacy: f"{total_in_rebalance_rate:,.0f}",
-            f"",
-            f"{total_in_expenditures:,}".replace(',', '_'),
-            f"{int(total_net_earnings):,}".replace(',', '_')
-        ])
-        csv_rows.append([
-            "TOTAL",
-            total_in_forwarded,
-            "",
-            total_in_earnings,
-            total_in_rebalanced,
-            "",
-            total_in_expenditures,
-            int(total_net_earnings)
-        ])
+        rows.append(
+            [
+                "TOTAL",
+                f"{total_in_forwarded:,}".replace(",", "_"),
+                # misleading because legacy: f"{total_in_forwarded_rate:,.0f}",
+                "",
+                f"{total_in_earnings:,}".replace(",", "_"),
+                f"{total_in_rebalanced:,}".replace(",", "_"),
+                # misleading because legacy: f"{total_in_rebalance_rate:,.0f}",
+                "",
+                f"{total_in_expenditures:,}".replace(",", "_"),
+                f"{int(total_net_earnings):,}".replace(",", "_"),
+            ]
+        )
+        csv_rows.append(
+            [
+                "TOTAL",
+                total_in_forwarded,
+                "",
+                total_in_earnings,
+                total_in_rebalanced,
+                "",
+                total_in_expenditures,
+                int(total_net_earnings),
+            ]
+        )
 
     if args.nodeid_or_alias:
         print(f"Showing history for {nodeid} aka {alias}")
 
-    print(tabulate(rows, headers=headers, tablefmt="pretty", stralign="right", numalign="right"))
+    print(
+        tabulate(
+            rows, headers=headers, tablefmt="pretty", stralign="right", numalign="right"
+        )
+    )
 
     if args.csv_file:
-        with open(args.csv_file, 'w', newline='') as f:
+        with open(args.csv_file, "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(headers)
             writer.writerows(csv_rows)
@@ -375,6 +424,7 @@ def main():
         except ImportError:
             print("matplotlib is required to output graphs. Please install it.")
         else:
+
             def period_key(ds):
                 if ds in ("Legacy", "TOTAL"):
                     return None
@@ -393,16 +443,17 @@ def main():
                 labels = sorted(agg.keys())
                 values = [agg[k] for k in labels]
                 plt.figure(figsize=(10, 6))
-                plt.plot(labels, values, marker='o')
+                plt.plot(labels, values, marker="o")
                 plt.xlabel(args.bucket.capitalize())
-                plt.ylabel('Net Earnings (msats)')
-                plt.title('CLBOSS Earnings History')
-                plt.xticks(rotation=45, ha='right')
+                plt.ylabel("Net Earnings (msats)")
+                plt.title("CLBOSS Earnings History")
+                plt.xticks(rotation=45, ha="right")
                 plt.tight_layout()
                 plt.grid(True)
                 plt.savefig(args.graph_file)
                 plt.close()
                 print(f"Wrote graph to {args.graph_file}")
+
 
 if __name__ == "__main__":
     main()

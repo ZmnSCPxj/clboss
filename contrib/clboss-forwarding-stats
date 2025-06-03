@@ -1,0 +1,296 @@
+#!/usr/bin/env python3
+
+# This script produces a summary of channel forwarding stats
+#
+# - Displays PeerID, SCID, and Alias for each channel
+# - Uses `clboss-recent-earnings` to limit the history considered
+#
+# The channels at the top of the list are good, the ones at the bottom are bad.
+
+import argparse
+import json
+import os
+import subprocess
+import time
+
+from tabulate import tabulate
+from wcwidth import wcswidth
+
+from clboss.alias_cache import lookup_alias
+
+def now():
+    now_ts = time.time()
+    return int(now_ts)
+
+
+def run_lightning_cli_command(lightning_dir, network_option, command, *args):
+    try:
+        command = ["lightning-cli", network_option, command, *args]
+        if lightning_dir:
+            command = command[:2] + [f"--lightning-dir={lightning_dir}"] + command[2:]
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        return json.loads(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print(f"Command '{command}' failed with error: {e}")
+    except json.JSONDecodeError as e:
+        print(f"Failed to parse JSON from command '{command}': {e}")
+    return None
+
+
+def peer_age_days(peer):
+    """Lookup the age in secs in the peer struct and convert to days"""
+    return max(1, peer.get("age", 0) // 86400) # age in days, but not zero
+
+
+def determine_peer_age(lightning_dir, network_option, id, peer_metrics):
+    """Use multiple sources to determine the peer's age"""
+
+    # What is the oldest history we have on record for this peer?
+    oldest_history_age = None
+    history = run_lightning_cli_command(
+        lightning_dir, network_option, "clboss-earnings-history", id
+    )['history']
+    if len(history) >= 1 and history[0]['bucket_time'] != 0:
+        # the oldest bucket is not the "legacy" bucket
+        oldest_history_age = now() - history[0]['bucket_time']
+    elif len(history) >= 2:
+        # skip the legacy bucket
+        oldest_history_age = now() - history[1]['bucket_time']
+
+    # Do we have an age in the peer metrics (from CLBOSS)?  This gets reset
+    # when the channel is closed and reopened to the same peer
+    peer_metrics_age = None
+    if id in peer_metrics:
+        peer_metrics_age = peer_metrics[id].get("age", 0)
+
+    if not oldest_history_age and not peer_metrics_age:
+        return 365 * 86400
+    elif oldest_history_age and peer_metrics_age:
+        return max(oldest_history_age, peer_metrics_age)
+    elif oldest_history_age:
+        return oldest_history_age
+    else:
+        return peer_metrics_age
+
+def peer_net_earnings(peer):
+    earnings = peer.get("in_earnings", 0) + peer.get("out_earnings", 0)
+    expenditures = peer.get("in_expenditures", 0) + peer.get("out_expenditures", 0)
+    return earnings - expenditures
+
+
+def peer_window(age, daystr):
+    if daystr:
+        return min(age, int(daystr))
+    else:
+        return age
+
+def pad_string(s, width):
+    pad = width - wcswidth(s)
+    return s + " " * pad
+
+
+def calculate_peer_score(peer, channel, daystr):
+    forwarded = peer.get("in_forwarded", 0) + peer.get("out_forwarded", 0)
+    to_us_msat = channel.get("to_us_msat", 0)
+
+    age = peer_age_days(peer)
+    window = peer_window(age, daystr)
+
+    if to_us_msat == 0:
+        return 0.0
+
+    fwd_per_bal = (float(forwarded) / float(to_us_msat))
+    fwd_per_bal_per_day = fwd_per_bal / window
+
+    return fwd_per_bal_per_day
+
+
+def calculate_trcl(peer, channel, daystr):
+    to_us_msat = channel.get("to_us_msat", 0)
+
+    age = peer_age_days(peer)
+    window = peer_window(age, daystr)
+
+    if to_us_msat == 0:
+        return 0.0
+
+    netearnings = peer_net_earnings(peer)
+
+    epd_per_bal = (float(netearnings) / float(to_us_msat))
+    epd_per_bal_per_day = epd_per_bal / window
+
+    # in basis points
+    return epd_per_bal_per_day * 365 * 100 * 100
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Run lightning-cli with specified network"
+    )
+
+    parser.add_argument("--mainnet", action="store_true", help="Run on mainnet")
+    parser.add_argument("--testnet", action="store_true", help="Run on testnet")
+    parser.add_argument("--signet", action="store_true", help="Run on signet")
+    parser.add_argument("--regtest", action="store_true", help="Run on regtest")
+    parser.add_argument("--network", help="Set the network explicitly")
+    parser.add_argument("--lightning-dir", help="lightning data location")
+    parser.add_argument(
+        "--days",
+        type=int,
+        help="Number of days of history to use with clboss-recent-earnings",
+    )
+
+    args = parser.parse_args()
+
+    # Reconcile network option
+    if args.network:
+        network_option = f"--network={args.network}"
+    elif args.testnet:
+        network_option = "--network=testnet"
+    elif args.signet:
+        network_option = "--network=signet"
+    elif args.regtest:
+        network_option = "--network=regtest"
+    else:
+        network_option = (
+            "--network=bitcoin"  # lightning-cli wants "bitcoin" for mainnet
+        )
+
+    if args.lightning_dir:
+        lightning_dir = args.lightning_dir
+        assert os.path.isdir(
+            lightning_dir
+        ), f'"{lightning_dir}" is not a valid directory'
+    else:
+        lightning_dir = None
+
+    # Run listpeerchannels command
+    listpeerchannels_data = run_lightning_cli_command(
+        lightning_dir, network_option, "listpeerchannels"
+    )
+    if not listpeerchannels_data:
+        return
+
+    channels_data = listpeerchannels_data.get("channels", [])
+
+    channels = {}
+    peers = {}
+    for channel in channels_data:
+        short_channel_id = channel.get("short_channel_id")
+        peer_id = channel.get("peer_id")
+        to_us_msat = channel.get("to_us_msat")
+        if short_channel_id and peer_id:
+            channels[short_channel_id] = {
+                "peerid": peer_id,
+                "opener": channel.get("opener"),
+                "to_us_msat": to_us_msat,
+                "total_msat": channel.get("total_msat"),
+            }
+            if peer_id not in peers:
+                peers[peer_id] = {
+                    "alias": None,
+                    "in_forwarded": 0,
+                    "out_forwarded": 0,
+                    "in_earnings": 0,
+                    "out_earnings": 0,
+                    "in_expenditures": 0,
+                    "out_expenditures": 0,
+                    "age": 0,
+                }
+
+    for peer_id in peers.keys():
+        alias = lookup_alias(
+            run_lightning_cli_command, lightning_dir, network_option, peer_id
+        )
+        peers[peer_id]["alias"] = alias
+
+    # Get recent earnings for each peer
+    if args.days:
+        recent_data = run_lightning_cli_command(
+            lightning_dir, network_option, "clboss-recent-earnings", str(args.days)
+        )
+    else:
+        recent_data = run_lightning_cli_command(
+            lightning_dir, network_option, "clboss-recent-earnings"
+        )
+
+    # Run clboss-status command and capture the output
+    clboss_status_data = run_lightning_cli_command(
+        lightning_dir, network_option, "clboss-status"
+    )
+    if clboss_status_data:
+        peer_metrics = clboss_status_data.get("peer_metrics", {})
+
+        recent = recent_data.get("recent", {}) if recent_data else {}
+
+        for id in peers.keys():
+            if id in recent:
+                peers[id]["in_forwarded"] = recent[id].get("in_forwarded", 0)
+                peers[id]["out_forwarded"] = recent[id].get("out_forwarded", 0)
+                peers[id]["in_earnings"] = recent[id].get("in_earnings", 0)
+                peers[id]["out_earnings"] = recent[id].get("out_earnings", 0)
+                peers[id]["in_expenditures"] = recent[id].get("in_expenditures", 0)
+                peers[id]["out_expenditures"] = recent[id].get("out_expenditures", 0)
+
+                peers[id]["age"] = determine_peer_age(
+                    lightning_dir, network_option, id, peer_metrics)
+
+    sorted_channels = sorted(
+        channels.keys(),
+        key=lambda cid: -calculate_peer_score(
+            peers[channels[cid]["peerid"]],
+            channels[cid],
+            args.days
+        )
+    )
+
+    # Prepare table data
+    table_data = []
+    max_alias_length = max(
+        [wcswidth(peer["alias"]) for peer in peers.values() if peer["alias"]] + [5]
+    )  # 5 is the length of "Alias"
+    for short_channel_id in sorted_channels:
+        peer_id = channels[short_channel_id]["peerid"]
+        peer = peers[peer_id]
+        fpbpd = calculate_peer_score(peer, channels[short_channel_id], args.days)
+        fpbpdstr = f"{fpbpd:.5f}"
+        trcl = calculate_trcl(peer, channels[short_channel_id], args.days)
+        trclstr = f"{trcl:.3f}"
+        fwded = peer.get("in_forwarded", 0) + peer.get("out_forwarded", 0)
+        netearnings = peer_net_earnings(peer)
+        alias = pad_string(peer["alias"], max_alias_length)
+        opener = "L" if channels[short_channel_id]["opener"] == "local" else "R"
+        agestr = str(int(peer_age_days(peer)))
+        to_us_msat = f"{channels[short_channel_id]['to_us_msat']:_}"
+        forwarded = f"{fwded:_}"
+        netearningsstr = f"{netearnings:_}"
+        table_data.append(
+            [
+                alias,
+                short_channel_id,
+                opener,
+                to_us_msat,
+                agestr,
+                forwarded,
+                netearningsstr,
+                fpbpdstr,
+                trclstr,
+            ]
+        )
+
+    # Print the table without grid
+    table_str = tabulate(
+        table_data,
+        headers=["Alias", "SCID", "O", "to us", "Age", "Forwarded", "NetEarn", "FPBPD", "TRCL*"],
+        tablefmt="plain",
+        stralign="left",
+        numalign="right",
+        colalign=("left", "left", "left", "right", "right", "right", "right", "right", "right"),
+        disable_numparse=True,
+    )
+
+    print(table_str)
+    print("* annualized Trailing Return on Current Liquidity in basis points")
+
+if __name__ == "__main__":
+    main()

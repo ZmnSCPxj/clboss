@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+export NO_COLOR=1
+
+# Use w/ https://github.com/ksedgwic/privdm to send as nostr private DM, eg:
+# 0 * * * * /usr/local/src/clboss/contrib/sys_stats_report | /usr/local/bin/privdm --from <YOUR_SERVER_PRIVKEY_FILE> --to <TARGET_PUBKEY_HEX> --via wss://your.relay.host
+
+echo '```'
+
+uptime
+
+df -kh /mnt/md0 2>/dev/null | tail -n1
+
+for svc in cln-mainnet; do
+  systemctl --no-pager --plain status "$svc" | awk 'NR==3'
+done
+
+START=$(date -d '1 hour ago' +%H:%M:%S)
+sar -W -s "$START" | awk '/Average/ { printf "pswpin/s:  %s, pswpout/s: %s\n", $2, $3 }'
+
+EARNINGS=$(/usr/local/src/clboss/contrib/clboss-earnings-history 2>/dev/null)
+echo "$EARNINGS" | head -n2 | tail -n1
+echo "$EARNINGS" | tail -n4 | head -n1
+
+echo '```'

@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 from datetime import datetime
+from calendar import monthrange
 
 from tabulate import tabulate
 
@@ -55,11 +56,34 @@ def bucket_key(ds, bucket):
         return f"{dt.year}-Q{q}"
 
 
+def bucket_length_days(start_ts, bucket):
+    dt = datetime.utcfromtimestamp(start_ts)
+    if bucket == "day":
+        return 1
+    elif bucket == "week":
+        return 7
+    elif bucket == "fortnight":
+        return 14
+    elif bucket == "month":
+        return monthrange(dt.year, dt.month)[1]
+    else:  # quarter
+        days = 0
+        year = dt.year
+        month = dt.month
+        for _ in range(3):
+            days += monthrange(year, month)[1]
+            month += 1
+            if month > 12:
+                month = 1
+                year += 1
+        return days
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Run lightning-cli with specified network"
     )
-    parser.add_argument("--mainnet",action="store_true", help="Run on mainnet")
+    parser.add_argument("--mainnet", action="store_true", help="Run on mainnet")
     parser.add_argument("--testnet", action="store_true", help="Run on testnet")
     parser.add_argument("--signet", action="store_true", help="Run on signet")
     parser.add_argument("--regtest", action="store_true", help="Run on regtest")
@@ -168,8 +192,14 @@ def main():
                 "out_forwarded": 0,
                 "out_expenditures": 0,
                 "out_rebalanced": 0,
+                "days": 0,
+                "first_time": entry["bucket_time"],
+                "estimated": False,
             }
             bucket_order.append(key)
+
+        bucket_data[key]["days"] += 1
+        bucket_data[key]["last_time"] = entry["bucket_time"]
 
         bucket_data[key]["in_earnings"] += in_earnings
         bucket_data[key]["in_forwarded"] += in_forwarded
@@ -197,6 +227,35 @@ def main():
             net_earnings = in_earnings - in_expenditures
         total_net_earnings += net_earnings
 
+    for k in bucket_order:
+        bucket_data[k]["length_days"] = bucket_length_days(
+            bucket_data[k]["first_time"], args.bucket
+        )
+
+    if bucket_order:
+        last_key = bucket_order[-1]
+    else:
+        None
+
+    if args.bucket != "day" and last_key is not None:
+        last = bucket_data[last_key]
+        remaining = last["length_days"] - last["days"]
+        if remaining > 1:
+            factor = last["length_days"] / last["days"]
+            last["estimated"] = True
+            for field in [
+                "in_earnings",
+                "in_forwarded",
+                "in_expenditures",
+                "in_rebalanced",
+                "out_earnings",
+                "out_forwarded",
+                "out_expenditures",
+                "out_rebalanced",
+            ]:
+                last[field] = int(last[field] * factor)
+
+    estimated_last = False
     for key in bucket_order:
         data = bucket_data[key]
         in_earnings = data["in_earnings"]
@@ -231,6 +290,9 @@ def main():
             net_earnings = in_earnings - in_expenditures
 
         date_str = key
+        if key == last_key and data.get("estimated"):
+            estimated_last = True
+            date_str = f"{date_str}*"
 
         if args.nodeid_or_alias:
             rows.append(
@@ -410,6 +472,8 @@ def main():
             rows, headers=headers, tablefmt="pretty", stralign="right", numalign="right"
         )
     )
+    if estimated_last:
+        print("* projected values at end of period");
 
     if args.csv_file:
         with open(args.csv_file, "w", newline="") as f:
@@ -430,20 +494,43 @@ def main():
                     return None
                 return ds
 
-            agg = {}
-            for row in csv_rows:
-                key = period_key(row[0])
-                if key is None:
-                    continue
-                agg[key] = agg.get(key, 0) + row[-1]
+            labels = []
+            values = []
+            est_index = None
 
-            if not agg:
+            for key in bucket_order:
+                pkey = period_key(key)
+                if pkey is None:
+                    continue
+                data = bucket_data[key]
+                if args.nodeid_or_alias:
+                    net = (data["in_earnings"] + data["out_earnings"]) - (
+                        data["in_expenditures"] + data["out_expenditures"]
+                    )
+                else:
+                    net = data["in_earnings"] - data["in_expenditures"]
+
+                labels.append(pkey)
+                values.append(net)
+                if data.get("estimated"):
+                    est_index = len(labels) - 1
+
+            if not labels:
                 print("No data to plot")
             else:
-                labels = sorted(agg.keys())
-                values = [agg[k] for k in labels]
                 plt.figure(figsize=(10, 6))
                 plt.plot(labels, values, marker="o")
+                if est_index is not None:
+                    plt.plot(
+                        labels[est_index],
+                        values[est_index],
+                        marker="o",
+                        markerfacecolor="white",
+                        markeredgecolor="red",
+                        linestyle="none",
+                        label="Projected",
+                    )
+                    plt.legend()
                 plt.xlabel(args.bucket.capitalize())
                 plt.ylabel("Net Earnings (msats)")
                 plt.title("CLBOSS Earnings History")

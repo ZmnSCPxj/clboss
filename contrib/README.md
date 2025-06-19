@@ -56,7 +56,22 @@ cd contrib/
 
 ./clboss-forwarding-stats
 
+./recently-closed
+
 The `clboss-routing-stats` and `clboss-forwarding-stats` scripts now accept `--days` to limit
 how many days of earnings history are considered when ranking channels.
 
 ```
+
+### Script Details
+
+- **`clboss-earnings-history`** now supports additional options:
+  - `--csv-file <file>` writes the raw earnings data as CSV.
+  - `--graph-file <file>` generates a PNG plot of net earnings.
+  - `--bucket` lets you aggregate by `day`, `week`, `fortnight`, `month`, or `quarter`.
+- **`clboss-forwarding-stats`** summarizes channel forwarding data and can be
+  restricted with `--days`.
+- **`clboss-routing-stats`** ranks peers using recent earnings data and also
+  accepts the `--days` option.
+- **`recently-closed`** lists channels that closed within the last N days, also
+  controlled via `--days`.

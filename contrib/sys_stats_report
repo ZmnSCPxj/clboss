@@ -22,6 +22,53 @@ EARNINGS=$(/usr/local/src/clboss/contrib/clboss-earnings-history 2>/dev/null)
 echo "$EARNINGS" | head -n2 | tail -n1
 echo "$EARNINGS" | tail -n4 | head -n1
 
-lightning-cli summars | egrep '(avail_out|utxo_amount)'
+# --- baseline checksum in msat ---
+#
+# The purpose of the baseline checksum is to check that changes in
+# (utxo_amount + avail_out) match the Net Earnings calculation.  The
+# computed value for the beginning of the bucket should remain
+# constant all day long.  It will change if there are payments, deposists,
+# or problems in the net earnings calculation.
+
+# —– summars once, up‐front
+SUMMARY=$(lightning-cli summars)
+
+# print just those two lines
+echo "$SUMMARY" | egrep '(avail_out|utxo_amount)'
+
+# parse BTC values from the same output
+read -r utxo_btc avail_btc < <(
+  echo "$SUMMARY" | awk -F'[ =]' '
+    /utxo_amount/ {u=$2}
+    /avail_out/  {a=$2}
+    END {print u, a}
+  '
+)
+
+# convert and compute baseline
+utxo_msat=$(awk "BEGIN{printf \"%0.0f\", $utxo_btc*1e11}")
+avail_msat=$(awk "BEGIN{printf \"%0.0f\", $avail_btc*1e11}")
+current_msat=$((utxo_msat + avail_msat))
+
+# compute net_msat from the earnings table
+net_msat=$(
+  echo "$EARNINGS" \
+    | tail -n4 | head -n1 \
+    | awk -F'|' '{
+        x=$(NF-1);
+        gsub(/[^0-9-]/, "", x);
+        print x
+      }'
+)
+
+# compute baseline
+baseline_msat=$(( current_msat - net_msat ))
+formatted=$(echo "$baseline_msat" \
+  | rev \
+  | sed 's/\([0-9]\{3\}\)/\1_/g; s/_$//' \
+  | rev
+)
+printf "Our balance at start of bucket: %s msat\n" "$formatted"
+# --- end baseline ---
 
 echo '```'

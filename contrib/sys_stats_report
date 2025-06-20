@@ -22,4 +22,6 @@ EARNINGS=$(/usr/local/src/clboss/contrib/clboss-earnings-history 2>/dev/null)
 echo "$EARNINGS" | head -n2 | tail -n1
 echo "$EARNINGS" | tail -n4 | head -n1
 
+lightning-cli summars | egrep '(avail_out|utxo_amount)'
+
 echo '```'

@@ -71,4 +71,22 @@ formatted=$(echo "$baseline_msat" \
 printf "Our balance at start of bucket: %s msat\n" "$formatted"
 # --- end baseline ---
 
+# ---- optional stats collection ---------------------------------------------
+if [[ -n "$STATSFILE" ]]; then
+  # helper – 1 234 567 890  →  1_234_567_890   (keeps any leading “‑” sign)
+  fmt() {
+    local n=$1 sign=
+    [[ $n == -* ]] && { sign="-"; n=${n#-}; }
+    printf '%s%s\n' "$sign" "$(rev <<<"$n" | sed 's/\([0-9]\{3\}\)/\1_/g; s/_$//' | rev)"
+  }
+
+  ts="$(date '+%Y-%m-%d %H:%M:%S')"          # local‑time timestamp
+  printf '%s %s %s %s\n' \
+         "$ts" \
+         "$(fmt "$utxo_msat")" \
+         "$(fmt "$avail_msat")" \
+         "$(fmt "$current_msat")"  >> "$STATSFILE"
+fi
+# -----------------------------------------------------------------------------
+
 echo '```'

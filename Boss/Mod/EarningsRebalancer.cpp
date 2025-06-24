@@ -32,20 +32,20 @@
 namespace {
 
 /* If we call dist on the random engine, and it comes up 1, we
- * trigger earnings rebalancer.  */
+ * trigger earnings rebalancer.	 */
 auto dist = std::uniform_int_distribution<std::size_t>(
 	1, 2
 );
 
 /* If the spendable amount is below this percent of the channel
- * total, trigger rebalancing *to* the channel.   */
+ * total, trigger rebalancing *to* the channel.	  */
 auto constexpr max_spendable_percent = double(25.0);
 /* Gap to prevent sources from becoming equal to the max_spendable_percent.  */
 auto constexpr src_gap_percent = double(2.5);
 /* Target to get to the destination.  */
 auto constexpr dst_target_percent = double(75.0);
 /* Once we have computed a desired amount to move, this limits how much we are
- * going to pay as fee.  */
+ * going to pay as fee.	 */
 auto constexpr maxfeepercent = double(0.5);
 
 /* The top percentile (based on earnings - expenditures) that we are going to
@@ -289,13 +289,13 @@ private:
 				     ;
 			});
 
-			/* Build up the action.  */
+			/* Build up the action.	 */
 			auto act = Ev::lift();
 			for (auto i = std::size_t(0); i < num_rebalance; ++i) {
 				auto s = sources[i];
 				auto d = destinations[i];
 
-				/* If the destination has negative out earnings, stop.  */
+				/* If the destination has negative out earnings, stop.	*/
 				auto const& ed = earnings[d];
 				auto dest_earnings = ed.out_net_earnings;
 				if (dest_earnings <= 0) {
@@ -310,7 +310,7 @@ private:
 							);
 					/* Since the vector is sorted from highest net
 					 * earnings to lowest, the rest of the vector can
-					 * be skipped.  */
+					 * be skipped.	*/
 					break;
 				}
 
@@ -321,7 +321,7 @@ private:
 
 				/* Determine how much money the source can spend
 				 * without going below max_spendable_percent and the
-				 * gap.  */
+				 * gap.	 */
 				auto const& bs = balances[s];
 				auto src_min_allowed = bs.total
 						     * ( max_spendable_percent
@@ -344,7 +344,7 @@ private:
 						dest_earnings
 					));
 					/* Also adjust the amount we are hoping to
-					 * transfer downwards.  */
+					 * transfer downwards.	*/
 					dest_needed = fee_budget * (100.0 / maxfeepercent);
 				}
 
@@ -356,7 +356,7 @@ private:
 						, Util::stringify(dest_needed).c_str()
 						, Util::stringify(d).c_str()
 						, Util::stringify(fee_budget).c_str()
-					        )
+						)
 				     + Boss::concurrent(bus.raise(Msg::RequestMoveFunds{
 						this, s, d, dest_needed, fee_budget
 				       }))

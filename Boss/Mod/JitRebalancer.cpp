@@ -13,6 +13,9 @@
 #include"Boss/Msg/ResponsePeerFromScid.hpp"
 #include"Boss/Msg/ProvideHtlcAcceptedDeferrer.hpp"
 #include"Boss/Msg/SolicitHtlcAcceptedDeferrer.hpp"
+#include"Boss/Msg/Manifestation.hpp"
+#include"Boss/Msg/ManifestOption.hpp"
+#include"Boss/Msg/Option.hpp"
 #include"Boss/concurrent.hpp"
 #include"Boss/log.hpp"
 #include"Boss/random_engine.hpp"
@@ -65,8 +68,8 @@ auto constexpr max_fee_percent = double(25.0);
  */
 auto const free_fee = Ln::Amount::sat(10);
 
-/* Maximum limit for costs of a *single* rebalance.  */
-auto constexpr max_rebalance_fee_percent = double(0.5);
+/* Maximum limit for costs of a *single* rebalance, in parts per million.  */
+auto constexpr default_max_rebalance_fee_ppm = std::uint32_t(5000);
 auto const min_rebalance_fee = Ln::Amount::sat(5);
 
 std::string stringify_cid(Ln::CommandId const& id) {
@@ -104,20 +107,43 @@ private:
 	MoveFundsRR move_funds_rr;
 	PeerFromScidRR peer_from_scid_rr;
 
-	ModG::RebalanceUnmanagerProxy unmanager;
+        ModG::RebalanceUnmanagerProxy unmanager;
+        std::uint32_t max_rebalance_fee_ppm;
 
-	void start() {
-		bus.subscribe<Msg::SolicitHtlcAcceptedDeferrer
-			     >([this
-			       ](Msg::SolicitHtlcAcceptedDeferrer const&) {
-			auto f = [this](Ln::HtlcAccepted::Request const& req) {
-				return htlc_accepted(req);
-			};
-			return bus.raise(Msg::ProvideHtlcAcceptedDeferrer{
-				std::move(f)
-			});
-		});
-	}
+        void start() {
+                max_rebalance_fee_ppm = default_max_rebalance_fee_ppm;
+
+                bus.subscribe<Msg::Manifestation
+                             >([this](Msg::Manifestation const&) {
+                        return bus.raise(Msg::ManifestOption{
+                                "clboss-max-rebalance-fee-ppm",
+                                Msg::OptionType_Int,
+                                Json::Out::direct(max_rebalance_fee_ppm),
+                                "Maximum fee in ppm for a single rebalance."
+                        });
+                });
+                bus.subscribe<Msg::Option
+                             >([this](Msg::Option const& o) {
+                        if (o.name != "clboss-max-rebalance-fee-ppm")
+                                return Ev::lift();
+			auto ppm = std::uint32_t(double(o.value));
+			max_rebalance_fee_ppm = ppm;
+                        return Boss::log( bus, Info,
+                                         "JitRebalancer: max fee set to %u ppm",
+                                         (unsigned)ppm );
+                });
+
+                bus.subscribe<Msg::SolicitHtlcAcceptedDeferrer
+                             >([this
+                               ](Msg::SolicitHtlcAcceptedDeferrer const&) {
+                        auto f = [this](Ln::HtlcAccepted::Request const& req) {
+                                return htlc_accepted(req);
+                        };
+                        return bus.raise(Msg::ProvideHtlcAcceptedDeferrer{
+                                std::move(f)
+                        });
+                });
+        }
 
 	Ev::Io<bool>
 	htlc_accepted(Ln::HtlcAccepted::Request const& req) {
@@ -175,14 +201,15 @@ private:
 	public:
 		Run() =delete;
 
-		Run(S::Bus& bus, Boss::ModG::RpcProxy& rpc
-		   , Ln::NodeId const& node
-		   , Ln::Amount amount
-		   , Ln::CommandId id
-		   , EarningsInfoRR& earnings_info_rr
-		   , MoveFundsRR& move_funds_rr
-		   , ModG::RebalanceUnmanagerProxy& unmanager
-		   );
+                Run(S::Bus& bus, Boss::ModG::RpcProxy& rpc
+                   , Ln::NodeId const& node
+                   , Ln::Amount amount
+                   , Ln::CommandId id
+                   , EarningsInfoRR& earnings_info_rr
+                   , MoveFundsRR& move_funds_rr
+                   , ModG::RebalanceUnmanagerProxy& unmanager
+                   , std::uint32_t& max_rebalance_fee_ppm
+                   );
 		Run(Run&&) =default;
 		Run(Run const&) =default;
 		~Run() =default;
@@ -196,10 +223,10 @@ private:
 		      , Ln::CommandId id
 		      ) {
 		return Ev::lift().then([this, node, amount, id]() {
-			auto r = Run( bus, rpc, node, amount, id
-				    , earnings_info_rr, move_funds_rr
-				    , unmanager
-				    );
+                        auto r = Run( bus, rpc, node, amount, id
+                                    , earnings_info_rr, move_funds_rr
+                                    , unmanager, max_rebalance_fee_ppm
+                                    );
 			return r.execute();
 		});
 	}
@@ -211,8 +238,8 @@ public:
 	      , earnings_info_rr(bus)
 	      , move_funds_rr(bus)
 	      , peer_from_scid_rr(bus)
-	      , unmanager(bus)
-	      { start(); }
+              , unmanager(bus)
+              { start(); }
 };
 
 /* Yes, what a messy name... */
@@ -242,7 +269,8 @@ private:
 	/* ReqResp to `Boss::Mod::FundsMover`.	*/
 	MoveFundsRR& move_funds_rr;
 	/* Unmanager proxy.  */
-	ModG::RebalanceUnmanagerProxy& unmanager;
+        ModG::RebalanceUnmanagerProxy& unmanager;
+        std::uint32_t& max_rebalance_fee_ppm;
 
 	std::set<Ln::NodeId> const* unmanaged;
 
@@ -418,10 +446,10 @@ private:
 					return Ev::lift();
 				});
 
-			auto max_rebalance_fee = to_move
-					       * ( max_rebalance_fee_percent
-						 / 100.0
-						 );
+                        auto max_rebalance_fee = to_move
+                                               * ( double(max_rebalance_fee_ppm)
+                                                   / 1000000.0
+                                                 );
 			if (max_rebalance_fee < min_rebalance_fee)
 				max_rebalance_fee = min_rebalance_fee;
 
@@ -501,20 +529,22 @@ private:
 	}
 
 public:
-	Impl( S::Bus& bus_
-	    , Boss::ModG::RpcProxy& rpc_
-	    , Ln::NodeId const& out_node_
-	    , Ln::Amount amount_
-	    , Ln::CommandId id_
-	    , EarningsInfoRR& earnings_info_rr_
-	    , MoveFundsRR& move_funds_rr_
-	    , ModG::RebalanceUnmanagerProxy& unmanager_
-	    ) : bus(bus_), rpc(rpc_)
-	      , out_node(out_node_), amount(amount_), id(id_)
-	      , earnings_info_rr(earnings_info_rr_)
-	      , move_funds_rr(move_funds_rr_)
-	      , unmanager(unmanager_)
-	      { }
+        Impl( S::Bus& bus_
+            , Boss::ModG::RpcProxy& rpc_
+            , Ln::NodeId const& out_node_
+            , Ln::Amount amount_
+            , Ln::CommandId id_
+            , EarningsInfoRR& earnings_info_rr_
+            , MoveFundsRR& move_funds_rr_
+            , ModG::RebalanceUnmanagerProxy& unmanager_
+            , std::uint32_t& max_rebalance_fee_ppm_
+            ) : bus(bus_), rpc(rpc_)
+              , out_node(out_node_), amount(amount_), id(id_)
+              , earnings_info_rr(earnings_info_rr_)
+              , move_funds_rr(move_funds_rr_)
+              , unmanager(unmanager_)
+              , max_rebalance_fee_ppm(max_rebalance_fee_ppm_)
+              { }
 
 	static
 	Ev::Io<void> execute(std::shared_ptr<Impl> self) {
@@ -540,13 +570,14 @@ JitRebalancer::Impl::Run::Run( S::Bus& bus
 			     , Ln::Amount amount
 			     , Ln::CommandId id
 			     , EarningsInfoRR& earnings_info_rr
-			     , MoveFundsRR& move_funds_rr
-			     , ModG::RebalanceUnmanagerProxy& unmanager
-			     )
-	: pimpl(std::make_shared<Impl>( bus, rpc, node, amount, id
-				      , earnings_info_rr, move_funds_rr
-				      , unmanager
-				      )) { }
+                             , MoveFundsRR& move_funds_rr
+                             , ModG::RebalanceUnmanagerProxy& unmanager
+                             , std::uint32_t& max_rebalance_fee_ppm
+                             )
+        : pimpl(std::make_shared<Impl>( bus, rpc, node, amount, id
+                                      , earnings_info_rr, move_funds_rr
+                                      , unmanager, max_rebalance_fee_ppm
+                                      )) { }
 Ev::Io<void> JitRebalancer::Impl::Run::execute() {
 	return Impl::execute(pimpl);
 }

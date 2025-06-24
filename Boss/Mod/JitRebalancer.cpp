@@ -234,12 +234,12 @@ private:
 	std::map<Ln::NodeId, ChannelInfo> available;
 	/* How much should we add to the destination?  */
 	Ln::Amount to_move;
-	/* Up to how much to pay for *this* rebalance.  */
+	/* Up to how much to pay for *this* rebalance.	*/
 	Ln::Amount this_rebalance_fee;
 
 	/* ReqResp to `Boss::Mod::EarningsTracker`.  */
 	EarningsInfoRR& earnings_info_rr;
-	/* ReqResp to `Boss::Mod::FundsMover`.  */
+	/* ReqResp to `Boss::Mod::FundsMover`.	*/
 	MoveFundsRR& move_funds_rr;
 	/* Unmanager proxy.  */
 	ModG::RebalanceUnmanagerProxy& unmanager;
@@ -306,10 +306,10 @@ private:
 			return rpc.command("listpeerchannels", std::move(parms));
 		}).then([this](Jsmn::Object res) {
 			try {
-                                  // auto ps = res["peers"];
-                                  // for (auto p : ps) {
-                          	auto cs = res["channels"];
-                                for (auto c : cs) {
+				  // auto ps = res["peers"];
+				  // for (auto p : ps) {
+				auto cs = res["channels"];
+				for (auto c : cs) {
 					auto to_us = Ln::Amount::sat(0);
 					auto capacity = Ln::Amount::sat(0);
 					auto peer = Ln::NodeId(std::string(
@@ -336,7 +336,7 @@ private:
 					auto& av = available[peer];
 					av.to_us += to_us;
 					av.capacity += capacity;
-                                }
+				}
 			} catch (std::exception const& ex) {
 				return Boss::log( bus, Error
 						, "JitRebalancer: Unexpected "
@@ -395,7 +395,7 @@ private:
 		}).then([this]() {
 
 			/* Determine how much fee we can use for
-			 * rebalancing.  */
+			 * rebalancing.	 */
 			return get_earnings(out_node);
 		}).then([this](Earnings e) {
 			/* Total aggregated limit.  */
@@ -429,7 +429,7 @@ private:
 			if (this_rebalance_fee > max_rebalance_fee)
 				this_rebalance_fee = max_rebalance_fee;
 
-			/* Now select a source channel.  */
+			/* Now select a source channel.	 */
 			auto min_required = to_move
 					  + (this_rebalance_fee / 2.0)
 					  ;

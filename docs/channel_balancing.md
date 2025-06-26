@@ -16,6 +16,8 @@
    ListpeersAnnouncer-->|ListpeersResult|EarningsRebalancer
    Manifester-->|Manifestation|EarningsRebalancer
    CommandReceiver-->|CommandRequest|EarningsRebalancer
+   EarningsTracker-->|ResponseEarningsInfo|EarningsRebalancer
+   EarningsRebalancer-->|RequestEarningsInfo|EarningsTracker
    EarningsRebalancer-->|ManifestCommand|Manifester
    EarningsRebalancer-->|CommandResponse|CommandReceiver
 

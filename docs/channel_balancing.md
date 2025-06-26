@@ -3,7 +3,7 @@
 ```mermaid
    %%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
 
-   flowchart TB
+   flowchart LR
 
    style InitialRebalancer fill:#9fb,stroke:#333,stroke-width:4px
    ListpeersAnnouncer-->|ListpeersResult|InitialRebalancer

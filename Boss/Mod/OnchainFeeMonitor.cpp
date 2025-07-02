@@ -4,6 +4,10 @@
 #include"Boss/Msg/DbResource.hpp"
 #include"Boss/Msg/Init.hpp"
 #include"Boss/Msg/OnchainFee.hpp"
+#include"Boss/Msg/CommandRequest.hpp"
+#include"Boss/Msg/CommandResponse.hpp"
+#include"Boss/Msg/Manifestation.hpp"
+#include"Boss/Msg/ManifestCommand.hpp"
 #include"Boss/Msg/ProvideStatus.hpp"
 #include"Boss/Msg/SolicitStatus.hpp"
 #include"Boss/Msg/Timer10Minutes.hpp"
@@ -127,6 +131,52 @@ private:
 					"onchain_feerate",
 					std::move(status)
 				});
+			});
+		});
+
+		/* Manifestation.  */
+		bus.subscribe<Msg::Manifestation
+			     >([this](Msg::Manifestation const&) {
+			return bus.raise(Msg::ManifestCommand{
+				"clboss-feerates", "",
+				"Show onchain feerate thresholds and current judgment.",
+				false
+			});
+		});
+
+		/* Command handler.  */
+		bus.subscribe<Msg::CommandRequest
+			     >([this](Msg::CommandRequest const& req) {
+			if (req.command != "clboss-feerates")
+				return Ev::lift();
+
+			auto id = req.id;
+			if (!db) {
+				auto result = Json::Out()
+					.start_object()
+						.field("hi_to_lo", -1.0)
+						.field("init_mid", -1.0)
+						.field("lo_to_hi", -1.0)
+						.field("last_feerate_perkw", last_feerate ? *last_feerate : -1.0)
+						.field("judgment", std::string(is_low_fee_flag ? "low" : "high"))
+					.end_object();
+				return bus.raise(Msg::CommandResponse{id, std::move(result)});
+			}
+
+			return db.transact().then([this](Sqlite3::Tx tx) {
+				auto feerates = get_percentile_feerates(tx);
+				tx.commit();
+				return Ev::lift(feerates);
+			}).then([this, id](PercentileFeerates feerates) {
+				auto result = Json::Out()
+					.start_object()
+						.field("hi_to_lo", feerates.h2l)
+						.field("init_mid", feerates.mid)
+						.field("lo_to_hi", feerates.l2h)
+						.field("last_feerate_perkw", last_feerate ? *last_feerate : -1.0)
+						.field("judgment", std::string(is_low_fee_flag ? "low" : "high"))
+					.end_object();
+				return bus.raise(Msg::CommandResponse{id, std::move(result)});
 			});
 		});
 	}

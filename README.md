@@ -224,6 +224,13 @@ Possibly the most interesting are these:
   The metrics shown are for the last 3 days, though CLBOSS stores
   the raw statistics for the past two months.
 
+### `clboss-feerates`
+
+Returns the same information printed by the `onchain_feerate` section of
+`clboss-status`. It reports the current percentile thresholds, the last
+observed feerate (in perkw), and whether CLBOSS currently judges fees to
+be `low` or `high`.
+
 ### `clboss-externpay`
 
 If CLBOSS is managing a node for a custodial service, then you should

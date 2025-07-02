@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [next rev]
+
+### Added
+
+- **RPC Enhancements**:
+  - Added the `clboss-feerates` command which reports the current fee
+    thresholds and judgment.
+
 ## [0.14.1] - 2024-12-05: "Hand at the Grindstone"
 
 ### Added

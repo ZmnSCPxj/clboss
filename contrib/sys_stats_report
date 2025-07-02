@@ -2,6 +2,13 @@
 
 export NO_COLOR=1
 
+# Optional --testnet flag propagates to all lightning-cli commands.
+LIGHTNING_CLI="lightning-cli"
+if [[ "$1" == "--testnet" ]]; then
+  LIGHTNING_CLI="lightning-cli --testnet"
+  shift
+fi
+
 # Use w/ https://github.com/ksedgwic/privdm to send as nostr private DM, eg:
 # 0 * * * * /usr/local/src/clboss/contrib/sys_stats_report | /usr/local/bin/privdm --from <YOUR_SERVER_PRIVKEY_FILE> --to <TARGET_PUBKEY_HEX> --via wss://your.relay.host
 
@@ -31,7 +38,7 @@ echo "$EARNINGS" | tail -n4 | head -n1
 # or problems in the net earnings calculation.
 
 # —– summars once, up‐front
-SUMMARY=$(lightning-cli summars)
+SUMMARY=$($LIGHTNING_CLI summars)
 
 # print just those two lines
 echo "$SUMMARY" | egrep '(avail_out|utxo_amount)'
@@ -69,6 +76,14 @@ formatted=$(echo "$baseline_msat" \
   | rev
 )
 printf "Our balance at start of bucket: %s msat\n" "$formatted"
+
+# current feerate
+read -r h2l mid l2h last judge < <(
+    $LIGHTNING_CLI clboss-feerates 2>/dev/null |
+        jq -r '[(.hi_to_lo // -1 | floor), (.init_mid // -1 | floor), (.lo_to_hi // -1 | floor), (.last_feerate_perkw // -1 | floor), (.judgment // "unknown")] | join(" ")'
+)
+echo "feerates:" "$h2l" "$mid" "$l2h" "$last" "$judge"
+
 # --- end baseline ---
 
 # ---- optional stats collection ---------------------------------------------
@@ -81,11 +96,13 @@ if [[ -n "$STATSFILE" ]]; then
   }
 
   ts="$(date '+%Y-%m-%d %H:%M:%S')"          # local‑time timestamp
-  printf '%s %s %s %s\n' \
+
+  printf '%s %s %s %s (%s, %s, %s): %s: %s fee\n' \
          "$ts" \
          "$(fmt "$utxo_msat")" \
          "$(fmt "$avail_msat")" \
-         "$(fmt "$current_msat")"  >> "$STATSFILE"
+         "$(fmt "$current_msat")" \
+         "$h2l" "$mid" "$l2h" "$last" "$judge" >> "$STATSFILE"
 fi
 # -----------------------------------------------------------------------------
 

@@ -170,8 +170,9 @@ autoreconf -i
 
 ### Contributed Utilities
 
-There are some contributed utilities in the `contrib` directory.  See the
-`contrib/README.md` for more details.
+There are a number of contributed utilities in the `contrib` directory.  See
+`contrib/README.md` for details on scripts such as `clboss-earnings-history`,
+`clboss-forwarding-stats`, `clboss-routing-stats`, and `recently-closed`.
 
 
 Operating

@@ -261,7 +261,7 @@ private:
 		}));
 	}
 
-	/* List of all nodes.  */
+	/* List of all nodes (self excluded).  */
 	std::queue<Ln::NodeId> all_nodes;
 
 	struct Popular {
@@ -367,7 +367,10 @@ private:
 				auto id = node["nodeid"];
 				if (!id.is_string())
 					continue;
-				all_nodes.emplace(std::string(id));
+				auto nid = Ln::NodeId(std::string(id));
+				if (nid == self)
+					continue;
+				all_nodes.emplace(std::move(nid));
 			}
 			/* Initialize the A-Chao algorithm.  */
 			num_processed = 0;
@@ -461,8 +464,10 @@ private:
 				auto destination = channel["destination"];
 				if (!destination.is_string())
 					continue;
-				auto dest_s = std::string(destination);
-				entry.peers.emplace(Ln::NodeId(dest_s));
+				auto dest = Ln::NodeId(std::string(destination));
+				if (dest == self)
+					continue;
+				entry.peers.emplace(std::move(dest));
 			}
 
 			if (entry.peers.size() == 0)

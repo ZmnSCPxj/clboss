@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Configuration**:
   - Added the `--clboss-min-nodes-to-process` option to control how
     many nodes CLBOSS must know before attempting to open channels.
-    Defaults are 800 for Bitcoin, 200 for Testnet, and 10 for other
+    Defaults are 800 for Bitcoin, 100 for Testnet, and 10 for other
     networks.  Setting `-1` uses these network-specific defaults.
 
 ## [0.14.1] - 2024-12-05: "Hand at the Grindstone"

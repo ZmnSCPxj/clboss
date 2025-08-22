@@ -142,7 +142,7 @@ private:
 			if (!min_nodes_to_process_set) {
 				switch (init.network) {
 				case Boss::Msg::Network_Bitcoin: min_nodes_to_process = 800; break;
-				case Boss::Msg::Network_Testnet: min_nodes_to_process = 200; break;
+				case Boss::Msg::Network_Testnet: min_nodes_to_process = 100; break;
 				default: min_nodes_to_process = 10; break; // others are likely small
 				}
 			}

@@ -69,7 +69,7 @@ auto constexpr max_fee_percent = double(25.0);
 auto const free_fee = Ln::Amount::sat(10);
 
 /* Maximum limit for costs of a *single* rebalance, in parts per million.  */
-auto constexpr default_max_rebalance_fee_ppm = std::uint32_t(5000);
+auto constexpr default_max_rebalance_fee_ppm = std::uint32_t(1000);
 auto const min_rebalance_fee = Ln::Amount::sat(5);
 
 std::string stringify_cid(Ln::CommandId const& id) {

@@ -30,6 +30,7 @@ auto const expected_options = std::vector<std::string>
 , "clboss-zerobasefee"
 , "clboss-min-channel"
 , "clboss-max-channel"
+, "clboss-min-nodes-to-process"
 };
 }
 

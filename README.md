@@ -497,7 +497,7 @@ will try to propose channels to popular nodes.  Pass this option to
 The defaults depend on the network:
 
 * Bitcoin: 800
-* Testnet: 200
+* Testnet: 100
 * Other networks: 10
 
 Setting the option to `-1` reverts to the built-in network-specific

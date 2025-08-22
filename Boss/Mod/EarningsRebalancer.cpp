@@ -7,6 +7,8 @@
 #include"Boss/Msg/ListpeersResult.hpp"
 #include"Boss/Msg/ManifestCommand.hpp"
 #include"Boss/Msg/Manifestation.hpp"
+#include"Boss/Msg/ManifestOption.hpp"
+#include"Boss/Msg/Option.hpp"
 #include"Boss/Msg/RequestEarningsInfo.hpp"
 #include"Boss/Msg/RequestMoveFunds.hpp"
 #include"Boss/Msg/ResponseEarningsInfo.hpp"
@@ -32,21 +34,20 @@
 namespace {
 
 /* If we call dist on the random engine, and it comes up 1, we
- * trigger earnings rebalancer.  */
+ * trigger earnings rebalancer.	 */
 auto dist = std::uniform_int_distribution<std::size_t>(
 	1, 2
 );
 
 /* If the spendable amount is below this percent of the channel
- * total, trigger rebalancing *to* the channel.   */
+ * total, trigger rebalancing *to* the channel.	  */
 auto constexpr max_spendable_percent = double(25.0);
 /* Gap to prevent sources from becoming equal to the max_spendable_percent.  */
 auto constexpr src_gap_percent = double(2.5);
 /* Target to get to the destination.  */
 auto constexpr dst_target_percent = double(75.0);
-/* Once we have computed a desired amount to move, this limits how much we are
- * going to pay as fee.  */
-auto constexpr maxfeepercent = double(0.5);
+/* Maximum fee for a single rebalance in parts per million.  */
+auto constexpr default_max_fee_ppm = std::uint32_t(1000);
 
 /* The top percentile (based on earnings - expenditures) that we are going to
  * rebalance.  */
@@ -80,13 +81,15 @@ private:
 	};
 	std::map<Ln::NodeId, EarningsInfo> earnings;
 
-	ModG::RebalanceUnmanagerProxy unmanager;
-	std::set<Ln::NodeId> const* unmanaged;
+        ModG::RebalanceUnmanagerProxy unmanager;
+        std::set<Ln::NodeId> const* unmanaged;
+        std::uint32_t max_fee_ppm;
 
-	void start() {
-		struct SelfTrigger { };
+        void start() {
+                struct SelfTrigger { };
 
-		working = false;
+                working = false;
+                max_fee_ppm = default_max_fee_ppm;
 
 		bus.subscribe<Msg::TimerRandomHourly
 			     >([this](Msg::TimerRandomHourly const& _) {
@@ -123,16 +126,32 @@ private:
 			return update_balances(m.cpeers);
 		});
 
-		/* Command to trigger the algorithm for testing.  */
-		bus.subscribe<Msg::Manifestation
-			     >([this](Msg::Manifestation const& _) {
-			return bus.raise(Msg::ManifestCommand{
-				"clboss-earnings-rebalancer",
-				"",
-				"Debug command to trigger EarningsRebalancer module.",
-				false
-			});
-		});
+                /* Command to trigger the algorithm for testing and option registration.  */
+                bus.subscribe<Msg::Manifestation
+                             >([this](Msg::Manifestation const& _) {
+                        return bus.raise(Msg::ManifestCommand{
+                                        "clboss-earnings-rebalancer",
+                                        "",
+                                        "Debug command to trigger EarningsRebalancer module.",
+                                        false
+                                })
+                             + bus.raise(Msg::ManifestOption{
+                                        "clboss-max-rebalance-fee-ppm",
+                                        Msg::OptionType_Int,
+                                        Json::Out::direct(max_fee_ppm),
+                                        "Maximum fee in ppm for a single rebalance."
+                                });
+                });
+                bus.subscribe<Msg::Option
+                             >([this](Msg::Option const& o) {
+                        if (o.name != "clboss-max-rebalance-fee-ppm")
+                                return Ev::lift();
+			auto ppm = std::uint32_t(double(o.value));
+			max_fee_ppm = ppm;
+                        return Boss::log( bus, Info,
+                                         "EarningsRebalancer: max fee set to %u ppm",
+                                         (unsigned)ppm );
+                });
 		bus.subscribe<Msg::CommandRequest
 			     >([this](Msg::CommandRequest const& c) {
 			if (c.command != "clboss-earnings-rebalancer")
@@ -289,13 +308,13 @@ private:
 				     ;
 			});
 
-			/* Build up the action.  */
+			/* Build up the action.	 */
 			auto act = Ev::lift();
 			for (auto i = std::size_t(0); i < num_rebalance; ++i) {
 				auto s = sources[i];
 				auto d = destinations[i];
 
-				/* If the destination has negative out earnings, stop.  */
+				/* If the destination has negative out earnings, stop.	*/
 				auto const& ed = earnings[d];
 				auto dest_earnings = ed.out_net_earnings;
 				if (dest_earnings <= 0) {
@@ -310,7 +329,7 @@ private:
 							);
 					/* Since the vector is sorted from highest net
 					 * earnings to lowest, the rest of the vector can
-					 * be skipped.  */
+					 * be skipped.	*/
 					break;
 				}
 
@@ -321,7 +340,7 @@ private:
 
 				/* Determine how much money the source can spend
 				 * without going below max_spendable_percent and the
-				 * gap.  */
+				 * gap.	 */
 				auto const& bs = balances[s];
 				auto src_min_allowed = bs.total
 						     * ( max_spendable_percent
@@ -335,8 +354,8 @@ private:
 				if (dest_needed > src_budget)
 					dest_needed = src_budget;
 
-				/* Now determine fee budget.  */
-				auto fee_budget = dest_needed * (maxfeepercent / 100.0);
+                                /* Now determine fee budget.  */
+                                auto fee_budget = dest_needed * (double(max_fee_ppm) / 1000000.0);
 				/* If the millisatoshi amount of fee_budget exceeds
 				 * our net earnings at the dest, adjust dest_needed.  */
 				if (std::int64_t(fee_budget.to_msat()) > dest_earnings) {
@@ -344,8 +363,8 @@ private:
 						dest_earnings
 					));
 					/* Also adjust the amount we are hoping to
-					 * transfer downwards.  */
-					dest_needed = fee_budget * (100.0 / maxfeepercent);
+					 * transfer downwards.	*/
+                                        dest_needed = fee_budget * (1000000.0 / double(max_fee_ppm));
 				}
 
 				/* Report and move.  */
@@ -356,7 +375,7 @@ private:
 						, Util::stringify(dest_needed).c_str()
 						, Util::stringify(d).c_str()
 						, Util::stringify(fee_budget).c_str()
-					        )
+						)
 				     + Boss::concurrent(bus.raise(Msg::RequestMoveFunds{
 						this, s, d, dest_needed, fee_budget
 				       }))

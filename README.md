@@ -488,6 +488,20 @@ Limits the fee CLBOSS will pay for a single internal rebalance.
 The value is in parts-per-million (PPM) of the amount being moved.
 The default is `1000` (0.1% of the amount). Both the
 JitRebalancer and EarningsRebalancer honor this limit.
+### `--clboss-min-nodes-to-process=<number>`
+
+Sets the minimum number of nodes that CLBOSS must know about before it
+will try to propose channels to popular nodes.  Pass this option to
+`lightningd` to override the default threshold.
+
+The defaults depend on the network:
+
+* Bitcoin: 800
+* Testnet: 200
+* Other networks: 10
+
+Setting the option to `-1` reverts to the built-in network-specific
+default.
 
 ### `clboss-recent-earnings`, `clboss-earnings-history`
 

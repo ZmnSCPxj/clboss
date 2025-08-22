@@ -47,7 +47,7 @@ auto constexpr src_gap_percent = double(2.5);
 /* Target to get to the destination.  */
 auto constexpr dst_target_percent = double(75.0);
 /* Maximum fee for a single rebalance in parts per million.  */
-auto constexpr default_max_fee_ppm = std::uint32_t(5000);
+auto constexpr default_max_fee_ppm = std::uint32_t(1000);
 
 /* The top percentile (based on earnings - expenditures) that we are going to
  * rebalance.  */

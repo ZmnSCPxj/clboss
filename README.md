@@ -486,7 +486,7 @@ suffix, e.g.
 
 Limits the fee CLBOSS will pay for a single internal rebalance.
 The value is in parts-per-million (PPM) of the amount being moved.
-The default is `5000` (0.5% of the amount). Both the
+The default is `1000` (0.1% of the amount). Both the
 JitRebalancer and EarningsRebalancer honor this limit.
 
 ### `clboss-recent-earnings`, `clboss-earnings-history`

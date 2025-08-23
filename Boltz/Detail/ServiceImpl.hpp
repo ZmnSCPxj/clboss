@@ -57,6 +57,7 @@ public:
 
 private:
 	/* Logging.  */
+	Ev::Io<void> logt(std::string);
 	Ev::Io<void> logd(std::string);
 	Ev::Io<void> loge(std::string);
 	std::string prefixlog(std::string);

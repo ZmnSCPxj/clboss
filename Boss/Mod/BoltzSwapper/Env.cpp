@@ -62,6 +62,11 @@ Ev::Io<bool> Env::broadcast_tx(Bitcoin::Tx n_tx) {
 	});
 }
 
+Ev::Io<void> Env::logt(std::string msg) {
+	return Boss::log( bus, Trace
+			, "%s", msg.c_str()
+			);
+}
 Ev::Io<void> Env::logd(std::string msg) {
 	return Boss::log( bus, Debug
 			, "%s", msg.c_str()

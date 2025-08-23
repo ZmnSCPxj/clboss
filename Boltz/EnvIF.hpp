@@ -35,6 +35,13 @@ public:
 	virtual
 	Ev::Io<bool> broadcast_tx(Bitcoin::Tx) =0;
 
+	/** Boltz::EnvIF::logt
+	 *
+	 * @brief prints a Trace-level log.
+	 */
+	virtual
+	Ev::Io<void> logt(std::string) =0;
+
 	/** Boltz::EnvIF::logd
 	 *
 	 * @brief prints a Debug-level log.

@@ -6,16 +6,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [next rev]
 
+## [0.15.0] - 2025-09-11: "Dancing in the Dark Liquidity"
+
 ### Added
 
-- **RPC Enhancements**:
-  - Added the `clboss-feerates` command which reports the current fee
-    thresholds and judgment.
+- **RPC**:
+  - Added the `clboss-feerates` command to report percentile thresholds,
+    last observed feerate (perkw), and the current low/high judgment.
 - **Configuration**:
-  - Added the `--clboss-min-nodes-to-process` option to control how
-    many nodes CLBOSS must know before attempting to open channels.
-    Defaults are 800 for Bitcoin, 100 for Testnet, and 10 for other
-    networks.  Setting `-1` uses these network-specific defaults.
+  - Added `--clboss-min-nodes-to-process` to control how many nodes
+    CLBOSS must know before proposing channels. Defaults: 800 (Bitcoin),
+    100 (Testnet), 10 (other). Setting `-1` uses network-specific defaults.
+  - Added `--clboss-max-rebalance-fee-ppm` to cap the fee for a single
+    internal rebalance (honored by both JitRebalancer and
+    EarningsRebalancer). Default is 1000 ppm (0.1%).
+- **Contrib scripts**:
+  - New `clboss-forwarding-stats` script.
+  - New `recently-closed` helper.
+  - New `sys_stats_report` to generate heartbeat status reports and
+    append metrics (e.g., `utxo_msat`, `avail_msat`, `current_msat`,
+    `avail_out`, `utxo_amount`) to a `STATS` file; includes a baseline
+    checksum and appends fee data from `clboss-feerates`.
+  - `clboss-earnings-history`: added `--csv-file`, `--graph-file` and
+    `--bucket` (day|week|fortnight|month|quarter); estimates the last
+    bucket based on remaining time.
+  - `clboss-routing-stats`: added `--days` to limit the time window.
+- **Docs**:
+  - Updated diagrams (rebalancer flow, channel balancing orientation) and
+    README/contrib docs; refreshed dependencies for contrib tooling.
+
+### Changed
+
+- Reduced the default `--clboss-max-rebalance-fee-ppm` from 5000 ppm
+  (0.5%) to 1000 ppm (0.1%).
+
+### Fixed
+
+- `ChannelFinderByPopularity`: ignore our own node when sampling and
+  enumerating peers ([#266]).
+- Swaps: avoid blank addresses in the cache and clean any that slipped
+  in; validate the initial Boltz claim destination address.
 
 ## [0.14.1] - 2024-12-05: "Hand at the Grindstone"
 

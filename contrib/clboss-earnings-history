@@ -5,7 +5,7 @@ import csv
 import json
 import os
 import subprocess
-from datetime import datetime
+from datetime import datetime, UTC
 from calendar import monthrange
 
 from tabulate import tabulate
@@ -33,7 +33,7 @@ def format_bucket_time(bucket_time):
     if bucket_time == 0:
         return "Legacy"
     else:
-        return datetime.utcfromtimestamp(bucket_time).strftime("%Y-%m-%d")
+        return datetime.fromtimestamp(bucket_time, UTC).strftime("%Y-%m-%d")
 
 
 def bucket_key(ds, bucket):
@@ -57,7 +57,7 @@ def bucket_key(ds, bucket):
 
 
 def bucket_length_days(start_ts, bucket):
-    dt = datetime.utcfromtimestamp(start_ts)
+    dt = datetime.fromtimestamp(start_ts, UTC)
     if bucket == "day":
         return 1
     elif bucket == "week":

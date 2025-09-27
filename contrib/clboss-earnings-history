@@ -5,7 +5,12 @@ import csv
 import json
 import os
 import subprocess
-from datetime import datetime, UTC
+try:
+    from datetime import datetime, UTC  # 3.11+
+except ImportError:
+    from datetime import datetime, timezone
+    UTC = timezone.utc
+
 from calendar import monthrange
 
 from tabulate import tabulate
